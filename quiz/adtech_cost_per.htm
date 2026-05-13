@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Квиз: SA Knowledge Sharing</title>
+<style>
+  :root {
+    --bg-primary: #0B1A30;
+    --bg-secondary: #112240;
+    --bg-card: #1A2D4A;
+    --accent: #64FFDA;
+    --accent-blue: #3B82F6;
+    --accent-glow: rgba(100, 255, 218, 0.15);
+    --text-primary: #E6F1FF;
+    --text-secondary: #8892B0;
+    --text-muted: #5A6A8A;
+    --correct: #64FFDA;
+    --wrong: #FF6B6B;
+    --border: rgba(100, 255, 218, 0.1);
+    --shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .bg-pattern {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%);
+  }
+  .app-container {
+    position: relative; z-index: 1; max-width: 680px; margin: 0 auto;
+    padding: 20px; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    justify-content: center; flex: 1; text-align: center; width: 100%;
+  }
+  .screen.active { display: flex; animation: fadeIn 0.6s ease; }
+  .screen.quiz-view { justify-content: flex-start; align-items: stretch; }
+  .hero-visual, .result-visual {
+    width: 160px; height: 160px; margin-bottom: 28px;
+    animation: float 6s ease-in-out infinite;
+  }
+  h1 {
+    font-size: clamp(24px, 5vw, 32px); font-weight: 700; margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .subtitle {
+    color: var(--text-secondary); font-size: 16px; line-height: 1.5;
+    margin-bottom: 6px; max-width: 420px;
+  }
+  .meta { color: var(--text-muted); font-size: 13px; margin-bottom: 32px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 36px; border: 1px solid var(--accent); background: transparent;
+    color: var(--accent); font-family: inherit; font-size: 15px; font-weight: 600;
+    border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+  }
+  .btn:hover { background: var(--accent-glow); box-shadow: 0 0 20px rgba(100, 255, 218, 0.15); transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: var(--bg-primary); border-color: var(--accent); }
+  .btn-primary:hover { background: #52E2C2; box-shadow: 0 0 30px rgba(100, 255, 218, 0.3); }
+  .progress-container { margin-bottom: 24px; padding-top: 12px; }
+  .progress-info { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .progress-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .progress-counter { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .progress-track { width: 100%; height: 4px; background: var(--bg-card); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-blue)); border-radius: 4px; transition: width 0.5s ease; }
+  .question-card {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 24px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .q-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+    padding: 4px 10px; background: var(--accent-glow); border-radius: 4px;
+  }
+  .q-text { font-size: clamp(16px, 3.5vw, 19px); font-weight: 600; line-height: 1.5; }
+  .options-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .option-btn {
+    display: flex; align-items: flex-start; gap: 14px; width: 100%;
+    padding: 16px 18px; background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text-primary); font-family: inherit;
+    font-size: 15px; line-height: 1.45; text-align: left; cursor: pointer; transition: all 0.25s ease;
+  }
+  .option-btn:hover:not(.disabled) { border-color: rgba(100, 255, 218, 0.3); background: rgba(100, 255, 218, 0.04); transform: translateX(4px); }
+  .opt-letter {
+    flex-shrink: 0; width: 30px; height: 30px; display: flex; align-items: center;
+    justify-content: center; border-radius: 8px; background: var(--bg-card);
+    border: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--accent); transition: all 0.25s ease;
+  }
+  .option-btn.correct { border-color: var(--correct); background: rgba(100, 255, 218, 0.08); }
+  .option-btn.correct .opt-letter { background: var(--correct); color: var(--bg-primary); border-color: var(--correct); }
+  .option-btn.wrong { border-color: var(--wrong); background: rgba(255, 107, 107, 0.08); }
+  .option-btn.wrong .opt-letter { background: var(--wrong); color: var(--bg-primary); border-color: var(--wrong); }
+  .option-btn.disabled { cursor: default; opacity: 0.5; }
+  .option-btn.correct.disabled, .option-btn.wrong.disabled { opacity: 1; }
+  .explanation {
+    display: none; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; animation: slideUp 0.4s ease; text-align: left;
+  }
+  .explanation.visible { display: block; }
+  .exp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 600; }
+  .exp-header.correct-header { color: var(--correct); }
+  .exp-header.wrong-header { color: var(--wrong); }
+  .exp-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+  .nav-area { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 16px; }
+  .btn-next { display: none; }
+  .btn-next.visible { display: inline-flex; animation: fadeIn 0.3s ease; }
+  .score-display { display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px; }
+  .score-num { font-size: 56px; font-weight: 700; color: var(--accent); }
+  .score-tot { font-size: 22px; color: var(--text-muted); font-weight: 500; }
+  .score-msg { font-size: 16px; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.5; }
+  .stats-row { display: flex; gap: 32px; margin-bottom: 32px; }
+  .stat-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .stat-val { font-size: 24px; font-weight: 700; }
+  .stat-val.green { color: var(--correct); }
+  .stat-val.red { color: var(--wrong); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  .shake { animation: shake 0.4s ease; }
+  @media (max-width: 480px) {
+    .app-container { padding: 16px; }
+    .question-card { padding: 20px 16px; }
+    .option-btn { padding: 14px 14px; font-size: 14px; }
+    .stats-row { gap: 24px; }
+    .score-num { font-size: 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="app-container">
+
+  <div class="screen active" id="startScreen">
+    <svg class="hero-visual" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="120" height="120" rx="24" fill="#112240" stroke="rgba(100,255,218,0.2)" stroke-width="2"/>
+      <circle cx="45" cy="50" r="6" fill="#3B82F6"/>
+      <circle cx="115" cy="50" r="6" fill="#3B82F6"/>
+      <circle cx="80" cy="85" r="8" fill="#64FFDA"/>
+      <circle cx="45" cy="110" r="6" fill="#3B82F6"/>
+      <circle cx="115" cy="110" r="6" fill="#3B82F6"/>
+      <line x1="45" y1="50" x2="80" y2="85" stroke="#3B82F6" stroke-width="2" opacity="0.6"/>
+      <line x1="115" y1="50" x2="80" y2="85" stroke="#3B82F6" stroke-width="2" opacity="0.6"/>
+      <line x1="45" y1="110" x2="80" y2="85" stroke="#3B82F6" stroke-width="2" opacity="0.6"/>
+      <line x1="115" y1="110" x2="80" y2="85" stroke="#3B82F6" stroke-width="2" opacity="0.6"/>
+      <line x1="45" y1="50" x2="115" y2="50" stroke="#5A6A8A" stroke-width="1.5" opacity="0.4"/>
+      <line x1="45" y1="110" x2="115" y2="110" stroke="#5A6A8A" stroke-width="1.5" opacity="0.4"/>
+      <rect x="68" y="73" width="24" height="24" rx="6" fill="#0B1A30" stroke="#64FFDA" stroke-width="1.5"/>
+      <path d="M76 85L78.5 87.5L83 83" stroke="#64FFDA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>AdTech & SA</h1>
+    <p class="subtitle">Проверьте знания о монетизации, CPM, CPA и эффективности рекламных моделей</p>
+    <p class="meta">5 вопросов · ~2 мин</p>
+    <button class="btn btn-primary" onclick="startQuiz()">Начать квиз</button>
+  </div>
+
+  <div class="screen quiz-view" id="quizScreen">
+    <div class="progress-container">
+      <div class="progress-info">
+        <span class="progress-label">Прогресс</span>
+        <span class="progress-counter" id="progressCounter">1 / 5</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width: 20%"></div></div>
+    </div>
+    <div class="question-card">
+      <div class="q-badge" id="questionBadge">Вопрос 1</div>
+      <p class="q-text" id="questionText"></p>
+    </div>
+    <div class="options-list" id="optionsList"></div>
+    <div class="explanation" id="explanation">
+      <div class="exp-header" id="expHeader">
+        <span id="expIcon"></span>
+        <span id="expTitle"></span>
+      </div>
+      <p class="exp-text" id="expText"></p>
+    </div>
+    <div class="nav-area"><button class="btn btn-next" id="btnNext" onclick="nextQuestion()">Далее →</button></div>
+  </div>
+
+  <div class="screen" id="resultScreen">
+    <svg class="result-visual" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="80" cy="80" r="60" fill="#112240" stroke="#64FFDA" stroke-width="3" opacity="0.8"/>
+      <circle cx="80" cy="80" r="40" fill="#0B1A30" stroke="rgba(100,255,218,0.3)" stroke-width="2"/>
+      <path d="M65 80L73 88L90 71" stroke="#64FFDA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="80" cy="80" r="75" stroke="rgba(59,130,246,0.2)" stroke-width="2" stroke-dasharray="4 6"/>
+    </svg>
+    <h1 id="resultTitle">Квиз завершён</h1>
+    <div class="score-display">
+      <span class="score-num" id="scoreNum">0</span>
+      <span class="score-tot">/ 5</span>
+    </div>
+    <p class="score-msg" id="scoreMsg"></p>
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-val green" id="statCorr">0</span><span class="stat-lbl">Верно</span></div>
+      <div class="stat-item"><span class="stat-val red" id="statWrong">0</span><span class="stat-lbl">Неверно</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="restartQuiz()">Пройти заново</button>
+  </div>
+
+</div>
+
+<script>
+const quizData = [
+  {
+    question: "Что означает CPM и за что платит рекламодатель?",
+    options: [
+      "Cost Per Mile; платит за 1000 показов",
+      "Cost Per Metric; платит за взаимодействие пользователя",
+      "Cost Per Minute; платит за длительность видео",
+      "Cost Per Message; платит за отправленное письмо"
+    ],
+    correct: 0,
+    explanation: "CPM (Cost Per Mille) означает оплату за 1000 показов. Рекламодатель платит фиксированную сумму независимо от кликов или действий пользователя."
+  },
+  {
+    question: "В модели CPA кто несёт больший финансовый риск?",
+    options: [
+      "Рекламодатель (платит только если произойдёт действие)",
+      "Издатель (получает деньги только если произойдёт действие)",
+      "Оба поровну",
+      "DSP платформа"
+    ],
+    correct: 1,
+    explanation: "В CPA паблишер крутит рекламу, но получает выплату только после целевого действия (клик → переход → конверсия). Риск ложится на издателя."
+  },
+  {
+    question: "Для чего нужно рассчитывать Effective CPM (eCPM)?",
+    options: [
+      "Определить фиксированную цену для издателей",
+      "Конвертировать CPA-цель в CPM-ставку, которая остаётся прибыльной",
+      "Измерить viewability видеорекламы",
+      "Отследить фрод и ботовый трафик"
+    ],
+    correct: 1,
+    explanation: "Формула: Target CPA ÷ (CTR × CR) = eCPM. Позволяет DSP вычислить максимальную ставку для CPM-аукциона, оставаясь в рамках бюджета при CPA-модели."
+  },
+  {
+    question: "В модели Rewarded CPA (пример с Chevron и игрой) кто получает наибольшую выгоду?",
+    options: [
+      "Только рекламодатель",
+      "Только издатель",
+      "И рекламодатель, и издатель",
+      "Только конечный пользователь"
+    ],
+    correct: 2,
+    explanation: "В этой модели обе стороны мотивированы: издатель получает CPA-выплату за выполненное действие, а рекламодатель — активного пользователя. Win-Win схема."
+  },
+  {
+    question: "Какой показатель отражает вероятность, что пользователь кликнет И совершит конверсию?",
+    options: [
+      "CTR (Click-Through Rate)",
+      "CR (Conversion Rate)",
+      "ICVR (Impression to Conversion Rate)",
+      "CVR (Cost-per-View Rate)"
+    ],
+    correct: 2,
+    explanation: "ICVR = CTR × CR. Это сквозная вероятность от показа баннера до финального целевого действия. Например, 0.8% × 5% = 0.04% (1 экшен на 2500 показов)."
+  }
+];
+
+const letters = ['A', 'B', 'C', 'D'];
+let current = 0, score = 0, answered = false;
+
+function startQuiz() {
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('quizScreen').classList.add('active');
+  current = 0; score = 0; render();
+}
+
+function render() {
+  answered = false;
+  const d = quizData[current];
+  document.getElementById('questionBadge').textContent = `Вопрос ${current + 1}`;
+  document.getElementById('questionText').textContent = d.question;
+  document.getElementById('progressCounter').textContent = `${current + 1} / ${quizData.length}`;
+  document.getElementById('progressFill').style.width = `${((current + 1) / quizData.length) * 100}%`;
+  
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  d.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => select(i);
+    list.appendChild(btn);
+  });
+
+  document.getElementById('explanation').classList.remove('visible');
+  document.getElementById('btnNext').classList.remove('visible');
+}
+
+function select(idx) {
+  if (answered) return; answered = true;
+  const d = quizData[current];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.classList.add('disabled');
+    if (i === d.correct) b.classList.add('correct');
+    if (i === idx && idx !== d.correct) b.classList.add('wrong', 'shake');
+  });
+  if (idx === d.correct) score++;
+
+  const header = document.getElementById('expHeader');
+  const icon = document.getElementById('expIcon');
+  const title = document.getElementById('expTitle');
+  const text = document.getElementById('expText');
+
+  header.className = `exp-header ${idx === d.correct ? 'correct-header' : 'wrong-header'}`;
+  icon.textContent = idx === d.correct ? '✓' : '✗';
+  title.textContent = idx === d.correct ? 'Правильно!' : 'Неправильно';
+  text.textContent = d.explanation;
+  document.getElementById('explanation').classList.add('visible');
+
+  const next = document.getElementById('btnNext');
+  next.textContent = current < quizData.length - 1 ? 'Далее →' : 'Результаты';
+  next.classList.add('visible');
+}
+
+function nextQuestion() {
+  current++;
+  if (current < quizData.length) render();
+  else showResults();
+}
+
+function showResults() {
+  document.getElementById('quizScreen').classList.remove('active');
+  document.getElementById('resultScreen').classList.add('active');
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('statCorr').textContent = score;
+  document.getElementById('statWrong').textContent = quizData.length - score;
+  document.getElementById('scoreMsg').textContent = 
+    score === 5 ? 'Безупречно! Вы отлично разбираетесь в рекламных моделях.' :
+    score >= 3 ? 'Хороший результат. Есть потенциал для углубления.' : 'Стоит повторить материалы и пройти тест снова.';
+}
+
+function restartQuiz() {
+  document.getElementById('resultScreen').classList.remove('active');
+  document.getElementById('startScreen').classList.add('active');
+}
+</script>
+</body>
+</html>
+
