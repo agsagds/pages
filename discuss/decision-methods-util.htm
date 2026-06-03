@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HBR · Гайдлайн принятия решений</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css">
+<style>
+:root {
+  --bg: #fafaf9;
+  --bg-elev: #ffffff;
+  --bg-elev-2: #f5f5f4;
+  --bg-hover: #ececec;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --text: #1c1917;
+  --text-dim: #57534e;
+  --text-muted: #a8a29e;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --yellow: #ca8a04;
+  --yellow-soft: #fef9c3;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+}
+[data-theme="dark"] {
+  --bg: #0a0a0b;
+  --bg-elev: #121214;
+  --bg-elev-2: #1a1a1e;
+  --bg-hover: #222226;
+  --border: #2a2a30;
+  --border-strong: #3a3a42;
+  --text: #e8e8ed;
+  --text-dim: #a0a0ab;
+  --text-muted: #6b6b75;
+  --accent: #60a5fa;
+  --accent-soft: #1e3a8a33;
+  --green: #4ade80;
+  --green-soft: #0d281833;
+  --yellow: #fbbf24;
+  --yellow-soft: #2a1f0533;
+  --red: #f87171;
+  --red-soft: #2a0d0d33;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: #fff; }
+
+.app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  position: sticky; top: 0; height: 100vh;
+  background: var(--bg-elev);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.sidebar-head {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 14px;
+}
+.logo-text { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+.logo-sub { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+.progress-mini {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.progress-bar-mini {
+  flex: 1; height: 4px; background: var(--bg-elev-2);
+  border-radius: 2px; overflow: hidden;
+}
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+
+.mode-switch {
+  display: flex; padding: 12px 16px; gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-btn {
+  flex: 1; padding: 6px 10px; border: none;
+  background: transparent; color: var(--text-dim);
+  font-size: 12px; font-weight: 500; font-family: inherit;
+  border-radius: 6px; cursor: pointer;
+  transition: all 0.15s;
+}
+.mode-btn:hover { background: var(--bg-hover); color: var(--text); }
+.mode-btn.active { background: var(--bg-elev-2); color: var(--text); }
+
+.nav-scroll { flex: 1; overflow-y: auto; padding: 12px 0; }
+.nav-group { margin-bottom: 4px; }
+.nav-group-title {
+  padding: 8px 20px 6px;
+  font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-group-title .count {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted); font-size: 10px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px;
+  cursor: pointer;
+  color: var(--text-dim); font-size: 13px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+.nav-item .check {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-item.completed .check {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.nav-item .check svg { width: 10px; height: 10px; opacity: 0; }
+.nav-item.completed .check svg { opacity: 1; }
+.nav-item .title { flex: 1; line-height: 1.35; }
+.nav-item .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text-muted);
+}
+
+.sidebar-foot {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 6px;
+}
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 7px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--bg-elev-2); color: var(--text); border-color: var(--border); }
+.foot-btn {
+  flex: 1; padding: 8px 12px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer; font-family: inherit;
+  font-size: 12px; font-weight: 500;
+  transition: all 0.15s;
+}
+.foot-btn:hover { background: var(--bg-elev-2); color: var(--text); }
+.foot-btn.danger:hover { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+
+/* ============ MAIN ============ */
+.main {
+  padding: 40px 64px 120px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.breadcrumbs {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text-muted);
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.breadcrumbs .sep { opacity: 0.4; }
+.breadcrumbs .current { color: var(--text-dim); }
+
+.step-header { margin-bottom: 32px; }
+.step-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.badge {
+  padding: 3px 9px; border-radius: 100px;
+  font-size: 11px; font-weight: 500;
+  background: var(--bg-elev-2); color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.badge.accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-muted);
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--bg-elev-2);
+}
+h1.step-title {
+  font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1.15; margin-bottom: 8px;
+}
+.step-subtitle {
+  font-size: 15px; color: var(--text-dim); font-style: italic;
+}
+
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin: 16px 0;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--border-strong); }
+.card-title {
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title svg { width: 14px; height: 14px; }
+
+.essence { border-left: 3px solid var(--accent); }
+.essence .card-title { color: var(--accent); }
+
+.warning { border-left: 3px solid var(--yellow); }
+.warning .card-title { color: var(--yellow); }
+
+.action { border-left: 3px solid var(--green); }
+.action .card-title { color: var(--green); }
+
+.card-body { font-size: 14.5px; color: var(--text-dim); }
+.card-body p { margin-bottom: 10px; }
+.card-body strong { color: var(--text); font-weight: 600; }
+.card-body ul { padding-left: 20px; margin: 10px 0; }
+.card-body li { margin-bottom: 8px; }
+
+/* ============ CHECKLIST ============ */
+.checklist { list-style: none; padding: 0; margin: 12px 0 0; }
+.check-item {
+  display: flex; gap: 12px; padding: 12px 14px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  align-items: flex-start;
+}
+.check-item:hover { border-color: var(--border-strong); transform: translateX(2px); }
+.check-item.checked {
+  background: var(--green-soft);
+  border-color: var(--green);
+}
+.check-item.checked .check-label { color: var(--text-dim); text-decoration: line-through; text-decoration-color: var(--text-muted); }
+.check-box {
+  width: 20px; height: 20px; border-radius: 6px;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  background: var(--bg-elev);
+}
+.check-item.checked .check-box {
+  background: var(--green); border-color: var(--green);
+}
+.check-box svg { width: 12px; height: 12px; opacity: 0; color: #fff; }
+.check-item.checked .check-box svg { opacity: 1; }
+.check-label { font-size: 14px; line-height: 1.5; flex: 1; }
+.check-label strong { display: block; margin-bottom: 2px; color: var(--text); font-weight: 600; font-size: 14px; }
+.check-label .hint { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+/* ============ NOTES ============ */
+.notes-area {
+  width: 100%; min-height: 100px;
+  padding: 14px 16px; border-radius: 9px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  color: var(--text); font-family: inherit; font-size: 14px;
+  line-height: 1.6; resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.notes-area:focus { border-color: var(--accent); background: var(--bg-elev); }
+.notes-area::placeholder { color: var(--text-muted); }
+.notes-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+/* ============ NAV BUTTONS ============ */
+.nav-buttons {
+  display: flex; gap: 10px; margin-top: 32px;
+  padding-top: 24px; border-top: 1px solid var(--border);
+}
+.btn {
+  padding: 11px 20px; border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text); font-family: inherit;
+  font-size: 13.5px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { filter: brightness(1.1); background: var(--accent); }
+.btn.ghost { background: transparent; }
+.btn svg { width: 14px; height: 14px; }
+.btn-complete {
+  margin-left: auto;
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green);
+}
+.btn-complete:hover { background: var(--green); color: #fff; }
+.btn-complete.done { background: var(--green); color: #fff; }
+
+/* ============ HOME ============ */
+.hero { margin-bottom: 40px; }
+.hero h1 {
+  font-size: 44px; font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1.05; margin-bottom: 18px;
+  background: linear-gradient(135deg, var(--text) 30%, var(--accent) 70%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p { font-size: 17px; color: var(--text-dim); max-width: 620px; line-height: 1.65; }
+
+.path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 28px 0; }
+.path-card {
+  padding: 20px; border-radius: 12px;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.path-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+.path-card .icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; margin-bottom: 12px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.path-card h3 { font-size: 14.5px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.01em; }
+.path-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+.path-card .meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-muted); margin-top: 10px;
+  display: flex; justify-content: space-between;
+}
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 28px 0; }
+.stat {
+  padding: 16px; background: var(--bg-elev);
+  border: 1px solid var(--border); border-radius: 10px;
+  text-align: center;
+}
+.stat .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px; font-weight: 700; color: var(--accent);
+  letter-spacing: -0.02em;
+}
+.stat .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+.article-row {
+  display: flex; gap: 14px; padding: 14px 16px;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+  transition: all 0.15s; align-items: center;
+}
+.article-row:hover { border-color: var(--border-strong); transform: translateX(2px); }
+.article-row .a-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-muted);
+  background: var(--bg-elev-2); padding: 3px 8px; border-radius: 5px;
+  min-width: 32px; text-align: center;
+}
+.article-row .a-body { flex: 1; }
+.article-row .a-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.article-row .a-authors { font-size: 12px; color: var(--text-muted); }
+.article-row .a-progress {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-muted);
+}
+
+.section-head { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 32px 0 12px; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; z-index: 100; width: 100%; transform: translateX(-100%); transition: transform 0.3s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { padding: 20px; }
+  h1.step-title { font-size: 24px; }
+  .hero h1 { font-size: 30px; }
+  .menu-toggle { display: flex !important; }
+}
+.menu-toggle { display: none; position: fixed; top: 16px; left: 16px; z-index: 99; }
+</style>
+</head>
+<body>
+<button class="menu-toggle icon-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="background:var(--bg-elev); border:1px solid var(--border)">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="logo">
+        <div class="logo-mark">H</div>
+        <div>
+          <div class="logo-text">Решения · Гайдлайн</div>
+          <div class="logo-sub">10 статей HBR · Практика</div>
+        </div>
+      </div>
+      <div class="progress-mini">
+        <span id="progressText">0 / 0</span>
+        <div class="progress-bar-mini"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <span id="progressPct">0%</span>
+      </div>
+    </div>
+    <div class="mode-switch">
+      <button class="mode-btn active" data-mode="sequential" onclick="setMode('sequential')">Последовательно</button>
+      <button class="mode-btn" data-mode="article" onclick="setMode('article')">По статьям</button>
+    </div>
+    <div class="nav-scroll" id="navScroll"></div>
+    <div class="sidebar-foot">
+      <button class="foot-btn" onclick="toggleTheme()" id="themeBtn">🌙 Тема</button>
+      <button class="foot-btn danger" onclick="resetAll()">Сброс</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+// ============================================================
+// STEPS DATA — практические шаги из 10 статей
+// ============================================================
+const ARTICLES = [
+  { id: 'a1', num: '01', title: 'Скрытые ловушки процесса', authors: 'Хэммонд, Кини, Райффа', category: 'calibration', categoryName: 'Калибровка' },
+  { id: 'a2', num: '02', title: 'Перед тем как принять важное решение', authors: 'Канеман, Ловалло, Сибони', category: 'calibration', categoryName: 'Калибровка' },
+  { id: 'a3', num: '03', title: 'Как избежать катастрофы', authors: 'Тинсли, Диллон, Мэдсен', category: 'monitoring', categoryName: 'Мониторинг' },
+  { id: 'a4', num: '04', title: 'Как преодолеть пассивность', authors: 'Рэм Чаран', category: 'architecture', categoryName: 'Архитектура' },
+  { id: 'a5', num: '05', title: 'Неизвестные факты о принятии решений', authors: 'Гарвин, Роберто', category: 'monitoring', categoryName: 'Мониторинг' },
+  { id: 'a6', num: '06', title: 'За кем последнее слово?', authors: 'Роджерс, Бленко', category: 'architecture', categoryName: 'Архитектура' },
+  { id: 'a7', num: '07', title: 'Насколько вы (не)этичны?', authors: 'Банаджи, Базерман, Чу', category: 'calibration', categoryName: 'Калибровка' },
+  { id: 'a8', num: '08', title: 'Принятие решений: совершенствуем процесс', authors: 'Дэвенпорт', category: 'architecture', categoryName: 'Архитектура' },
+  { id: 'a9', num: '09', title: 'Почему хорошие руководители ошибаются', authors: 'Кэмпбелл, Уайтхед, Финкельштейн', category: 'calibration', categoryName: 'Калибровка' },
+  { id: 'a10', num: '10', title: 'Хватит строить планы, пора принимать решения', authors: 'Мэнкинс, Стил', category: 'architecture', categoryName: 'Архитектура' },
+];
+
+const STEPS = [
+  // Статья 1
+  { id: '1-1', article: 'a1', num: '1.1', title: 'Проверка на якорение', subtitle: 'Первый вход доминирует над остальными',
+    essence: 'Первая полученная информация неоправданно утяжеляет все последующие вычисления. Якорь «оседает» в мозгу и влияет на все дальнейшие рассуждения.',
+    warning: 'Старые цифры, первая названная цена, первое мнение эксперта — всё это становится якорем. На переговорах якорение используют как тактику.',
+    checklist: [
+      { t: 'Рассмотреть проблему с разных стартовых позиций', h: 'Используйте минимум 3 альтернативных точки отсчёта' },
+      { t: 'Сначала подумать самостоятельно, потом советоваться', h: 'Чужие идеи станут якорями для вашего мышления' },
+      { t: 'Получить информацию от разных людей', h: 'Раздвинуть рамки мышления' },
+      { t: 'Не сообщать советникам свои оценки заранее', h: 'Иначе ваши предубеждения вернутся к вам' },
+      { t: 'На переговорах: назначить свой якорь первым', h: 'Цена выше желаемой, если вы продавец' },
+    ]
+  },
+  { id: '1-2', article: 'a1', num: '1.2', title: 'Проверка на статус-кво', subtitle: 'Бездействие кажется безопаснее действия',
+    essence: 'Нарушение текущего положения вещей означает переход к действию, а действие — ответственность и возможную критику. Поэтому «ничего не делать» кажется безопаснее.',
+    warning: 'В бизнесе грехи действия наказываются строже, чем грехи бездействия. Но статус-кво со временем укореняется, и изменить его становится сложнее.',
+    checklist: [
+      { t: 'Проверить, достигаются ли цели при текущем положении', h: 'Возможно, статус-кво сам блокирует цель' },
+      { t: 'Никогда не рассматривать статус-кво как единственную альтернативу', h: 'Определите все варианты и сравните плюсы/минусы' },
+      { t: 'Спросить: «Если бы текущего положения не было, создал бы я его?»', h: 'Мысленный эксперимент с нуля' },
+      { t: 'Не преувеличивать стоимость переключения', h: 'Мы склонны завышать усилия на уход от текущего' },
+      { t: 'Оценивать альтернативы с точки зрения будущего, а не только настоящего', h: 'Сегодняшняя ситуация завтра может выглядеть менее привлекательной' },
+      { t: 'Если есть 2 варианта лучше статус-кво — не выбирать «по умолчанию»', h: 'Заставьте себя сделать осознанный выбор' },
+    ]
+  },
+  { id: '1-3', article: 'a1', num: '1.3', title: 'Проверка на необратимые затраты', subtitle: 'Прошлое искажает будущее',
+    essence: 'Наши прошлые решения становятся необратимыми затратами — временными или денежными, которые невозможно вернуть. На рациональном уровне мы это понимаем, но на эмоциональном — продолжаем оправдывать старые ошибки.',
+    warning: 'Признание ошибки публично болезненно. В банках менеджеры, выдавшие плохой займ, склонны выдавать дополнительные средства тому же заёмщику, чтобы «исправить ситуацию».',
+    checklist: [
+      { t: 'Попросить совета у людей, не участвовавших в прежних решениях', h: 'Они не заинтересованы в их реализации' },
+      { t: 'Понять: причина удержания — уязвлённое самолюбие?', h: '«Если вы оказались в яме, перестаньте копать глубже» (У. Баффетт)' },
+      { t: 'Переложить проект на другого человека, если нужно', h: 'Свежий взгляд без эмоциональной привязки' },
+      { t: 'Искоренить в организации страх наказания за ошибки', h: 'Иначе сотрудники будут защищать неудачные проекты до последнего' },
+      { t: 'Оценивать качество решения, а не только результат', h: 'Хорошее решение может привести к плохому результату из-за внешних факторов' },
+    ]
+  },
+  { id: '1-4', article: 'a1', num: '1.4', title: 'Проверка на фильтр подтверждения', subtitle: 'Желаемое vs действительное',
+    essence: 'Мы ищем информацию, подтверждающую уже принятое подсознанием решение, и игнорируем всё, что ему противоречит. Мы выбираем и интерпретируем данные так, чтобы поддержать свою точку зрения.',
+    warning: 'Две силы: 1) подсознательная склонность выбрать линию поведения до понимания причин; 2) заинтересованность в том, что нравится, а не наоборот.',
+    checklist: [
+      { t: 'Оценивать каждый вариант одинаково беспристрастно', h: 'Не принимать доказательств своей точки зрения без проверки' },
+      { t: 'Назначить оппонента (или самому найти контраргументы)', h: 'Главная причина поступить иначе? Следующая?' },
+      { t: 'Проанализировать собственные мотивы', h: 'Ищу информацию для выбора или для подтверждения?' },
+      { t: 'Не задавать наводящих вопросов', h: 'Не провоцировать ответ, доказывающий мою правоту' },
+      { t: 'Не окружать себя конформистами', h: 'Если все соглашаются — это красный флаг' },
+    ]
+  },
+  { id: '1-5', article: 'a1', num: '1.5', title: 'Проверка формулировки', subtitle: 'То, как поставлен вопрос, диктует ответ',
+    essence: 'Способ формулировки проблемы во многом обусловливает выбор. Люди предпочитают избегать риска, когда речь идёт о выигрыше, но готовы рисковать, чтобы избежать потерь. Разные точки отсчёта меняют решение.',
+    warning: 'Пример: в Нью-Джерси 80% водителей ограничились в правах на иск, в Пенсильвании — 25%. Формулировка по умолчанию. Штат потерял $200 млн.',
+    checklist: [
+      { t: 'Изложить проблему в нескольких вариантах', h: 'Не ограничиваться первой формулировкой' },
+      { t: 'Сформулировать нейтрально, объединив выигрыш и проигрыш', h: 'Использовать разные точки отсчёта' },
+      { t: 'В процессе решения помнить о формулировке', h: 'В конце спросить: «Как изменится моё мнение при другой формулировке?»' },
+      { t: 'Если решает другой — обратить внимание на его формулировку', h: 'Предложить иное определение для новых вариантов' },
+    ]
+  },
+  { id: '1-6', article: 'a1', num: '1.6', title: 'Проверка на самонадеянность', subtitle: 'Слишком узкий коридор вероятностей',
+    essence: 'Мы переоцениваем собственные способности к оценке и прогнозированию. Тесты показывают: когда люди задают диапазон с ошибкой не более 1%, реальное значение выходит за пределы в 20–30% случаев.',
+    warning: 'Занизив верхний или завысив нижний предел, руководитель рискует упустить сделку или подвергнуться большему риску, чем рассчитывал.',
+    checklist: [
+      { t: 'Определить верхний и нижний пределы диапазона вероятностей', h: 'Начать с этого, не с центральной оценки' },
+      { t: 'Представить обстоятельства выхода за пределы', h: 'При необходимости расширить диапазон' },
+      { t: 'Поставить такую же задачу подчинённым и консультантам', h: 'Они тоже жертвы собственной самонадеянности' },
+    ]
+  },
+  { id: '1-7', article: 'a1', num: '1.7', title: 'Проверка на перестраховку', subtitle: 'Искусственное занижение «на всякий случай»',
+    essence: 'Принимая важное решение, мы часто проявляем чрезмерную осторожность. Каждый отдел подгоняет свои оценки «на всякий случай», и искажения накапливаются на каждом уровне иерархии.',
+    warning: 'Пример: отделы маркетинга, продаж, финансов каждый добавил «подушку безопасности» → компания произвела вдвое больше автомобилей, чем нужно.',
+    checklist: [
+      { t: 'Делать оценку объективной, без подгонки под цель', h: 'Сообщить тем, кто будет использовать оценку' },
+      { t: 'Объяснить важность объективности исполнителям', h: 'Они должны понимать, зачем нужны «сырые» данные' },
+      { t: 'Проверить оценки на подходящем диапазоне', h: 'Отдать предпочтение наиболее точным' },
+    ]
+  },
+  { id: '1-8', article: 'a1', num: '1.8', title: 'Проверка на влияние памяти', subtitle: 'Яркое ≠ вероятное',
+    essence: 'Вероятность событий оценивается не по статистике, а по лёгкости воспроизведения в памяти. СМИ, личные травмы, драматические события — всё это искажает оценку.',
+    warning: 'Юристы переоценивают вероятность выигрыша иска, потому что СМИ ярко освещают редкие случаи огромных компенсаций, игнорируя обычные.',
+    checklist: [
+      { t: 'Проанализировать ход рассуждений: не влияет ли прошлое?', h: 'Отделить драматические воспоминания от статистики' },
+      { t: 'Использовать статистические данные', h: 'Не позволять субъективным впечатлениям вести по ложному пути' },
+    ]
+  },
+
+  // Статья 2
+  { id: '2-1', article: 'a2', num: '2.1', title: 'Аудит мотивации команды', subtitle: 'Вопросы ЛПР к себе',
+    essence: 'ЛПР не может контролировать свою интуицию, но может использовать рациональность (Систему 2) для аудита интуиции других (Системы 1). Это внешний контур контроля качества.',
+    warning: 'Даже профессионалы, искренне верящие, что их решения «не продаются» (врачи, аудиторы), склонны к искажениям в сторону собственных интересов.',
+    checklist: [
+      { t: 'Проверить мотивированную ошибку', h: 'Есть ли у команды скрытая заинтересованность: власть, репутация, карьерный рост? Оценивать такие предложения особенно тщательно' },
+      { t: 'Проверить «влюблённость» в идею', h: 'Если команда слишком увлечена — преуменьшает риски и преувеличивает преимущества. Тщательная проверка каждого компонента' },
+      { t: 'Проверить групповое мышление', h: 'Были ли разногласия в команде? Если нет — это красный флаг. Спросить каждого отдельно' },
+    ]
+  },
+  { id: '2-2', article: 'a2', num: '2.2', title: 'Аудит логики и данных', subtitle: 'Вопросы авторам предложения',
+    essence: 'Проверяем когнитивные искажения в самом процессе выработки предложения: аналогии, подтверждение, доступность, якорение, ореол, необратимые затраты.',
+    warning: 'Иллюзия значимости — запоминающееся событие влияет на мнение команды сильнее, чем должно.',
+    checklist: [
+      { t: 'Проверить аналогию на репрезентативность', h: 'Запросить 5+ других аналогичных случаев. Использовать «предсказание по референтному классу»' },
+      { t: 'Проверить наличие реальных альтернатив', h: 'Минимум 1–2 альтернативы основному сценарию с «за» и «против». Избегать «соломенных чучел»' },
+      { t: 'Проверить эвристику доступности', h: '«Если бы я принимал это решение через год, какую информацию хотел бы иметь? Можно ли получить её сейчас?»' },
+      { t: 'Проверить эффект привязки в цифрах', h: 'Откуда взяты цифры? Точные или приблизительные? Кто внёс первое число? Перепривязать через другие модели' },
+      { t: 'Проверить эффект ореола', h: 'Не переносится ли успех в одной сфере на гарантии успеха в другой? Запросить примеры менее успешных компаний' },
+      { t: 'Проверить привязку к прошлым решениям', h: 'Посмотреть на проект глазами нового CEO: «Если бы я не принимал прошлых решений, инвестировал бы я сейчас?»' },
+    ]
+  },
+  { id: '2-3', article: 'a2', num: '2.3', title: 'Аудит самого предложения', subtitle: 'Вопросы к сути',
+    essence: 'Финальная проверка — оптимизм прогноза, учёт худшего сценария и возможный консерватизм команды.',
+    warning: 'Оптимистические искажения усиливаются неизбежной путаницей между прогнозами (должны быть точными) и целями (должны быть амбициозными).',
+    checklist: [
+      { t: 'Проверить оптимизм прогноза', h: 'Использовать «внешний взгляд» (статистика похожих проектов) вместо «внутреннего» (сценарий авторов). Учесть реакцию конкурентов' },
+      { t: 'Провести «пре-мортем»', h: 'Представить, что худший сценарий сбылся. Написать историю о причинах провала' },
+      { t: 'Проверить чрезмерную осторожность', h: 'Перегруппировать мотивирующие факторы: разделить ответственность за риск или убрать его совсем' },
+    ]
+  },
+
+  // Статья 3
+  { id: '3-1', article: 'a3', num: '3.1', title: 'Внимание к высокому давлению', subtitle: 'Стресс сужает когнитивный тоннель',
+    essence: 'Чем больше давление при достижении производственных целей (сроки, бюджет, показатели), тем больше руководители склонны недооценивать промахи или считать их свидетельством правильных решений.',
+    warning: 'Катастрофа BP: $1 млн в день за аренду буровой установки повлияло на неспособность распознать предупреждающие знаки. «Колумбия»: давление сборки МКС привело к нормализации отклонений.',
+    checklist: [
+      { t: 'В периоды давления спрашивать: «Принял бы я то же решение с большим временем и ресурсами?»', h: 'Принудительная проверка решений под давлением' },
+      { t: 'Ожидать больше искажений под давлением', h: 'Люди больше доверяют эвристике и проверенным методам' },
+      { t: 'Не нормализовать отклонения под давлением сроков', h: '«Издержки процесса» ≠ «промах, который сойдёт с рук»' },
+    ]
+  },
+  { id: '3-2', article: 'a3', num: '3.2', title: 'Обучение на отклонениях', subtitle: 'Ненормализация аномалий',
+    essence: 'Реакция на отклонения часто — пересмотр приемлемости рисков. Люди могут понимать статистический риск, но всё меньше о нём беспокоиться. Аномалии становятся нормой.',
+    warning: 'JetBlue: доля задержек 2+ часа выросла в 3 раза за 4 года, но воспринималась как «удачные полёты». Toyota: 2000+ жалоб на ускорение с 2001 г. замалчивались.',
+    checklist: [
+      { t: 'Искать отклонения от нормы в работе', h: 'Фиксировать и анализировать, а не игнорировать' },
+      { t: 'Спросить: «Всегда ли мы были спокойны при этом уровне риска?»', h: 'Изменилась ли наша линия поведения со временем?' },
+      { t: 'Различать удачный исход и правильное решение', h: '«Победителей не судят» — опасный миф' },
+    ]
+  },
+  { id: '3-3', article: 'a3', num: '3.3', title: 'Поиск первопричины', subtitle: 'Не лечить симптом',
+    essence: 'При обнаружении отклонений руководители рефлекторно пытаются исправить симптом, а не причину. Лечение симптома создаёт иллюзию решения.',
+    warning: 'NASA Mars Climate Orbiter: 4 раза корректировали курс, но не искали причину. Аппарат разбился: программисты использовали британскую систему мер вместо метрической.',
+    checklist: [
+      { t: 'Не принимать успешный результат как доказательство правильности', h: 'Успех может маскировать скрытую ошибку' },
+      { t: 'Копать до корня проблемы', h: 'Исправление симптома не устраняет причину' },
+      { t: 'Обращать внимание на «маленькие» провалы', h: 'Из 1000 промахов: 1 → серьёзная травма, 10 → мелкие травмы, 30 → повреждения оборудования' },
+    ]
+  },
+  { id: '3-4', article: 'a3', num: '3.4', title: 'Подотчётность за «чудесные» спасения', subtitle: 'Успех ≠ мастерство',
+    essence: 'Даже зная о близких к провалу ситуациях, люди преуменьшают их важность. Подотчётность заставляет оценивать «чудесные спасения» так же жёстко, как реальные провалы.',
+    warning: 'В эксперименте участники одинаково хвалили менеджера при успешном и «чудом успешном» исходе. Но когда им сказали, что оценку нужно обосновать перед начальством, оценки резко упали.',
+    checklist: [
+      { t: 'Требовать от менеджеров обоснования решений', h: 'Даже если всё закончилось хорошо' },
+      { t: 'Публично разбирать «чуть не случившиеся» катастрофы', h: 'По тем же критериям, что и реальные провалы' },
+      { t: 'Создать культуру, где спасения = промахи', h: 'Удача — не заслуга' },
+    ]
+  },
+  { id: '3-5', article: 'a3', num: '3.5', title: 'Моделирование худшего сценария', subtitle: 'Люди не склонны думать о плохом',
+    essence: 'Несмотря на напоминания, люди не склонны задумываться о возможных негативных последствиях промахов. Детализация худшего сценария меняет решения.',
+    warning: 'Apple знала о проблеме антенны iPhone 4, но не представляла масштаб негативной реакции. Walmart, изучая прошлые промахи при ураганах, опередил федеральные власти в реакции на «Катрину».',
+    checklist: [
+      { t: 'Детально расписать худший сценарий', h: 'Включая факторы, которые мы не контролируем' },
+      { t: 'Рассмотреть конкретные примеры прошлых провалов', h: 'Соседний дом, на который упало дерево, а не «мой устоял»' },
+      { t: 'Планировать реакцию на худший сценарий заранее', h: 'Walmart увеличил команду быстрого реагирования с 6–10 до 50 человек перед «Катриной»' },
+    ]
+  },
+  { id: '3-6', article: 'a3', num: '3.6', title: 'Оценка на каждом этапе', subtitle: 'Разбор не только после провала',
+    essence: 'Когда дела идут плохо — проводят разбор. Когда всё в порядке — никто не делает формальный пересмотр успеха. Но опасные ситуации часто похожи на удачные.',
+    warning: 'В NASA введён процесс «остановись и проанализируй»: обсуждение в каждый ключевой момент проекта. В каждом проекте были выявлены незамеченные ошибки проектирования.',
+    checklist: [
+      { t: 'Внедрить процесс «остановись и проанализируй»', h: 'В каждый ключевой момент проекта' },
+      { t: 'Изучать не только промахи, но и «успешные» ситуации', h: 'Они могут маскировать близкие провалы' },
+      { t: 'Проводить семинары по обмену информацией', h: 'В более широком кругу команд' },
+    ]
+  },
+  { id: '3-7', article: 'a3', num: '3.7', title: 'Награждение за признание промахов', subtitle: 'Страх скрывает слабые сигналы',
+    essence: 'Выявление промахов требует организационной готовности. Если люди не мотивированы раскрывать промахи — никакое внимание не предотвратит провал.',
+    warning: 'Моряк на авианосце обнаружил потерю инструмента на палубе. Признался — остановили учения, перенаправили самолёты. Вместо наказания — публичная благодарность за храбрость.',
+    checklist: [
+      { t: 'Публично награждать за сообщения о промахах', h: 'В том числе собственных' },
+      { t: 'Создать систему быстрых отчётов', h: 'Как в больницах: медсестра чуть не дала лекарство не тому пациенту → немедленный отчёт → новое правило размещения пациентов' },
+      { t: 'Искоренить страх наказания за честное признание', h: 'Иначе каждая «удачная» ситуация останется опасной' },
+    ]
+  },
+
+  // Статья 4
+  { id: '4-1', article: 'a4', num: '4.1', title: 'Открытость диалога', subtitle: 'Исход не предрешён',
+    essence: 'Исход дискуссии не запрограммирован. Участники честно рассматривают все предложения и ищут новые подходы. Лидер демонстрирует готовность выслушать все точки зрения.',
+    warning: 'Когда подчинённые чувствуют, что решение уже принято, они не высказывают критических замечаний. Итог — «ложный консенсус».',
+    checklist: [
+      { t: 'Задавать вопрос: «Чего нам не хватает?»', h: 'Вовлекает в обсуждение, демонстрирует готовность слушать' },
+      { t: 'Не показывать своё решение до окончания обсуждения', h: 'Создаёт условия для свободного обмена мнениями' },
+      { t: 'Создавать пространство для инакомыслия', h: 'Живая дискуссия ≠ согласие' },
+    ]
+  },
+  { id: '4-2', article: 'a4', num: '4.2', title: 'Искренность диалога', subtitle: 'Говорить о сокровенном',
+    essence: 'Искренность — это готовность говорить о сокровенном, признавать оплошности, открыто обсуждать конфликты. Искренние люди говорят то, что думают, а не то, чего ждут от них.',
+    warning: 'Молчаливая ложь и негласные запреты возникают, когда люди соглашаются, но считают иначе. Это подрывает исполнение решений.',
+    checklist: [
+      { t: 'Искоренять молчаливую ложь', h: 'Когда люди «вроде бы соглашаются, но на самом деле считают иначе»' },
+      { t: 'Открыто обсуждать разрушающие коллектив конфликты', h: 'Не заметать под ковёр' },
+      { t: 'Говорить то, что думаешь', h: 'А не то, чего ждут окружающие' },
+    ]
+  },
+  { id: '4-3', article: 'a4', num: '4.3', title: 'Непринуждённость диалога', subtitle: 'Снижение социального трения',
+    essence: 'Когда участники зажаты, встреча идёт по отрепетированному сценарию. Непринуждённость позволяет генерировать нестандартные идеи и задавать «глупые» вопросы.',
+    warning: 'Реплики участников «заранее известны» — значит, встреча срежиссирована и не даёт новых идей.',
+    checklist: [
+      { t: 'Снизить формальность встреч', h: 'Люди настроены дружелюбнее, не боятся задавать вопросы' },
+      { t: 'Разрешить «глупые» вопросы', h: 'Они часто ведут к нестандартным идеям' },
+      { t: 'Наполнить людей энтузиазмом', h: 'Раскованность = энергия' },
+    ]
+  },
+  { id: '4-4', article: 'a4', num: '4.4', title: 'Завершённость диалога', subtitle: 'Follow-through',
+    essence: 'Диалог без фиксации действий — это шум. В конце встречи участники чётко представляют свои дальнейшие действия. Распределяются обязанности и утверждаются сроки.',
+    warning: 'Неумение завершить дискуссию и отсутствие чётко очерченных прав — главная причина пассивной корпоративной культуры.',
+    checklist: [
+      { t: 'Завершить встречу на определённой ноте', h: 'Каждый понимает, что должен делать он и коллеги' },
+      { t: 'Зафиксировать сроки', h: 'Конкретные даты, не «в ближайшее время»' },
+      { t: 'При необходимости зафиксировать письменно', h: 'Чёткие, конкретные формулировки' },
+      { t: 'Распределить ответственность', h: 'Кто за что отвечает — без двусмысленности' },
+    ]
+  },
+  { id: '4-5', article: 'a4', num: '4.5', title: 'Преодоление препятствий диалога', subtitle: '4 типа сбоев',
+    essence: 'Вялый диалог, информационные «пробки», узость мышления, беспорядочная дискуссия — 4 типа препятствий, каждое требует своего лечения.',
+    warning: '«Вымогатели», «увлекающиеся», «молчаливые лжецы», «раскольники» — деструктивные участники, с которыми нужно работать жёстко.',
+    checklist: [
+      { t: 'Вялый диалог: фиксировать итоги письменно', h: 'Кто, что, к какому сроку. Чёткие формулировки' },
+      { t: 'Информационные пробки: обеспечить присутствие всех ключевых фигур', h: 'Спрашивать «Чего нам не хватает?». Пресекать утаивание' },
+      { t: 'Узость мышления: возвращать фокус на общую цель', h: 'Показывать вклад каждого в глобальную миссию. Поощрять альтернативные взгляды' },
+      { t: 'Беспорядочная дискуссия: предупреждать и применять санкции', h: 'При необходимости вывести нарушителя из группы' },
+    ]
+  },
+
+  // Статья 5
+  { id: '5-1', article: 'a5', num: '5.1', title: 'Конструктивный конфликт', subtitle: 'Исследование vs защита',
+    essence: 'Защита — замкнутая система (борьба за ресурсы, подавление инноваций). Исследование — открытая (синергия, поиск истины). Лидер управляет не выбором, а термодинамикой спора.',
+    warning: 'Когнитивный конфликт (столкновение идей) — топливо. Аффективный конфликт (столкновение эго) — поломка двигателя. Нужно первое и подавлять второе.',
+    checklist: [
+      { t: 'Настаивать на активных дебатах', h: 'Жёсткие вопросы, неожиданные гипотетические сценарии' },
+      { t: 'Не заставлять участников оправдываться', h: '«Ваши аргументы логичны, но позвольте мне выступить адвокатом дьявола»' },
+      { t: 'Разбивать существующие коалиции', h: 'Назначать на проект людей без учёта рабочих связей' },
+      { t: 'Выводить людей из зоны комфорта', h: 'Попросить менеджера нижнего звена подумать с точки зрения CEO' },
+      { t: 'Установить правила приличий', h: '«Мы никого не осуждаем и не ищем виновных»' },
+      { t: 'При тупике возвращать к фактам', h: 'Особенности структуры отрасли, оценка рынка' },
+    ]
+  },
+  { id: '5-2', article: 'a5', num: '5.2', title: 'Процедурная справедливость', subtitle: 'Честный процесс принятия',
+    essence: 'Люди принимают любой, даже невыгодный выходной сигнал, если уверены, что алгоритм обработки их мнения был честным. Справедливость процесса ≠ согласие с результатом.',
+    warning: 'Сотрудник разочаровывается, когда руководитель не продемонстрировал, что его мнение важно. Решение выполняется неохотно.',
+    checklist: [
+      { t: 'В начале: быть открытым к новым идеям', h: 'Не показывать, что уже всё решено. Можно вообще не участвовать на первоначальном этапе' },
+      { t: 'В ходе: внимательно слушать', h: 'Зрительный контакт, пометки, вопросы, подробные разъяснения' },
+      { t: 'По окончании: объяснить ход мыслей', h: 'Подробно рассказать, как пришли к решению. Перечислить учтённые идеи коллег. Объяснить, почему финал не совпадает с их точкой зрения' },
+    ]
+  },
+  { id: '5-3', article: 'a5', num: '5.3', title: 'Тайминг прекращения споров', subtitle: 'Рано vs поздно',
+    essence: 'Ловушка №1: решение принимается слишком рано (ложный консенсус). Ловушка №2: решение принимается слишком поздно (бесконечный спор).',
+    warning: 'Метод Альфреда Слоуна: «Будем считать, что мы достигли согласия. Предлагаю отложить дискуссию, чтобы ещё раз всё обдумать».',
+    checklist: [
+      { t: 'Слишком рано: следить за языком тела', h: 'Нахмуренные брови, защитная поза = скрытое несогласие. Объявить перерыв, поговорить с каждым отдельно' },
+      { t: 'Слишком рано: привлекать «кассандр»', h: 'Людей, которые часто задают неприятные вопросы' },
+      { t: 'Слишком поздно: надеть «шляпу босса»', h: 'Жёстко зафиксировать решение, приняв ответственность за неидеальность данных' },
+      { t: '«Искусство управления — умение принимать разумные решения на недостаточной информации»', h: 'Стэнли Тиль' },
+    ]
+  },
+  { id: '5-4', article: 'a5', num: '5.4', title: '4 критерия качества процесса', subtitle: 'Метрики в реальном времени',
+    essence: 'Качественное решение, принятое вовремя и реализованное, оценивается только спустя время. Но процесс можно отслеживать в реальном времени через 4 критерия.',
+    warning: 'Если на последнем этапе сотрудники перестают посещать совещания — это верный признак будущих проблем с реализацией.',
+    checklist: [
+      { t: 'Многочисленные альтернативы', h: 'Группа, рассматривающая несколько альтернатив, анализирует ситуацию вдумчивее' },
+      { t: 'Оценка погрешностей', h: 'Различать тщательно проверенные факты и принятые на веру. Нужен «интеллектуальный надзиратель»' },
+      { t: 'Чёткие критерии', h: 'Группа заранее определяет цели. Не менять первоначальные критерии в процессе' },
+      { t: 'Оценка справедливости', h: 'Активность участников в конце дискуссии = индикатор готовности к реализации' },
+    ]
+  },
+
+  // Статья 6
+  { id: '6-1', article: 'a6', num: '6.1', title: 'Модель RAPID', subtitle: '5 ролей для каждого решения',
+    essence: '«Бутылочные горлышка» возникают не из-за нехватки данных, а из-за неясности маршрутов authority. Если за решение отвечают все — за него не отвечает никто.',
+    warning: 'У автопроизводителя: 64% разработчиков и 83% маркетологов считали, что именно они принимают решения о стандартных опциях. Результат — задержки запуска.',
+    checklist: [
+      { t: 'R — Recommend: генератор предложения', h: 'Собирает данные, консультируется, заручается поддержкой. Нужны аналитика и здравый смысл' },
+      { t: 'A — Agree: право вето (узкий шлюз)', h: '1–2 человека: юрист, финансист. Множество «A» парализует процесс' },
+      { t: 'P — Perform: исполнитель', h: 'Следит, чтобы исполнение шло правильно и эффективно. «Просто хорошие» решения, быстро претворённые > блестящие, но медленные' },
+      { t: 'I — Input: сенсор', h: 'Предоставляет информацию. Имеет право быть услышанным, но НЕ имеет права голоса' },
+      { t: 'D — Decide: точка сборки (ОДИН человек)', h: 'Формально принимает окончательное решение. Разрешает тупики. В системе НЕ может быть двух «D» на один процесс' },
+    ]
+  },
+  { id: '6-2', article: 'a6', num: '6.2', title: '4 бутылочных горлышка', subtitle: 'Где зависают решения',
+    essence: 'Решения чаще всего застревают в 4 точках напряжения. Каждое требует своего распределения ролей.',
+    warning: 'John Lewis: закупщики сократили ассортимент мельниц, не подключив продавцов. Продавцы сократили полки вдвое. Продажи упали. Решение: закупщикам — D по ассортименту, продавцам — A и P.',
+    checklist: [
+      { t: 'Глобальное vs локальное', h: 'Сколько власти местным отделениям? Хитрость — не впадать в бездумную глобализацию или безнадежную локальность' },
+      { t: 'Центр vs подразделения', h: 'Бизнес-юниты ближе к потребителю; центр видит картину в целом. Передать центру слишком много = тормоз. Передать мало = неверные решения' },
+      { t: 'Функциональные отделы', h: 'Компромиссные межгрупповые решения часто неэффективны. Передать решение в третьи руки' },
+      { t: 'Компания vs внешние партнёры', h: 'Чётко установить, какие решения — внешнему партнёру (исполнение стратегии), какие — внутренним (сама стратегия)' },
+    ]
+  },
+
+  // Статья 7
+  { id: '7-1', article: 'a7', num: '7.1', title: 'Осознание слепых зон', subtitle: 'Иллюзия объективности',
+    essence: 'Мозг использует имплицитные (бессознательные) эвристики, искажающие сигнал ещё до попадания в сознание. «Иллюзия объективности» — вера в свободу от предубеждений.',
+    warning: '75% участников ТИА продемонстрировали имплицитные предубеждения в пользу молодых, богатых и белых — даже те, кто сознательно отвергает дискриминацию.',
+    checklist: [
+      { t: 'Признать: я могу быть предвзят(а) бессознательно', h: 'Даже самые добропорядочные люди подвержены влиянию' },
+      { t: 'Пройти Тест имплицитных ассоциаций', h: 'implicit.harvard.edu или tolerance.org/hidden_bias' },
+      { t: 'Различать 4 источника: имплицитные предубеждения, внутригрупповой фаворитизм, завышенная самооценка, конфликт интересов', h: 'Каждый действует по-своему' },
+    ]
+  },
+  { id: '7-2', article: 'a7', num: '7.2', title: 'Сбор данных (Data Audit)', subtitle: 'Статистика против интуиции',
+    essence: 'Первый шаг в борьбе с бессознательными предубеждениями — сбор данных, которые помогут их распознать. Большинство доверяет «статистике» интуиции, но истинные данные собираются редко.',
+    warning: 'Студенты Гарварда оценили свой вклад в группу так, что сумма = 139%. Когда попросили сначала оценить других, а потом себя — снизилась до 121%.',
+    checklist: [
+      { t: 'Систематически анализировать принимаемые решения', h: 'Кого наняли? Кого повысили? Кому дали бюджет? Чьи идеи одобрили?' },
+      { t: 'Проверить выборку на смещение в пользу «похожих на вас»', h: 'Если смещение есть — система даёт сбой' },
+      { t: 'Просить членов команды оценить вклад коллег до объявления о собственных', h: 'Снижает завышенную самооценку' },
+      { t: 'Пройти ТИА как образовательный инструмент', h: 'Не использовать для отбора и оценки. Результаты — частная информация' },
+    ]
+  },
+  { id: '7-3', article: 'a7', num: '7.3', title: 'Формирование среды', subtitle: 'Антистереотипные узлы',
+    essence: 'Мозг считывает паттерны из окружения. Присутствие «антистереотипного» человека (чернокожий экспериментатор) снижает уровень имплицитной предвзятости.',
+    warning: 'Женщина-судья в районе с преимущественно афроамериканскими обвиняемыми провела неделю в суде с белыми обвиняемыми — разрушить автоматическую ассоциацию.',
+    checklist: [
+      { t: 'Проверить рабочее место на предвзятые ассоциации', h: '«Стена славы» — все одной группы? Повышения — менеджеры одного типа?' },
+      { t: 'Ограничить «инсайдерскую» лексику', h: 'Спортивные метафоры, хай-тек жаргон — сужают круг' },
+      { t: 'Создать компенсирующие условия', h: 'Если отдел поддерживает стереотип — найти отдел с другой структурой, запустить программу обмена' },
+      { t: 'Выбирать партнёров, разрушающих стереотипы', h: 'При направлении работников в клиентские компании' },
+    ]
+  },
+  { id: '7-4', article: 'a7', num: '7.4', title: 'Расширение процесса решений', subtitle: 'Завеса неведения',
+    essence: '«Завеса неведения» (Ролз): принимай решение, мысленно отключив знание о том, в какую группу попадёшь ты сам. Расширение шорт-листа снижает предвзятость.',
+    warning: 'Сам процесс сознательного рассмотрения нестереотипных вариантов (поручить презентацию женщине, получить повышение от афроамериканца-босса) снижает имплицитную предвзятость.',
+    checklist: [
+      { t: 'Применить «завесу неведения»', h: '«Если бы я не знал, к какой группе принадлежу, какое решение принял бы?»' },
+      { t: 'Расширить шорт-лист кандидатов', h: 'Не полагаться на автозаполнение мозга. Составить полный список всех квалифицированных' },
+      { t: 'Сознательно рассматривать нестереотипные варианты', h: 'Сам факт обдумывания снижает предвзятость' },
+    ]
+  },
+
+  // Статья 8
+  { id: '8-1', article: 'a8', num: '8.1', title: 'Инвентаризация решений', subtitle: 'Определение приоритетов',
+    essence: 'Решение — продукт производственного процесса. Составить реестр решений и отсортировать по важности: стратегические (редкие, дорогие) vs тактические (частые, дешёвые).',
+    warning: 'Без приоритетов все решения воспринимаются как одноплановые. Самые важные не анализируются должным образом.',
+    checklist: [
+      { t: 'Составить список «10 главных решений для стратегии»', h: 'Какие приобретения? Какие рынки? Какие инновации?' },
+      { t: 'Составить список «10 главных решений для финансовых целей»', h: 'Ценообразование? Претензии? Закупки?' },
+      { t: 'Разделить редкие/стратегические и частые/тактические', h: 'Не применять тяжёлую артиллерию для стрельбы по воробьям' },
+    ]
+  },
+  { id: '8-2', article: 'a8', num: '8.2', title: 'Факторный анализ', subtitle: 'Что влияет на каждое решение',
+    essence: 'Для каждого решения определить факторы: кто и какую роль играет, как часто принимается, какая информация нужна, насколько хорошо обычно принимается.',
+    warning: 'Такая проверка помогает понять, какие решения нуждаются в улучшении и какие процессы сделают их эффективнее.',
+    checklist: [
+      { t: 'Определить роли участников', h: 'Кто предлагает? Кто согласовывает? Кто исполняет?' },
+      { t: 'Определить частоту принятия', h: 'Ежедневно / еженедельно / раз в год?' },
+      { t: 'Определить необходимую информацию', h: 'Какие данные критичны для поддержки решения?' },
+      { t: 'Оценить текущее качество', h: 'Насколько хорошо обычно принимаются эти решения?' },
+    ]
+  },
+  { id: '8-3', article: 'a8', num: '8.3', title: 'Внедрение', subtitle: 'Центры совершенства',
+    essence: 'Разработать роли, процессы, системы и модели поведения. Ключ — широкий подход, охватывающий ВСЕ аспекты, включая исполнение (о чём обычно забывают).',
+    warning: 'Stanley Works: улучшения в ценообразовании через данные и анализ не сработали. Сработали только после создания Ценового калькуляционного центра совершенства с внутренними консультантами.',
+    checklist: [
+      { t: 'Аналитика + автоматизация с человеческой интуицией', h: 'Уравновешивать алгоритмы суждениями' },
+      { t: 'Ограждать менеджеров от моделей, которых они не понимают', h: 'Менеджеры должны разбираться в аналитике' },
+      { t: 'Делать ясные предположения', h: 'За каждой моделью — допущения. Знать их, чтобы предугадать момент, когда модель устарела' },
+      { t: 'Практиковать «модельный менеджмент»', h: 'Следить, какие модели используются и как работают' },
+      { t: 'Культивировать человеческие резервы', h: 'Чтобы оценить эффективность алгоритмов во времени, нужен человек-эксперт' },
+      { t: 'Создать Центры совершенства', h: 'Не принимают решений за бизнес-юниты, но поставляют модели и обучают' },
+    ]
+  },
+  { id: '8-4', article: 'a8', num: '8.4', title: 'Управление и ретроспективы', subtitle: 'Governance',
+    essence: 'Дать менеджерам инструменты и постоянную поддержку для «решать, как решать». Проводить ретроспективные обзоры не только результатов, но и качества процесса.',
+    warning: 'Chevron: группа анализа решений провела 2-дневные мастер-классы для 2500 ЛПР и сертифицировала онлайн ещё 10 000. Все основные капитальные проекты — через системный анализ.',
+    checklist: [
+      { t: 'Оценивать качество процесса, а не только результат', h: 'Какие данные пропущены? Где сработала удача? Как можно было эффективнее?' },
+      { t: 'Проводить ретроспективные обзоры основных решений', h: 'Регулярно, не только после провалов' },
+      { t: 'Составить список экспертов по принятию решений', h: 'Для совместной работы с топ-менеджерами над улучшением процесса' },
+      { t: 'Обучать менеджеров различать типы решений', h: 'Самостоятельно / после консультации / голосованием / консенсусом' },
+    ]
+  },
+
+  // Статья 9
+  { id: '9-1', article: 'a9', num: '9.1', title: 'Нейробиология решений', subtitle: 'Распознавание паттернов и эмоциональные ярлыки',
+    essence: 'Мозг — машина предсказаний, а не истины. Два основных процесса: распознавание паттернов (сведение неизвестного к известному) и создание эмоциональных ярлыков (подсказывают, на что обращать внимание).',
+    warning: 'Мэтью Бродерик (Катрина): 17 донесений о разрушенных дамбах + 1 репортаж CNN из Французского квартала, где «пронесло». Мозг «вспомнил» опыт прошлых ураганов — первые донесения недостоверны. Принял репортаж за «железную правду». Доложил, что дамбы стоят.',
+    checklist: [
+      { t: 'Понимать: мозг «вспоминает» прежний вывод', h: 'Хватается за него и не торопится рассматривать альтернативы' },
+      { t: 'Знать: критика собственных установок — самое слабое место', h: 'Труднее всего усомниться в правомерности самой постановки вопроса' },
+      { t: 'Мыслительная работа происходит бессознательно', h: 'Мы не можем рассчитывать, что люди сами выявят ошибки в своих оценках' },
+    ]
+  },
+  { id: '9-2', article: 'a9', num: '9.2', title: '3 красных флага', subtitle: 'Вирусы для решений',
+    essence: 'Мозг «подсовывает» не тот паттерн по 3 причинам: личная заинтересованность, эмоциональная привязанность, дезориентирующие воспоминания.',
+    warning: 'Эн Ванг (Wang Laboratories): выбрал проприетарную ОС для ПК, хотя индустрия ориентировалась на IBM PC — из-за давнишней нелюбви к IBM, которая, как он считал, его обманула. Промах, которого фирма не пережила.',
+    checklist: [
+      { t: 'Проверить личную заинтересованность', h: 'Есть ли скрытая выгода (статус, бюджет, эго)? Даже врачи и аудиторы не могут отрешиться' },
+      { t: 'Проверить эмоциональную привязанность', h: 'Не «жалеет» ли ЛПР старый проект/подразделение, потому что сам его создавал?' },
+      { t: 'Проверить дезориентирующие воспоминания', h: 'Не применяет ли ЛПР аналогии из «прошлой войны»? Синдром прошлой победы особенно опасен' },
+    ]
+  },
+  { id: '9-3', article: 'a9', num: '9.3', title: '7-шаговый аудит опасностей', subtitle: 'Процесс выявления сигналов',
+    essence: 'Зная особенности работы мозга, нельзя рассчитывать, что люди сами выявят ошибки. Нужна надёжная процедура и отлаженный процесс коллективного принятия решений.',
+    warning: 'Применять до принятия решения, не после. Иначе — поздно.',
+    checklist: [
+      { t: 'Шаг 1: Составить список вариантов', h: 'Отметить крайности — очертить рамки решения' },
+      { t: 'Шаг 2: Составить список всех, кто принимает решения', h: 'Обычно 1–2 человека, хотя может быть 10' },
+      { t: 'Шаг 3: Выбрать самого влиятельного руководителя', h: 'Подумать, что может спровоцировать его необъективность' },
+      { t: 'Шаг 4: Проверить пристрастность', h: 'К каким вариантам склоняется из-за заинтересованности/привязанности? Не противоречит ли интересам затронутых лиц?' },
+      { t: 'Шаг 5: Проверить дезориентирующий опыт', h: 'Какие неясности связаны с решением? Есть ли эмоционально нагруженный прошлый опыт?' },
+      { t: 'Шаг 6: Повторить для другого влиятельного руководителя', h: 'Может образоваться длинный перечень сигналов' },
+      { t: 'Шаг 7: Изучить сигналы и применить меры предосторожности', h: 'Отразятся ли предубеждения на распознавании паттернов и эмоциональных шаблонах?' },
+    ]
+  },
+  { id: '9-4', article: 'a9', num: '9.4', title: '3 меры предосторожности', subtitle: 'Inject Friction',
+    essence: 'При обнаружении флагов — впрыск трения. Замедлить процесс, привлечь независимого консультанта, создать комитет, усилить согласования.',
+    warning: 'Global Chemicals: председатель наблюдательного совета не критиковал гендиректора, а просто допустил вероятность его предвзятости. Три меры → комитет решил продать подразделение, цена превзошла ожидания.',
+    checklist: [
+      { t: 'Новый опыт или новые данные', h: 'Инвестиционный банк → сколько принесёт продажа подразделения? Заставляет рассмотреть радикальный вариант' },
+      { t: 'Дальнейшие обсуждения', h: 'Организационный комитет из нескольких влиятельных лиц + рабочая группа во главе с директором по стратегии' },
+      { t: 'Более жёсткая система согласований', h: 'Важные решения — на самом высоком уровне. Попросить коллег по совету выдвигать аргументы против' },
+    ]
+  },
+
+  // Статья 10
+  { id: '10-1', article: 'a10', num: '10.1', title: 'Разделение потоков', subtitle: 'Решения vs планы',
+    essence: 'Годовое стратегическое планирование — ошибка «пакетной обработки» в мире, требующем «потоковой». План оптимизирован под календарь, а не под реальность.',
+    warning: 'Только 11% топ-менеджеров верят, что стратегическое планирование стоит затраченных усилий. Компании с традиционной моделью принимают 2,5 важных решения в год. С новой — 6,1.',
+    checklist: [
+      { t: 'Убрать решения из традиционного процесса планирования', h: 'Создать параллельный процесс для выработки стратегии' },
+      { t: 'Результат нового процесса — не план, а набор конкретных решений', h: 'Из которых менеджмент создаёт бизнес-планы' },
+      { t: 'Планирование = трекинг исполнения. Стратегия = ответы на вызовы', h: 'Не смешивать в одну кучу' },
+      { t: 'Пример Boeing: еженедельные пересмотры бизнес-плана (исполнение) + понедельничные встречи по стратегической интеграции (решения)', h: 'Оба процесса объединены, но разделены' },
+    ]
+  },
+  { id: '10-2', article: 'a10', num: '10.2', title: 'Тематическая маршрутизация', subtitle: 'Issue-driven',
+    essence: 'Передовые компании фокусируют обсуждения на ограниченном количестве важных проблем, многие из которых затрагивают несколько подразделений.',
+    warning: 'Microsoft: обнаружив дефицит идей инвестирования, определили темы (рост рынка ПК, безопасность) как критичные для всей компании, а не для подразделений. Открылись бессчетные возможности.',
+    checklist: [
+      { t: 'Перестать рассматривать стратегию «подразделение за подразделением»', h: 'Это создаёт силосы и информационную асимметрию' },
+      { t: 'Рассматривать кросс-функциональные проблемы', h: 'Выход на новый рынок, цифровая трансформация, цепочка стоимости' },
+      { t: 'Фокусировать на источниках ценности', h: 'Темы, затрагивающие несколько подразделений одновременно' },
+    ]
+  },
+  { id: '10-3', article: 'a10', num: '10.3', title: 'Протокол «Факты → Альтернативы → Выбор»', subtitle: '2 сессии вместо 1',
+    essence: 'Разбить стратегическую сессию на две фазы. Первая — согласование фактов и генерация альтернатив. Вторая — оценка альтернатив и финальный выбор.',
+    warning: 'Textron: разделение диалога о фактах и альтернативах от обсуждения выбора позволило избежать множества бутылочных горлышек и принимать больше решений.',
+    checklist: [
+      { t: 'Сессия 1: согласовать факты и набор альтернатив', h: 'Информация по рентабельности рынков, действиям конкурентов, поведению клиентов. Цель — не консенсус, а проверка полноты информации' },
+      { t: 'Сессия 2: развить альтернативы и выбрать', h: 'Со стратегической и финансовой точек зрения. Выбор лучшего плана действий' },
+      { t: 'Не смешивать факты и выбор', h: 'Смешение ведёт к хаосу и бесконечным спорам' },
+    ]
+  },
+  { id: '10-4', article: 'a10', num: '10.4', title: 'Непрерывный цикл', subtitle: 'Распределение на год',
+    essence: 'Распределить стратегические обзоры на весь год, а не втискивать в 2–3 месяца. Рассматривать задачи одну за другой. Менеджеры могут добавлять задачи по мере изменения условий.',
+    warning: 'Ежегодное планирование = менее 9 недель в год на стратегическое развитие. Менее 10% компаний имеют процесс ответа на изменения внешнего окружения.',
+    checklist: [
+      { t: 'Распределить стратегические диалоги на весь год', h: 'Textron: обзор 2–3 подразделений в квартал вместо всех сразу' },
+      { t: 'Реагировать на изменения среды в реальном времени', h: 'Не ждать «сезона стратегического планирования»' },
+      { t: 'Добавлять задачи в повестку по мере изменения рынка', h: 'Единая модель принятия стратегических решений на всю компанию' },
+      { t: 'Пример Cardinal Health: полугодовая повестка диалогов', h: 'Каждый знает, над какими вопросами работает менеджмент' },
+    ]
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  mode: 'sequential',
+  currentStep: 'home',
+  completed: JSON.parse(localStorage.getItem('hbr_completed') || '{}'),
+  notes: JSON.parse(localStorage.getItem('hbr_notes') || '{}'),
+  checks: JSON.parse(localStorage.getItem('hbr_checks') || '{}'),
+  theme: localStorage.getItem('hbr_theme') || 'light',
+};
+
+function save() {
+  localStorage.setItem('hbr_completed', JSON.stringify(state.completed));
+  localStorage.setItem('hbr_notes', JSON.stringify(state.notes));
+  localStorage.setItem('hbr_checks', JSON.stringify(state.checks));
+  localStorage.setItem('hbr_theme', state.theme);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderNav() {
+  const nav = document.getElementById('navScroll');
+  let html = `<div class="nav-item ${state.currentStep === 'home' ? 'active' : ''}" onclick="showHome()">
+    <span class="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </span>
+    <span class="title">📋 Обзор и выбор пути</span>
+  </div>`;
+
+  if (state.mode === 'sequential') {
+    const groups = {};
+    STEPS.forEach(s => {
+      const a = ARTICLES.find(x => x.id === s.article);
+      const key = a.id;
+      if (!groups[key]) groups[key] = { article: a, steps: [] };
+      groups[key].steps.push(s);
+    });
+    Object.values(groups).forEach(g => {
+      const completedInGroup = g.steps.filter(s => state.completed[s.id]).length;
+      html += `<div class="nav-group">
+        <div class="nav-group-title">
+          <span>Статья ${g.article.num} · ${g.article.categoryName}</span>
+          <span class="count">${completedInGroup}/${g.steps.length}</span>
+        </div>`;
+      g.steps.forEach(s => {
+        html += navItemHtml(s);
+      });
+      html += `</div>`;
+    });
+  } else {
+    const grouped = {};
+    ARTICLES.forEach(a => { grouped[a.id] = { article: a, steps: STEPS.filter(s => s.article === a.id) }; });
+    Object.values(grouped).forEach(g => {
+      const completedInGroup = g.steps.filter(s => state.completed[s.id]).length;
+      html += `<div class="nav-group">
+        <div class="nav-group-title">
+          <span>${g.article.num}. ${g.article.title}</span>
+          <span class="count">${completedInGroup}/${g.steps.length}</span>
+        </div>`;
+      g.steps.forEach(s => html += navItemHtml(s));
+      html += `</div>`;
+    });
+  }
+  nav.innerHTML = html;
+  updateProgress();
+}
+
+function navItemHtml(s) {
+  const active = state.currentStep === s.id;
+  const completed = state.completed[s.id];
+  return `<div class="nav-item ${active ? 'active' : ''} ${completed ? 'completed' : ''}" onclick="showStep('${s.id}')">
+    <span class="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </span>
+    <span class="title">${s.title}</span>
+    <span class="num">${s.num}</span>
+  </div>`;
+}
+
+function updateProgress() {
+  const total = STEPS.length;
+  const done = Object.values(state.completed).filter(Boolean).length;
+  const pct = Math.round(done / total * 100);
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function showHome() {
+  state.currentStep = 'home';
+  renderNav();
+  const main = document.getElementById('main');
+  const totalSteps = STEPS.length;
+  const doneSteps = Object.values(state.completed).filter(Boolean).length;
+  const totalChecks = STEPS.reduce((sum, s) => sum + s.checklist.length, 0);
+  const doneChecks = Object.values(state.checks).flat().filter(Boolean).length;
+
+  main.innerHTML = `
+    <div class="hero">
+      <h1>Применяем HBR на практике</h1>
+      <p>Пошаговый гайдлайн по 10 лучшим статьям Harvard Business Review о методах принятия решений. Проходите последовательно или прыгайте к нужному шагу в любой момент.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">${STEPS.length}</div><div class="label">Шагов</div></div>
+      <div class="stat"><div class="num">${totalChecks}</div><div class="label">Проверок</div></div>
+      <div class="stat"><div class="num">${doneSteps}</div><div class="label">Пройдено</div></div>
+      <div class="stat"><div class="num">${doneChecks}</div><div class="label">Отмечено</div></div>
+    </div>
+
+    <div class="section-head">Выберите стартовую точку</div>
+    <div class="path-grid">
+      <div class="path-card" onclick="showStep('${STEPS[0].id}')">
+        <div class="icon">▶</div>
+        <h3>Начать с начала</h3>
+        <p>Последовательно пройти все 38 шагов, начиная с когнитивных ловушек</p>
+        <div class="meta"><span>Шаг 1</span><span>~2 часа</span></div>
+      </div>
+      <div class="path-card" onclick="showNext()">
+        <div class="icon">⟳</div>
+        <h3>Продолжить</h3>
+        <p>Перейти к следующему непройденному шагу</p>
+        <div class="meta"><span>Прогресс ${doneSteps}/${STEPS.length}</span></div>
+      </div>
+      <div class="path-card" onclick="setMode('article')">
+        <div class="icon">◉</div>
+        <h3>Выбрать статью</h3>
+        <p>Перейти к конкретной статье, если актуальна именно она</p>
+        <div class="meta"><span>10 статей</span></div>
+      </div>
+    </div>
+
+    <div class="section-head">Все шаги по статьям</div>
+    ${ARTICLES.map(a => {
+      const articleSteps = STEPS.filter(s => s.article === a.id);
+      const done = articleSteps.filter(s => state.completed[s.id]).length;
+      return `<div class="article-row" onclick="showStep('${articleSteps[0].id}')">
+        <div class="a-num">${a.num}</div>
+        <div class="a-body">
+          <div class="a-title">${a.title}</div>
+          <div class="a-authors">${a.authors} · ${articleSteps.length} шагов</div>
+        </div>
+        <div class="a-progress">${done}/${articleSteps.length}</div>
+      </div>`;
+    }).join('')}
+  `;
+  window.scrollTo({ top: 0 });
+}
+
+function showNext() {
+  const next = STEPS.find(s => !state.completed[s.id]);
+  if (next) showStep(next.id);
+  else showStep(STEPS[STEPS.length - 1].id);
+}
+
+function showStep(id) {
+  state.currentStep = id;
+  renderNav();
+  const idx = STEPS.findIndex(s => s.id === id);
+  const step = STEPS[idx];
+  const prev = STEPS[idx - 1];
+  const next = STEPS[idx + 1];
+  const article = ARTICLES.find(a => a.id === step.article);
+  const isCompleted = state.completed[id];
+  const checks = state.checks[id] || new Array(step.checklist.length).fill(false);
+
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="breadcrumbs">
+      <span onclick="showHome()" style="cursor:pointer">Обзор</span>
+      <span class="sep">/</span>
+      <span>${article.title}</span>
+      <span class="sep">/</span>
+      <span class="current">Шаг ${step.num}</span>
+    </div>
+
+    <div class="step-header">
+      <div class="step-meta">
+        <span class="step-num">${step.num}</span>
+        <span class="badge accent">${article.categoryName}</span>
+        <span class="badge">Шаг ${idx + 1} из ${STEPS.length}</span>
+      </div>
+      <h1 class="step-title">${step.title}</h1>
+      <div class="step-subtitle">${step.subtitle}</div>
+    </div>
+
+    <div class="card essence">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        Суть
+      </div>
+      <div class="card-body">${step.essence}</div>
+    </div>
+
+    <div class="card warning">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+        На что обратить внимание
+      </div>
+      <div class="card-body">${step.warning}</div>
+    </div>
+
+    <div class="card action">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Практический чек-лист
+      </div>
+      <ul class="checklist">
+        ${step.checklist.map((c, i) => `
+          <li class="check-item ${checks[i] ? 'checked' : ''}" onclick="toggleCheck('${id}', ${i})">
+            <div class="check-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="check-label">
+              <strong>${c.t}</strong>
+              ${c.h ? `<div class="hint">${c.h}</div>` : ''}
+            </div>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Заметки для этого шага
+      </div>
+      <textarea class="notes-area" placeholder="Что из этого применимо к вашей текущей ситуации? Какие решения сейчас перед вами стоят?" oninput="saveNote('${id}', this.value)">${state.notes[id] || ''}</textarea>
+      <div class="notes-hint">Сохраняется автоматически · ${Object.keys(state.notes).filter(k => state.notes[k]).length} шагов с заметками</div>
+    </div>
+
+    <div class="nav-buttons">
+      ${prev ? `<button class="btn ghost" onclick="showStep('${prev.id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        ${prev.title.substring(0, 20)}${prev.title.length > 20 ? '…' : ''}
+      </button>` : `<button class="btn ghost" onclick="showHome()">← Обзор</button>`}
+      <button class="btn btn-complete ${isCompleted ? 'done' : ''}" onclick="toggleComplete('${id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        ${isCompleted ? 'Пройдено' : 'Отметить пройденным'}
+      </button>
+      ${next ? `<button class="btn primary" onclick="showStep('${next.id}')">
+        Далее
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>` : `<button class="btn primary" onclick="showHome()">Завершить</button>`}
+    </div>
+  `;
+  window.scrollTo({ top: 0 });
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function toggleCheck(stepId, idx) {
+  if (!state.checks[stepId]) state.checks[stepId] = new Array(STEPS.find(s => s.id === stepId).checklist.length).fill(false);
+  state.checks[stepId][idx] = !state.checks[stepId][idx];
+  save();
+  showStep(stepId);
+}
+
+function saveNote(stepId, value) {
+  state.notes[stepId] = value;
+  save();
+}
+
+function toggleComplete(stepId) {
+  state.completed[stepId] = !state.completed[stepId];
+  save();
+  showStep(stepId);
+  // Auto-advance if just completed
+  if (state.completed[stepId]) {
+    const idx = STEPS.findIndex(s => s.id === stepId);
+    const next = STEPS[idx + 1];
+    if (next) setTimeout(() => showStep(next.id), 300);
+  }
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  renderNav();
+}
+
+function toggleTheme() {
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', state.theme);
+  document.getElementById('themeBtn').textContent = state.theme === 'light' ? '🌙 Тема' : '☀ Тема';
+  save();
+}
+
+function resetAll() {
+  if (!confirm('Сбросить весь прогресс, заметки и чек-листы?')) return;
+  state.completed = {};
+  state.notes = {};
+  state.checks = {};
+  save();
+  showHome();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.documentElement.setAttribute('data-theme', state.theme);
+document.getElementById('themeBtn').textContent = state.theme === 'light' ? '🌙 Тема' : '☀ Тема';
+renderNav();
+showHome();
+</script>
+</body>
+</html>
+
+
