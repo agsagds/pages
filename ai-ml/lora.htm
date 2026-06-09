@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoRA · Parameter-Efficient Fine-Tuning</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --bg-2:#ffffff;
+    --ink:#111827;
+    --ink-2:#1f2937;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --line-2:#d1d5db;
+    --accent:#4f46e5;
+    --accent-soft:#eef2ff;
+    --accent-2:#0d9488;
+    --accent-2-soft:#f0fdfa;
+    --warn:#b45309;
+    --warn-soft:#fffbeb;
+    --ok:#059669;
+    --ok-soft:#ecfdf5;
+    --err:#dc2626;
+    --err-soft:#fef2f2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#e9ebf3;color:var(--ink);font-family:'Inter',system-ui,sans-serif;overflow:hidden;height:100vh;width:100vw}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .stage{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+  .frame{
+    width:min(100vw, calc(100vh * 16/9));
+    aspect-ratio:16/9;
+    position:relative;
+    background:var(--bg);
+    border:1px solid #d8dbe6;
+    box-shadow:0 30px 80px -20px rgba(30,30,80,.25);
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;inset:0;
+    padding:3% 4.2%;
+    display:none;opacity:0;
+    transition:opacity .4s ease;
+    overflow:hidden;
+    flex-direction:column;
+  }
+  .slide.active{display:flex;opacity:1}
+  .h1{font-size:clamp(28px,3.6vw,64px);line-height:1.05;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+  .h2{font-size:clamp(22px,2.2vw,40px);line-height:1.15;font-weight:700;letter-spacing:-.015em;color:var(--ink)}
+  .h3{font-size:clamp(14px,1.15vw,19px);line-height:1.3;font-weight:700;color:var(--ink)}
+  .p{font-size:clamp(12px,.98vw,16px);line-height:1.55;color:var(--muted)}
+  .p b{color:var(--ink-2);font-weight:600}
+  .eyebrow{font-size:clamp(10px,.78vw,12px);letter-spacing:.25em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .chip{
+    display:inline-flex;align-items:center;gap:.4em;
+    padding:.22em .6em;border:1px solid var(--line);
+    background:#fff;border-radius:999px;
+    font-size:clamp(10px,.72vw,12px);color:var(--ink-2);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .chip.accent{border-color:#c7d2fe;background:var(--accent-soft);color:var(--accent)}
+  .chip.cyan{border-color:#99f6e4;background:var(--accent-2-soft);color:var(--accent-2)}
+  .chip.ok{border-color:#a7f3d0;background:var(--ok-soft);color:var(--ok)}
+  .chip.warn{border-color:#fde68a;background:var(--warn-soft);color:var(--warn)}
+  .chip.err{border-color:#fecaca;background:var(--err-soft);color:var(--err)}
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:.9em 1.1em;
+    position:relative;
+    box-shadow:0 1px 2px rgba(17,24,39,.04);
+  }
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.1em}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.9em}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:.85em}
+  table.clean{width:100%;border-collapse:collapse;font-size:clamp(11px,.82vw,13.5px)}
+  table.clean th,table.clean td{padding:.5em .6em;text-align:left;border-bottom:1px solid var(--line)}
+  table.clean th{color:var(--muted);font-weight:600;font-size:.78em;letter-spacing:.06em;text-transform:uppercase}
+  table.clean tr:last-child td{border-bottom:none}
+  table.clean td{color:var(--ink-2)}
+  .code{
+    background:#0f172a;color:#e2e8f0;border-radius:10px;padding:.7em .9em;
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(10.5px,.78vw,13px);line-height:1.55;overflow:auto;
+  }
+  .code .kw{color:#c4b5fd}
+  .code .fn{color:#67e8f9}
+  .code .cm{color:#64748b;font-style:italic}
+  .code .num{color:#fbbf24}
+
+  .progress{position:absolute;top:0;left:0;right:0;height:3px;background:#eef0f7;z-index:50}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .4s ease;width:0%}
+  .nav{
+    position:absolute;bottom:1.2%;left:0;right:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 2.2%;z-index:40;pointer-events:none;
+  }
+  .nav .btn{
+    pointer-events:auto;
+    background:#fff;border:1px solid var(--line-2);
+    color:var(--ink-2);border-radius:999px;
+    padding:.5em 1.05em;font-size:clamp(11px,.78vw,13px);
+    cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.4em;
+    font-family:inherit;font-weight:500;
+  }
+  .nav .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .nav .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .nav .btn.primary:hover{background:#4338ca}
+  .nav .dots{display:flex;gap:.35em;pointer-events:auto;flex-wrap:wrap;max-width:40%;justify-content:center}
+  .nav .dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;cursor:pointer;transition:all .2s}
+  .nav .dot.active{background:var(--accent);width:22px;border-radius:4px}
+  .slide-num{
+    position:absolute;top:2.6%;right:2.8%;
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(10px,.7vw,11px);color:var(--muted);z-index:10;
+  }
+  .bullet{display:flex;gap:.55em;align-items:flex-start}
+  .bullet::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:.55em}
+  .quiz-opt{
+    display:block;width:100%;text-align:left;
+    background:#fff;border:1px solid var(--line-2);
+    color:var(--ink-2);padding:.75em 1em;border-radius:10px;
+    font-size:clamp(12px,.92vw,14.5px);cursor:pointer;transition:all .15s;
+    font-family:inherit;
+  }
+  .quiz-opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+  .quiz-opt.correct{border-color:var(--ok);background:var(--ok-soft);color:#065f46}
+  .quiz-opt.wrong{border-color:var(--err);background:var(--err-soft);color:#991b1b}
+  .quiz-opt:disabled{cursor:default;opacity:.9}
+  .glow{background:linear-gradient(135deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag-row{display:flex;flex-wrap:wrap;gap:.35em}
+  mjx-container{font-size:1.02em!important}
+  .slide.active > *{animation:rise .5s ease both}
+  .slide.active > *:nth-child(2){animation-delay:.06s}
+  .slide.active > *:nth-child(3){animation-delay:.12s}
+  .slide.active > *:nth-child(4){animation-delay:.18s}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .eq-box{
+    background:var(--accent-soft);border:1px solid #c7d2fe;
+    border-radius:10px;padding:.7em 1em;text-align:center;color:var(--ink-2);
+  }
+  .divider{height:1px;background:var(--line);margin:.55em 0}
+  .stat{
+    display:flex;flex-direction:column;gap:.15em;
+    padding:.7em .95em;border-radius:10px;
+    background:#fff;border:1px solid var(--line);
+  }
+  .stat .v{font-size:clamp(18px,1.8vw,32px);font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+  .stat .l{font-size:clamp(9.5px,.72vw,12px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+  .stat.accent{border-color:#c7d2fe;background:var(--accent-soft)}
+  .stat.accent .v{color:var(--accent)}
+  .stat.cyan{border-color:#99f6e4;background:var(--accent-2-soft)}
+  .stat.cyan .v{color:var(--accent-2)}
+
+  .flow{display:flex;align-items:center;gap:.55em;flex-wrap:wrap}
+  .flow .arrow{color:var(--muted);font-size:1.3em}
+
+  /* Architecture diagram — flex-based, won't break */
+  .arch{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:1.1em 1.2em;
+    display:flex;flex-direction:column;gap:.6em;
+  }
+  .arch-row{display:flex;align-items:center;gap:.6em}
+  .arch-node{
+    border-radius:8px;padding:.45em .7em;text-align:center;
+    font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.72vw,12px);
+    border:1px solid var(--line-2);background:#f9fafb;color:var(--ink-2);
+    min-width:90px;
+  }
+  .arch-node.frozen{background:#f3f4f6;color:var(--muted);border-style:dashed}
+  .arch-node.A{background:var(--accent-soft);color:var(--accent);border-color:#c7d2fe}
+  .arch-node.B{background:var(--accent-soft);color:var(--accent);border-color:#c7d2fe}
+  .arch-node.scale{background:var(--warn-soft);color:var(--warn);border-color:#fde68a}
+  .arch-node.sum{background:var(--ok-soft);color:var(--ok);border-color:#a7f3d0;font-weight:700}
+  .arch-node.input{background:#fff;color:var(--ink);border-color:var(--line-2);font-weight:600}
+  .arch-arrow{color:var(--muted);font-size:1.2em;flex:none}
+  .arch-parallel{
+    display:grid;grid-template-columns:1fr 1fr;gap:.8em;
+    padding:.7em;background:#fafbff;border:1px dashed #c7d2fe;border-radius:10px;
+  }
+
+  /* Timeline */
+  .timeline{display:flex;flex-direction:column;gap:.45em;position:relative;padding-left:1.4em}
+  .timeline::before{
+    content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:2px;
+  }
+  .tl-item{position:relative}
+  .tl-item::before{
+    content:"";position:absolute;left:-1.4em;top:.35em;
+    width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--accent);
+  }
+  .tl-item:nth-child(even)::before{border-color:var(--accent-2)}
+  .tl-year{font-family:'JetBrains Mono',monospace;font-size:clamp(10.5px,.78vw,13px);font-weight:700;color:var(--accent)}
+  .tl-item:nth-child(even) .tl-year{color:var(--accent-2)}
+
+  /* Dataset */
+  .dataset-row{
+    background:#f9fafb;border:1px solid var(--line);border-radius:8px;
+    padding:.55em .75em;font-family:'JetBrains Mono',monospace;
+    font-size:clamp(9.5px,.68vw,11.5px);line-height:1.45;color:var(--ink-2);
+  }
+  .dataset-row .k{color:var(--accent);font-weight:600}
+  .dataset-row .s{color:#047857}
+
+  /* Pipeline diagram */
+  .pipeline{
+    display:grid;grid-template-columns:auto 1fr auto 1fr auto;
+    align-items:center;gap:.5em;
+    padding:.9em;background:#fff;border:1px solid var(--line);border-radius:12px;
+  }
+  .pl-node{
+    padding:.55em .75em;border-radius:8px;
+    font-size:clamp(10.5px,.78vw,12.5px);text-align:center;
+    border:1px solid var(--line-2);background:#f9fafb;
+  }
+  .pl-node.model{background:var(--accent-soft);color:var(--accent);border-color:#c7d2fe;font-weight:600}
+  .pl-node.db{background:var(--accent-2-soft);color:var(--accent-2);border-color:#99f6e4;font-weight:600}
+  .pl-arrow{color:var(--muted);text-align:center;font-size:1.1em}
+
+  /* Cover pattern */
+  .cover-deco{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(800px 500px at 85% 10%, rgba(79,70,229,.12), transparent 60%),
+      radial-gradient(700px 500px at 10% 90%, rgba(13,148,136,.10), transparent 60%);
+  }
+  .grid-bg{
+    position:absolute;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(79,70,229,.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,70,229,.06) 1px, transparent 1px);
+    background-size:4% 6.25%;
+    mask-image:radial-gradient(ellipse at center, black 30%, transparent 85%);
+  }
+
+  /* Deployment ASCII - fixed width box */
+  .ascii-deploy{
+    font-family:'JetBrains Mono',monospace;
+    font-size:clamp(9.5px,.68vw,11.5px);
+    line-height:1.35;
+    color:#e2e8f0;
+    background:#0f172a;
+    border-radius:8px;
+    padding:.7em .9em;
+    white-space:pre;
+    overflow:hidden;
+  }
+  .ascii-deploy .frozen{color:#94a3b8}
+  .ascii-deploy .ad{color:#a78bfa;font-weight:600}
+  .ascii-deploy .mrg{color:#22d3ee;font-weight:600}
+  .ascii-deploy .dim{color:#64748b;font-style:italic}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="frame" id="frame">
+    <div class="progress"><div id="progress"></div></div>
+    <div class="slide-num" id="slideNum">01 / 15</div>
+
+    <!-- ============ SLIDE 1: COVER ============ -->
+    <section class="slide active" data-slide="cover">
+      <div class="cover-deco"></div>
+      <div class="grid-bg"></div>
+      <div style="position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center">
+        <div class="eyebrow" style="margin-bottom:1em">Technical Reference · 2026</div>
+        <h1 class="h1" style="font-size:clamp(42px,5.5vw,96px)">
+          LoRA<br>
+          <span class="glow">Parameter-Efficient</span><br>
+          Fine-Tuning.
+        </h1>
+        <div class="p" style="margin-top:1.3em;max-width:58%;font-size:clamp(13px,1.05vw,17px)">
+          Математика low-rank адаптации, варианты (QLoRA, DoRA, AdaLoRA), генезис Unsloth и применение LoRA к sentence-transformers для классификации по IAB Taxonomy через ClickHouse.
+        </div>
+        <div class="tag-row" style="margin-top:1.8em">
+          <span class="chip accent">PEFT</span>
+          <span class="chip cyan">QLoRA</span>
+          <span class="chip">DoRA</span>
+          <span class="chip">AdaLoRA</span>
+          <span class="chip ok">sentence-transformers</span>
+          <span class="chip warn">IAB Taxonomy</span>
+          <span class="chip">ClickHouse</span>
+        </div>
+      </div>
+      <div style="position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="p mono" style="font-size:clamp(10px,.7vw,11.5px)">
+          ← →  навигация  ·  Space  далее  ·  Home / End
+        </div>
+        <div class="p mono" style="font-size:clamp(10px,.7vw,11.5px)">v1.1 · ru</div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 2: GLOSSARY ============ -->
+    <section class="slide" data-slide="glossary">
+      <div class="eyebrow">Reference · 00</div>
+      <h1 class="h2" style="margin-top:.35em">Глоссарий</h1>
+      <div class="divider"></div>
+      <div class="grid-3" style="flex:1;gap:.7em;align-items:stretch;overflow:auto">
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">LoRA</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Low-Rank Adaptation</b> — PEFT через инжекцию low-rank матриц A и B.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">PEFT</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Parameter-Efficient Fine-Tuning</b> — семейство методов экономной донастройки.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">FFN</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Feed-Forward Network</b> — MLP-блок в Transformer-слое.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">QLoRA</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Quantized LoRA</b> — 4-bit база + LoRA адаптеры.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">DoRA</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Decomposed LoRA</b> — разделение weight на magnitude и direction.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">AdaLoRA</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Adaptive LoRA</b> — динамическое распределение rank по слоям через SVD.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">Rank (r)</div><div class="p" style="font-size:clamp(11px,.8vw,13px)">Bottleneck-размерность, главный гиперпараметр LoRA.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">Alpha (α)</div><div class="p" style="font-size:clamp(11px,.8vw,13px)">Scaling coefficient, обычно равен <span class="mono">2r</span>.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">Merge</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><span class="mono">W' = W + B·A</span> — запекание адаптера в базу.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">SVD</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Singular Value Decomposition</b> — матричная факторизация.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">NLU</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Natural Language Understanding</b> — понимание текста.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">SFT</div><div class="p" style="font-size:clamp(11px,.8vw,13px)"><b>Supervised Fine-Tuning</b> — обучение на размеченных парах.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">Catastrophic Forgetting</div><div class="p" style="font-size:clamp(11px,.8vw,13px)">Потеря общих знаний при fine-tuning на узкой задаче.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">Unsloth</div><div class="p" style="font-size:clamp(11px,.8vw,13px)">Фреймворк оптимизации LoRA/QLoRA, hand-written autograd kernels.</div></div>
+        <div class="card"><div class="h3" style="font-size:clamp(12px,.95vw,15px)">MLX</div><div class="p" style="font-size:clamp(11px,.8vw,13px)">Apple Silicon native ML framework, unified memory architecture.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 3: CONCEPT ============ -->
+    <section class="slide" data-slide="concept">
+      <div class="eyebrow">Часть 01 · Суть</div>
+      <h1 class="h2" style="margin-top:.35em">Что такое LoRA</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="margin-top:.9em;flex:1;align-items:stretch">
+        <div style="display:flex;flex-direction:column;gap:.85em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Определение</div>
+            <div class="p">
+              <b>LoRA</b> (Low-Rank Adaptation) — метод PEFT, который <b>замораживает</b> веса предобученной модели и добавляет маленькие обучаемые матрицы низкого ранга.
+            </div>
+          </div>
+          <div class="card" style="border-color:#c7d2fe;background:var(--accent-soft)">
+            <div class="h3" style="margin-bottom:.4em">Ключевая идея</div>
+            <div class="p">
+              Вместо обновления всей матрицы весов \(W\) размером \(d \times k\), изменение \(\Delta W\) аппроксимируется произведением двух тонких матриц:
+            </div>
+            <div class="eq-box" style="margin-top:.7em;background:#fff;border-color:#a5b4fc">
+              \[\Delta W = B \cdot A\]
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.35em">Гипотеза intrinsic rank</div>
+            <div class="p">
+              Изменения весов, необходимые для конкретной downstream-задачи, лежат в подпространстве <b>очень низкой размерности</b>. Полный \(\Delta W\) избыточен.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.7em">
+          <div class="grid-2">
+            <div class="stat accent"><div class="v">0.1%</div><div class="l">обучаемых параметров</div></div>
+            <div class="stat cyan"><div class="v">256×</div><div class="l">экономия весов</div></div>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="h3" style="margin-bottom:.6em">Full Fine-Tuning vs LoRA</div>
+            <div class="p mono" style="font-size:clamp(10.5px,.78vw,12.5px);line-height:1.55">
+<span style="color:var(--muted)">Full Fine-Tuning</span>
+Обучаем <span style="color:var(--err)">ВСЕ</span> параметры (7B, 70B…)
+  → огромные GPU, дорого, долго
+
+<span style="color:var(--accent)">LoRA</span>
+Обучаем только <span style="color:var(--accent)">адаптеры</span> (~0.1%)
+  → <span style="color:var(--ok)">1 GPU</span>, быстро, дёшево
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Практические свойства</div>
+            <div class="grid-2" style="gap:.4em">
+              <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)">Нет catastrophic forgetting</div>
+              <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)">Multi-task serving</div>
+              <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)">Чекпоинты в MB, не GB</div>
+              <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)">Zero-latency при merge</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 4: ARCHITECTURE ============ -->
+    <section class="slide" data-slide="architecture">
+      <div class="eyebrow">Часть 02 · Архитектура</div>
+      <h1 class="h2" style="margin-top:.35em">Forward pass и инициализация</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1.1em;align-items:stretch;margin-top:.6em">
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.35em">Переменные</div>
+            <table class="clean">
+              <tr><td class="mono" style="color:var(--accent);font-weight:700">W</td><td>Замороженные веса (d × k)</td></tr>
+              <tr><td class="mono" style="color:var(--accent);font-weight:700">A</td><td>Down-projection (r × k), случайная</td></tr>
+              <tr><td class="mono" style="color:var(--accent);font-weight:700">B</td><td>Up-projection (d × r), нули</td></tr>
+              <tr><td class="mono" style="color:var(--accent);font-weight:700">r</td><td>Rank (4–128)</td></tr>
+              <tr><td class="mono" style="color:var(--accent);font-weight:700">α</td><td>Scaling, обычно 2r</td></tr>
+            </table>
+          </div>
+          <div class="card" style="border-color:#99f6e4;background:var(--accent-2-soft)">
+            <div class="h3" style="margin-bottom:.35em">Forward pass</div>
+            <div class="code" style="padding:.55em .8em">
+<span class="cm"># Замороженный путь</span>
+base = <span class="fn">W</span> @ x
+<span class="cm"># LoRA путь</span>
+lora = <span class="fn">B</span> @ <span class="fn">A</span> @ x
+<span class="cm"># Итог</span>
+out = base + (α/<span class="num">r</span>) · lora
+            </div>
+          </div>
+          <div class="eq-box">
+            <div style="font-size:clamp(11px,.85vw,13px);color:var(--muted);margin-bottom:.25em">Merge для инференса</div>
+            \[W' = W + B \cdot A\]
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.7em">
+          <div class="arch" style="flex:1">
+            <div class="h3" style="margin-bottom:.3em">Схема слоя</div>
+
+            <div class="arch-row" style="justify-content:center">
+              <div class="arch-node input">input x (k)</div>
+            </div>
+            <div style="text-align:center;color:var(--muted);font-size:1.2em">↓</div>
+
+            <div class="arch-parallel">
+              <div style="display:flex;flex-direction:column;gap:.3em;align-items:center">
+                <div style="font-size:clamp(9.5px,.68vw,11px);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600">Frozen path</div>
+                <div class="arch-node frozen">W  (d × k)</div>
+                <div style="color:var(--muted);font-size:1em">↓</div>
+                <div class="arch-node" style="background:#fff;font-size:clamp(9.5px,.68vw,11px)">W @ x</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:.3em;align-items:center">
+                <div style="font-size:clamp(9.5px,.68vw,11px);color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-weight:600">LoRA path</div>
+                <div class="arch-node A">A  (r × k)</div>
+                <div style="color:var(--muted);font-size:1em">↓</div>
+                <div class="arch-node B">B  (d × r)</div>
+                <div style="color:var(--muted);font-size:1em">↓</div>
+                <div class="arch-node scale">× α / r</div>
+              </div>
+            </div>
+
+            <div style="text-align:center;color:var(--muted);font-size:1.2em">↓   ↓</div>
+            <div class="arch-row" style="justify-content:center">
+              <div class="arch-node sum">Σ → output h (d)</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.35em">Target modules</div>
+            <div class="tag-row">
+              <span class="chip accent">q_proj</span><span class="chip accent">k_proj</span><span class="chip accent">v_proj</span><span class="chip accent">o_proj</span>
+              <span class="chip cyan">gate_proj</span><span class="chip cyan">up_proj</span><span class="chip cyan">down_proj</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 5: QUIZ 1 (after architecture) ============ -->
+    <section class="slide" data-slide="quiz1">
+      <div class="eyebrow">Quiz · 01</div>
+      <h1 class="h2" style="margin-top:.35em">Проверка: инициализация</h1>
+      <div class="divider"></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:72%">
+        <div class="h3" style="font-size:clamp(16px,1.45vw,24px);margin-bottom:1.1em">
+          Почему LoRA инициализирует матрицу <span class="mono" style="color:var(--accent)">B</span> нулями, а матрицу <span class="mono" style="color:var(--accent)">A</span> — случайно?
+        </div>
+        <div id="q1" style="display:flex;flex-direction:column;gap:.55em">
+          <button class="quiz-opt" data-q="q1" data-correct="false">A. Чтобы ускорить сходимость через симметричную инициализацию</button>
+          <button class="quiz-opt" data-q="q1" data-correct="true">B. Чтобы в начале обучения адаптер давал 0 и модель вела себя как оригинальная</button>
+          <button class="quiz-opt" data-q="q1" data-correct="false">C. Чтобы избежать переполнения в float16 при первом forward pass</button>
+          <button class="quiz-opt" data-q="q1" data-correct="false">D. Это условность библиотеки PEFT, математически не важно</button>
+        </div>
+        <div id="q1-fb" class="p" style="margin-top:.9em;min-height:2.2em"></div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 6: HYPERPARAMS ============ -->
+    <section class="slide" data-slide="hyper">
+      <div class="eyebrow">Часть 03 · Гиперпараметры</div>
+      <h1 class="h2" style="margin-top:.35em">Rank, alpha и эвристики</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1.1em;align-items:stretch;margin-top:.6em">
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card" style="flex:1">
+            <div class="h3" style="margin-bottom:.5em">Выбор rank (r)</div>
+            <table class="clean">
+              <thead><tr><th>Rank</th><th>Применение</th></tr></thead>
+              <tbody>
+                <tr><td class="mono" style="color:var(--ok);font-weight:700">4 – 8</td><td>Простые задачи, мало данных</td></tr>
+                <tr><td class="mono" style="color:var(--accent);font-weight:700">16 – 32</td><td>Стандартный выбор, баланс</td></tr>
+                <tr><td class="mono" style="color:var(--accent-2);font-weight:700">64 – 128</td><td>Сложные задачи, большие датасеты</td></tr>
+                <tr><td class="mono" style="color:var(--warn);font-weight:700">256+</td><td>Близко к full fine-tuning</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid-3">
+            <div class="stat accent"><div class="v">2r</div><div class="l">alpha</div></div>
+            <div class="stat"><div class="v">2e-4</div><div class="l">learning rate</div></div>
+            <div class="stat"><div class="v">3</div><div class="l">epochs</div></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.45em">Когда увеличивать rank?</div>
+            <div style="display:flex;flex-direction:column;gap:.5em">
+              <div class="bullet p"><b>Много данных</b> — больше 10K примеров</div>
+              <div class="bullet p"><b>Сильный domain shift</b> — домен сильно отличается от пре-трейна</div>
+              <div class="bullet p"><b>Модель недообучается</b> — loss упирается в плато</div>
+            </div>
+          </div>
+          <div class="card" style="border-color:#c7d2fe;background:var(--accent-soft);flex:1">
+            <div class="h3" style="margin-bottom:.4em">Мини-квиз</div>
+            <div class="p" style="margin-bottom:.7em">
+              Датасет из <b>200 примеров</b> для стилизации ответов модели. Какой rank выбрать?
+            </div>
+            <div id="q2" style="display:grid;grid-template-columns:1fr 1fr;gap:.45em">
+              <button class="quiz-opt" data-q="q2" data-correct="true">r = 8</button>
+              <button class="quiz-opt" data-q="q2" data-correct="false">r = 32</button>
+              <button class="quiz-opt" data-q="q2" data-correct="false">r = 128</button>
+              <button class="quiz-opt" data-q="q2" data-correct="false">r = 512</button>
+            </div>
+            <div id="q2-fb" class="p" style="margin-top:.55em;min-height:1.7em;font-size:clamp(10.5px,.82vw,12.5px)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 7: GENESIS OF LORA ============ -->
+    <section class="slide" data-slide="genesis">
+      <div class="eyebrow">Часть 04 · Генезис</div>
+      <h1 class="h2" style="margin-top:.35em">История LoRA и PEFT</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1.2em;align-items:stretch;margin-top:.7em">
+        <div class="card" style="overflow:auto">
+          <div class="h3" style="margin-bottom:.7em">Таймлайн</div>
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-year">pre-2019</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)"><b>Transfer learning</b> = feature extraction (frozen backbone + новая голова) либо full fine-tuning. С ростом трансформеров до миллиардов параметров оба подхода стали неприменимы.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2019</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)"><b>Adapters</b> (Houlsby et al.) — маленькие bottleneck-модули внутри слоёв. Матчат full fine-tuning на NLP-задачах. Начало линии PEFT-исследований.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2021</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)"><b>Prefix Tuning</b> и <b>Prompt Tuning</b> — манипуляция входами/hidden states без изменения весов. Ограничения по scale.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">Oct 2021</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)"><b>LoRA</b> (Hu et al., Microsoft, ICLR 2022). Ключевой инсайт: intrinsic rank task-specific weight updates низкий. Моделирование ΔW напрямую как low-rank, без архитектурных ограничений адаптеров, с тривиальным merge.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2022–2023</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)"><b>De facto standard</b> в open-source (Stable Diffusion, LLaMA). <b>QLoRA</b> (Dettmers et al., 2023) демократизировал метод через 4-bit квантизацию.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2024+</div>
+              <div class="p" style="font-size:clamp(11px,.82vw,13px)">Переход к <b>адаптивному rank</b> (AdaLoRA), <b>декомпозиции весов</b> (DoRA) и <b>multi-LoRA serving</b> (композиция адаптеров в runtime для mixture-of-tasks).</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Ключевой инсайт LoRA</div>
+            <div class="p">
+              Авторы заметили, что матрица обновления \(\Delta W\) для конкретной downstream-задачи имеет <b>низкий intrinsic rank</b>. Следовательно, нет необходимости учить полную \(d \times k\) матрицу — достаточно двух тонких множителей.
+            </div>
+          </div>
+          <div class="card" style="border-color:#99f6e4;background:var(--accent-2-soft)">
+            <div class="h3" style="margin-bottom:.4em">Почему LoRA победил Adapter'ы</div>
+            <div class="bullet p" style="font-size:clamp(11px,.85vw,13px)">Не требует архитектурных изменений</div>
+            <div class="bullet p" style="font-size:clamp(11px,.85vw,13px)">Тривиально merge'ится → ноль latency</div>
+            <div class="bullet p" style="font-size:clamp(11px,.85vw,13px)">Параллельный путь, а не bottleneck</div>
+            <div class="bullet p" style="font-size:clamp(11px,.85vw,13px)">Горячая смена адаптеров</div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">QLoRA (2023)</div>
+            <div class="p">
+              Комбинация 4-bit <b>NF4</b> квантизации базы + LoRA адаптеров + <b>Double Quantization</b>. 65B+ модель на одной 48 GB GPU.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 8: VARIANTS ============ -->
+    <section class="slide" data-slide="variants">
+      <div class="eyebrow">Часть 05 · Варианты</div>
+      <h1 class="h2" style="margin-top:.35em">QLoRA, DoRA, AdaLoRA</h1>
+      <div class="divider"></div>
+      <div class="grid-4" style="margin-top:.8em;flex:1;align-items:stretch">
+        <div class="card" style="display:flex;flex-direction:column">
+          <span class="chip accent" style="align-self:flex-start;margin-bottom:.5em">BASELINE</span>
+          <div class="h3">LoRA</div>
+          <div class="p" style="margin-top:.35em;flex:1">Фиксированный rank для всех слоёв. Прост, предсказуем, часто достаточно.</div>
+          <div class="mono p" style="font-size:clamp(10px,.7vw,11.5px);margin-top:.5em;color:var(--accent)">ΔW = B · A</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;border-color:#99f6e4;background:var(--accent-2-soft)">
+          <span class="chip cyan" style="align-self:flex-start;margin-bottom:.5em">4-BIT</span>
+          <div class="h3">QLoRA</div>
+          <div class="p" style="margin-top:.35em;flex:1">Квантует базу до 4-bit. 70B на RTX 3060 — реализуемо.</div>
+          <div class="mono p" style="font-size:clamp(10px,.7vw,11.5px);margin-top:.5em;color:var(--accent-2)">NF4 + Double Quant</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;border-color:#a7f3d0;background:var(--ok-soft)">
+          <span class="chip ok" style="align-self:flex-start;margin-bottom:.5em">DECOMPOSED</span>
+          <div class="h3">DoRA</div>
+          <div class="p" style="margin-top:.35em;flex:1">Разделяет weight на <b>magnitude</b> и <b>direction</b>. LoRA только на direction.</div>
+          <div class="mono p" style="font-size:clamp(10px,.7vw,11.5px);margin-top:.5em;color:var(--ok)">Stable @ low rank</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;border-color:#fde68a;background:var(--warn-soft)">
+          <span class="chip warn" style="align-self:flex-start;margin-bottom:.5em">DYNAMIC</span>
+          <div class="h3">AdaLoRA</div>
+          <div class="p" style="margin-top:.35em;flex:1">Динамически распределяет rank по слоям по важности. SVD-регуляризация.</div>
+          <div class="mono p" style="font-size:clamp(10px,.7vw,11.5px);margin-top:.5em;color:var(--warn)">Compute-heavy</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.85em;border-color:#fecaca;background:var(--err-soft)">
+        <div class="h3" style="margin-bottom:.35em;color:#991b1b">Важно: иерархия не гарантирует качество</div>
+        <div class="p">
+          Исследование <b>LoRAFactory (2026)</b>: хорошо настроенный LoRA с rank 16–32 часто <b>превосходит</b> AdaLoRA и DoRA. AdaLoRA силён только при жёстком parameter budget (rank &lt; 8). DoRA даёт выигрыш при нестабильной тренировке. Начинать всегда стоит с обычного LoRA.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 9: UNSLOTH + GENESIS ============ -->
+    <section class="slide" data-slide="unsloth">
+      <div class="eyebrow">Часть 06 · Оптимизация</div>
+      <h1 class="h2" style="margin-top:.35em">Unsloth: ускорение fine-tuning</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1.1em;align-items:stretch;margin-top:.6em">
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Что это</div>
+            <div class="p">
+              <b>Unsloth</b> — open-source фреймворк оптимизации fine-tuning LLM. Hand-written autograd kernels, memory layouts и fused attention, снимающие overhead стандартного PEFT + Transformers.
+            </div>
+          </div>
+          <div class="card" style="border-color:#99f6e4;background:var(--accent-2-soft);flex:1">
+            <div class="h3" style="margin-bottom:.5em">Генезис</div>
+            <div style="display:flex;flex-direction:column;gap:.45em">
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,13px)"><b>Декабрь 2023</b>, Сидней. Основатели — <b>Daniel и Michael Han</b>.</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,13px)"><b>Daniel</b>: ex-NVIDIA, ускорил t-SNE в 2000×, автор HyperLearn (используется NASA, Microsoft).</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,13px)"><b>Michael</b>: ex-YouTuber, product designer.</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,13px)"><b>Y Combinator</b> Summer 2024, GitHub Accelerator, Microsoft M12.</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,13px)">Клиенты: <b>Canva, NASA</b>.</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.75em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Что решает</div>
+            <table class="clean">
+              <thead><tr><th>Проблема</th><th>До</th><th>С Unsloth</th></tr></thead>
+              <tbody>
+                <tr><td>VRAM</td><td>7B QLoRA: 12–18 GB</td><td class="mono" style="color:var(--ok);font-weight:700">6–10 GB</td></tr>
+                <tr><td>Скорость</td><td>baseline PEFT</td><td class="mono" style="color:var(--ok);font-weight:700">2–5× faster</td></tr>
+                <tr><td>Доступность</td><td>A100 кластер для 70B</td><td class="mono" style="color:var(--ok);font-weight:700">1× 48 GB GPU</td></tr>
+                <tr><td>Context</td><td>OOM @ 2K–4K токенов</td><td class="mono" style="color:var(--ok);font-weight:700">4× длиннее</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.4em">Поддержка методов</div>
+            <table class="clean">
+              <tr><td>QLoRA (4-bit)</td><td class="mono" style="color:var(--ok);font-weight:700">✓ fully optimized</td></tr>
+              <tr><td>LoRA (16-bit)</td><td class="mono" style="color:var(--ok);font-weight:700">✓ supported</td></tr>
+              <tr><td>DoRA</td><td class="mono" style="color:var(--warn);font-weight:700">⚠ works, unoptimized</td></tr>
+              <tr><td>AdaLoRA</td><td class="mono" style="color:var(--err);font-weight:700">✗ not supported</td></tr>
+            </table>
+            <div class="p" style="margin-top:.5em;font-size:clamp(10.5px,.78vw,12px)">
+              SVD-pruning и orthogonality regularization AdaLoRA не ложатся на hand-written autograd engine Unsloth.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 10: QUIZ (QLoRA+Unsloth) ============ -->
+    <section class="slide" data-slide="quiz2">
+      <div class="eyebrow">Quiz · 02</div>
+      <h1 class="h2" style="margin-top:.35em">Варианты и оптимизация</h1>
+      <div class="divider"></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:72%">
+        <div class="h3" style="font-size:clamp(15.5px,1.35vw,23px);margin-bottom:1em">
+          Один <b>RTX 3060 (12 GB)</b>. Задача: дообучить <b>7B модель</b> на специализированном корпусе. Выбор?
+        </div>
+        <div id="q3" style="display:grid;grid-template-columns:1fr 1fr;gap:.55em">
+          <button class="quiz-opt" data-q="q3" data-correct="false">A. Full Fine-Tuning + gradient checkpointing</button>
+          <button class="quiz-opt" data-q="q3" data-correct="true">B. QLoRA (4-bit) + Unsloth</button>
+          <button class="quiz-opt" data-q="q3" data-correct="false">C. AdaLoRA с rank 256</button>
+          <button class="quiz-opt" data-q="q3" data-correct="false">D. Prompt Tuning (soft prompts)</button>
+        </div>
+        <div id="q3-fb" class="p" style="margin-top:.9em;min-height:2.2em"></div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 11: ALTERNATIVES ============ -->
+    <section class="slide" data-slide="alternatives">
+      <div class="eyebrow">Часть 07 · Альтернативы</div>
+      <h1 class="h2" style="margin-top:.35em">PEFT-зоопарк</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1em;align-items:stretch;margin-top:.5em">
+        <div class="card" style="overflow:auto">
+          <div class="h3" style="margin-bottom:.5em">Сравнение методов</div>
+          <table class="clean">
+            <thead>
+              <tr><th>Метод</th><th>Что тюним</th><th>Latency</th><th>Small Enc.</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><b style="color:var(--accent)">LoRA</b></td><td>Low-rank W updates</td><td class="mono" style="color:var(--ok);font-weight:700">0*</td><td>✓</td></tr>
+              <tr><td><b>Adapters</b></td><td>Bottleneck layers</td><td class="mono" style="color:var(--warn);font-weight:700">↑</td><td>✓</td></tr>
+              <tr><td><b>Prefix Tuning</b></td><td>K/V prefixes</td><td class="mono" style="color:var(--warn);font-weight:700">↑</td><td>⚠</td></tr>
+              <tr><td><b>Prompt Tuning</b></td><td>Input embeddings</td><td class="mono" style="color:var(--ok);font-weight:700">0</td><td>✗</td></tr>
+              <tr><td><b>BitFit</b></td><td>Только biases</td><td class="mono" style="color:var(--ok);font-weight:700">0</td><td>⚠</td></tr>
+              <tr><td><b>(IA)³</b></td><td>Activation scaling</td><td class="mono" style="color:var(--ok);font-weight:700">0*</td><td>✓</td></tr>
+            </tbody>
+          </table>
+          <div class="p mono" style="margin-top:.45em;font-size:clamp(9px,.68vw,11px)">* 0 latency при merge/fusion</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.25em">Prompt Tuning (Lester et al., 2021)</div>
+            <div class="p" style="font-size:clamp(11px,.82vw,13px)">Soft tokens на входе. Эффективно только на моделях &gt; 1B параметров. На small encoders — слабо.</div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.25em">BitFit (Zaken et al., 2021)</div>
+            <div class="p" style="font-size:clamp(11px,.82vw,13px)">Обучает только bias'ы (~0.1%). Дёшево, но слабо для задач, где нужно менять <b>геометрию эмбеддингов</b>.</div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.25em">(IA)³ Infused Adapter by Inhibiting and Amplifying Inner Activations (Liu et al., 2022)</div>
+            <div class="p" style="font-size:clamp(11px,.82vw,13px)">Векторы-масштабаторы для K, V и FFN-активаций. «Ручка громкости» для нейронов. Легко фьюзится в W.</div>
+          </div>
+          <div class="card" style="border-color:#99f6e4;background:var(--accent-2-soft)">
+            <div class="h3" style="margin-bottom:.25em">Для small encoders (MiniLM, BGE)</div>
+            <div class="p" style="font-size:clamp(11px,.82vw,13px)">LoRA и (IA)³ — фавориты для контрастивного retrieval. BitFit и Prompt Tuning не справляются с перестройкой embedding-пространства.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 12: DEPLOYMENT (FIXED) ============ -->
+    <section class="slide" data-slide="deploy">
+      <div class="eyebrow">Часть 08 · Deployment</div>
+      <h1 class="h2" style="margin-top:.35em">External vs Merged</h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1.1em;align-items:stretch;margin-top:.6em">
+        <div class="card" style="display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5em">
+            <div class="h3">External Serving</div>
+            <span class="chip accent">HOT-SWAP</span>
+          </div>
+          <div class="ascii-deploy"><span class="frozen">┌────────────────┐</span>
+<span class="frozen">│   Base Model   │</span> <span class="dim">7B / 70B</span>
+<span class="frozen">└───────┬────────┘</span>
+        │
+   ┌────┴────┬────────┐
+   ▼         ▼        ▼
+<span class="ad">┌─────┐  ┌─────┐  ┌─────┐</span>
+<span class="ad">│ A₁  │  │ A₂  │  │ Aₙ  │</span> <span class="dim">~100MB</span>
+<span class="ad">└─────┘  └─────┘  └─────┘</span></div>
+          <div style="display:flex;flex-direction:column;gap:.35em;margin-top:auto">
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Multi-tenant:</b> одна база, сотни задач</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Hot-swap:</b> адаптер меняется на лету</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Storage:</b> MB вместо сотен GB</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b style="color:var(--err)">Минус:</b> overhead на инференсе</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;border-color:#99f6e4;background:var(--accent-2-soft)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5em">
+            <div class="h3">Merged Deployment</div>
+            <span class="chip ok">ZERO-LATENCY</span>
+          </div>
+          <div class="eq-box" style="margin-bottom:.55em;background:#fff;border-color:#5eead4">
+            \[W' = W + B \cdot A\]
+          </div>
+          <div class="ascii-deploy"><span class="mrg">┌────────────────────────┐</span>
+<span class="mrg">│   Merged Model  (W')   │</span>
+<span class="mrg">│  single .safetensors   │</span>
+<span class="mrg">└───────────┬────────────┘</span>
+            │
+            ▼
+      <span class="dim">ONNX / GGUF / MLX</span></div>
+          <div style="display:flex;flex-direction:column;gap:.35em;margin-top:auto">
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Один файл:</b> просто деплоить</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Ноль overhead</b> на инференсе</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b>Конвертация</b> в любой runtime</div>
+            <div class="bullet p" style="font-size:clamp(10.5px,.82vw,12.5px)"><b style="color:var(--err)">Минус:</b> потеря гибкости</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.75em">
+        <div class="grid-3" style="gap:.9em">
+          <div>
+            <div class="h3" style="font-size:clamp(12px,.95vw,14.5px);margin-bottom:.2em">Форматы</div>
+            <div class="tag-row" style="margin-top:.3em">
+              <span class="chip">safetensors</span><span class="chip">GGUF</span><span class="chip">ONNX</span><span class="chip">MLX</span>
+            </div>
+          </div>
+          <div>
+            <div class="h3" style="font-size:clamp(12px,.95vw,14.5px);margin-bottom:.2em">MLX (appendix)</div>
+            <div class="p" style="font-size:clamp(10.5px,.78vw,12.5px)">Apple Silicon native. Unified memory, zero-copy. 15–40% быстрее GGUF на M-series. Только Mac.</div>
+          </div>
+          <div>
+            <div class="h3" style="font-size:clamp(12px,.95vw,14.5px);margin-bottom:.2em">Рекомендация</div>
+            <div class="p" style="font-size:clamp(10.5px,.78vw,12.5px)">Тренируем в PyTorch/PEFT. Для serving — external. Для single-file деплоя — merge → GGUF/ONNX/MLX.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 13: QUIZ 3 ============ -->
+    <section class="slide" data-slide="quiz3">
+      <div class="eyebrow">Quiz · 03</div>
+      <h1 class="h2" style="margin-top:.35em">Продакшн-архитектура</h1>
+      <div class="divider"></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:72%">
+        <div class="h3" style="font-size:clamp(15.5px,1.35vw,23px);margin-bottom:1em">
+          Хостим <b>одну 70B базу</b> и обслуживаем <b>сотни разных клиентов</b>, у каждого — своя задача. Архитектура?
+        </div>
+        <div id="q4" style="display:flex;flex-direction:column;gap:.55em">
+          <button class="quiz-opt" data-q="q4" data-correct="false">A. Обучить и смержить отдельную копию модели под каждого клиента</button>
+          <button class="quiz-opt" data-q="q4" data-correct="true">B. External serving: одна база + много маленьких адаптеров с hot-swap</button>
+          <button class="quiz-opt" data-q="q4" data-correct="false">C. Prompt Tuning — дешевле всего</button>
+          <button class="quiz-opt" data-q="q4" data-correct="false">D. Full fine-tuning с LoRA-инициализацией</button>
+        </div>
+        <div id="q4-fb" class="p" style="margin-top:.9em;min-height:2.2em"></div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 14: CASE STUDY ============ -->
+    <section class="slide" data-slide="app">
+      <div class="eyebrow">Часть 09 · Case Study</div>
+      <h1 class="h2" style="margin-top:.35em">
+        <span class="glow">IAB Taxonomy</span> × sentence-transformers × ClickHouse
+      </h1>
+      <div class="divider"></div>
+      <div class="grid-2" style="flex:1;gap:1em;align-items:stretch;margin-top:.4em">
+        <div style="display:flex;flex-direction:column;gap:.65em">
+          <div class="card">
+            <div class="h3" style="margin-bottom:.3em">Задача</div>
+            <div class="p">
+              Классифицировать веб-страницы по иерархии <b>IAB Content Taxonomy</b>: Tier 1 → Tier 2 → Tier 3 (напр., <span class="mono" style="color:var(--accent)">Automotive → Car Culture → Classic Cars</span>).
+            </div>
+          </div>
+          <div class="card" style="border-color:#c7d2fe;background:var(--accent-soft)">
+            <div class="h3" style="margin-bottom:.3em">База: sentence-transformers</div>
+            <div class="p">
+              <b>all-MiniLM-L6-v2</b> (22M) или <b>BGE-small</b> (33M). Превращают текст в плотные векторы. Pre-trained кластеризует по общей семантике, не по IAB.
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.3em">Проблема full fine-tuning</div>
+            <div class="p">
+              На узком IAB-датасете маленькая модель <b style="color:var(--err)">забывает</b> общую языковую семантику. Edge cases деградируют.
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.35em">Обучающий датасет (triplets)</div>
+            <div class="dataset-row">
+              {<br>
+              &nbsp;&nbsp;<span class="k">"anchor"</span>: <span class="s">"Review of the 1967 Ford Mustang Shelby GT500, a legendary muscle car with 355 HP V8..."</span>,<br>
+              &nbsp;&nbsp;<span class="k">"positive"</span>: <span class="s">"Classic Cars — vintage and collector automobiles, restoration guides and reviews"</span>,<br>
+              &nbsp;&nbsp;<span class="k">"negative"</span>: <span class="s">"Italian Cuisine — traditional pasta recipes and cooking techniques"</span><br>
+              }
+            </div>
+            <div class="dataset-row" style="margin-top:.35em">
+              {<br>
+              &nbsp;&nbsp;<span class="k">"anchor"</span>: <span class="s">"How to prepare authentic carbonara with guanciale and pecorino romano..."</span>,<br>
+              &nbsp;&nbsp;<span class="k">"positive"</span>: <span class="s">"Italian Cuisine — recipes, ingredients and regional dishes of Italy"</span>,<br>
+              &nbsp;&nbsp;<span class="k">"negative"</span>: <span class="s">"Car Culture — automotive events, tuning and motorsport news"</span><br>
+              }
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.65em">
+          <div class="card" style="flex:1">
+            <div class="h3" style="margin-bottom:.4em">LoRA-интервенция</div>
+            <div style="display:flex;flex-direction:column;gap:.4em">
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,12.5px)"><b style="color:var(--accent)">Freeze</b> base weights MiniLM</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,12.5px)"><b style="color:var(--accent)">Inject</b> LoRA в q/k/v/dense projections, r=16, α=32</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,12.5px)"><b style="color:var(--accent)">Train</b> на triplets с MultipleNegativesRankingLoss</div>
+              <div class="bullet p" style="font-size:clamp(11px,.82vw,12.5px)"><b style="color:var(--accent)">Merge</b> W' = W + B·A → standalone-модель</div>
+            </div>
+            <div class="divider"></div>
+            <div class="p" style="font-size:clamp(10.5px,.82vw,12.5px)">
+              Замороженные веса сохраняют языковой manifold. Адаптер <b>искривляет локальную геометрию</b> — подтягивает эмбеддинги к IAB-центроидам и отталкивает от смежных tier'ов.
+            </div>
+          </div>
+          <div class="card">
+            <div class="h3" style="margin-bottom:.3em">Экспорт</div>
+            <div class="flow" style="font-size:clamp(11px,.82vw,13px)">
+              <span class="chip accent">LoRA train</span>
+              <span class="arrow">→</span>
+              <span class="chip cyan">merge W+BA</span>
+              <span class="arrow">→</span>
+              <span class="chip ok">ONNX export</span>
+              <span class="arrow">→</span>
+              <span class="chip warn">prod</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SLIDE 15: FINAL QUIZ ============ -->
+    <section class="slide" data-slide="quiz4">
+      <div class="eyebrow">Final Quiz</div>
+      <h1 class="h2" style="margin-top:.35em">Почему LoRA для IAB-задачи</h1>
+      <div class="divider"></div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:72%">
+        <div class="h3" style="font-size:clamp(15px,1.3vw,22px);margin-bottom:1em">
+          Что позволяет использовать LoRA для fine-tuning all-MiniLM под IAB Taxonomy?
+        </div>
+        <div id="q5" style="display:flex;flex-direction:column;gap:.55em">
+          <button class="quiz-opt" data-q="q5" data-correct="false">A. LoRA увеличивает число параметров модели в 10 раз</button>
+          <button class="quiz-opt" data-q="q5" data-correct="false">B. LoRA автоматически выбирает лучшую таксономию</button>
+          <button class="quiz-opt" data-q="q5" data-correct="true">C. Заморозка базы сохраняет общую семантику, адаптер искривляет пространство под IAB-кластеры</button>
+          <button class="quiz-opt" data-q="q5" data-correct="false">D. LoRA быстрее инференса, чем оригинальный MiniLM</button>
+        </div>
+        <div id="q5-fb" class="p" style="margin-top:.9em;min-height:2.2em"></div>
+      </div>
+    </section>
+
+    <!-- NAV -->
+    <div class="nav">
+      <button class="btn" id="prev">← Назад</button>
+      <div class="dots" id="dots"></div>
+      <button class="btn primary" id="next">Далее →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const progress = document.getElementById('progress');
+  const slideNum = document.getElementById('slideNum');
+  const dotsEl = document.getElementById('dots');
+
+  for(let i=0;i<total;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.addEventListener('click', ()=>go(i));
+    dotsEl.appendChild(d);
+  }
+  const dots = dotsEl.querySelectorAll('.dot');
+
+  function render(){
+    slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+    dots.forEach((d,i)=>d.classList.toggle('active', i===idx));
+    progress.style.width = ((idx+1)/total*100) + '%';
+    slideNum.textContent = String(idx+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    prevBtn.style.visibility = idx===0 ? 'hidden' : 'visible';
+    nextBtn.textContent = idx===total-1 ? 'Финиш ✓' : 'Далее →';
+    if(window.MathJax && MathJax.typesetPromise){
+      try{ MathJax.typesetPromise([slides[idx]]).catch(()=>{}); }catch(e){}
+    }
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total-1, n)); render(); }
+  function next(){ if(idx<total-1) go(idx+1); }
+  function prev(){ if(idx>0) go(idx-1); }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight' || e.key===' ' || e.key==='PageDown'){ e.preventDefault(); next(); }
+    if(e.key==='ArrowLeft' || e.key==='PageUp'){ e.preventDefault(); prev(); }
+    if(e.key==='Home'){ go(0); }
+    if(e.key==='End'){ go(total-1); }
+  });
+
+  const feedbackMap = {
+    q1:{
+      correct:'Верно. B=0 гарантирует ΔW = B·A = 0 на старте. Модель ведёт себя как исходная pre-trained — это warm start.',
+      wrong:'Неверно. B=0 даёт ΔW=0 на старте, и модель ведёт себя как исходная pre-trained — warm start без шока.'
+    },
+    q2:{
+      correct:'Верно. 200 примеров — мало, низкий rank 8 оптимален против переобучения.',
+      wrong:'Неверно. На маленьком датасете высокий rank быстро переобучится. Стандарт — 8–16.'
+    },
+    q3:{
+      correct:'Верно. 7B в fp16 требует ~14 GB, в 12 GB не влезает. QLoRA (4-bit) + Unsloth сжимает до 6–8 GB — идеально для RTX 3060.',
+      wrong:'Неверно. 7B в fp16 требует ~14 GB, больше чем 12 GB у RTX 3060. Только QLoRA (4-bit) + Unsloth уместит модель в 6–8 GB.'
+    },
+    q4:{
+      correct:'Верно. External serving — стандарт multi-tenant: один base-модель, сотни горяче-сменяемых адаптеров.',
+      wrong:'Неверно. Держать сотни 70B-копий — нерационально. Используйте external serving с hot-swap адаптеров.'
+    },
+    q5:{
+      correct:'Верно. Замороженный MiniLM хранит общую семантику, а LoRA искривляет пространство под IAB-кластеры без catastrophic forgetting.',
+      wrong:'Неверно. Сила LoRA — сохранение pre-trained manifold и точечная деформация под задачу через low-rank ΔW.'
+    }
+  };
+
+  document.querySelectorAll('.quiz-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const q = btn.dataset.q;
+      const group = document.querySelectorAll(`[data-q="${q}"]`);
+      const correct = btn.dataset.correct === 'true';
+      group.forEach(b=>b.disabled = true);
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      if(!correct){
+        group.forEach(b=>{ if(b.dataset.correct==='true') b.classList.add('correct'); });
+      }
+      const fb = document.getElementById(q+'-fb');
+      if(fb){
+        fb.textContent = feedbackMap[q][correct?'correct':'wrong'];
+        fb.style.color = correct ? 'var(--ok)' : 'var(--err)';
+      }
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
+
+
