@@ -1,0 +1,91 @@
+{
+  "title": "Code Review",
+  "description": "Цели review, работа с замечаниями, merge strategy, сроки и роль LLM",
+  "icon": "🔍",
+  "time": "~3 мин",
+  "scoreMessages": {
+    "perfect": "Отлично! Вы уверенно ориентируетесь в процессе code review.",
+    "good": "Хороший результат. Стоит освежить guideline по review и merge.",
+    "retry": "Перечитайте guideline по code review и попробуйте снова."
+  },
+  "questions": [
+    {
+      "question": "Для чего нужен code review?",
+      "options": [
+        "Чтобы ускорить merge любой ценой",
+        "Чтобы улучшать quality кода, ловить ошибки и сверяться с best practices",
+        "Чтобы заменить testing и не писать тесты",
+        "Чтобы reviewer сам переписал весь код",
+        "Чтобы просто формально поставить approval"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! Code review — процесс повышения качества: проверка correctness, readability, maintainability и consistency. Он не заменяет тестирование.",
+      "wrongExpl": "Неверно. Главная цель review — качество кода и поиск ошибок (вариант B). Скорость merge, замена тестов и формальный approval — не цели процесса."
+    },
+    {
+      "question": "Какие замечания лучше чинить прямо в PR?",
+      "options": [
+        "Полную смену архитектуры",
+        "Typos, formatting, мелкий style",
+        "Перенос всей задачи в другой repo",
+        "Крупные changes в логике",
+        "Полный rewrite модуля"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! Незначительные замечания по стилю, опечаткам и форматированию можно исправить прямо в PR без раздувания scope.",
+      "wrongExpl": "Неверно. В PR правят мелочи — typos, formatting, style (вариант B). Архитектурные и логические изменения лучше обсуждать отдельно или выносить в task."
+    },
+    {
+      "question": "Какая merge strategy обсуждалась как default?",
+      "options": [
+        "Только rebase для всего",
+        "Обычные merge commits для всего",
+        "Squash merge",
+        "Cherry-pick всех commit'ов вручную",
+        "Вообще не фиксировать стандарт"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! Команда склонялась к Squash merge как default: история main чище, rollback одной фичи проще.",
+      "wrongExpl": "Неверно. Default — Squash merge (вариант C). Rebase shared-истории опаснее, merge commits засоряют историю, ручной cherry-pick слишком хрупок."
+    },
+    {
+      "question": "Почему squash merge удобен?",
+      "options": [
+        "Сохраняет все WIP commit'ы в main",
+        "Делает историю чище и упрощает rollback одной фичи",
+        "Позволяет пропускать testing",
+        "Делает любой код автоматически правильным",
+        "Убирает необходимость в review"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! Один squashed commit проще читать, тегать и откатывать, если что-то сломалось после merge.",
+      "wrongExpl": "Неверно. Squash упрощает историю и rollback (вариант B). Он не сохраняет WIP-коммиты, не заменяет testing и не отменяет review."
+    },
+    {
+      "question": "Сколько по времени должен занимать initial code review?",
+      "options": [
+        "Несколько дней",
+        "Полдня",
+        "Примерно 1 час",
+        "Неделю",
+        "5 минут"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! Review не должно превращаться в исследовательскую задачу — guideline рекомендует не тратить более 60 минут непрерывно на один PR.",
+      "wrongExpl": "Неверно. Целевой ориентир — около часа (вариант C). Дни или неделя означают слишком большой PR; 5 минут недостаточно для осмысленного review."
+    },
+    {
+      "question": "Для чего хотели использовать LLM в code review?",
+      "options": [
+        "Чтобы заменить всю команду",
+        "Как assistant для помощи в review, без жёсткого blocking",
+        "Чтобы автоматически approve любой PR",
+        "Чтобы убрать необходимость в reviewer",
+        "Чтобы делать только style-check и ничего больше"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! LLM рассматривалась как дополнительный помощник с process guardrails — не блокирует merge и не заменяет человека.",
+      "wrongExpl": "Неверно. LLM — assistant в review (вариант B), не замена команды, не auto-approve и не узкий style-check."
+    }
+  ]
+}

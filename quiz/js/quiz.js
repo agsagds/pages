@@ -4,7 +4,7 @@ let current = 0;
 let score = 0;
 let answered = false;
 
-const letters = ['A', 'B', 'C', 'D'];
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const QUIZ_ID_PATTERN = /^[a-z0-9-]+$/;
 
 const DEFAULT_SCORE_MESSAGES = {
@@ -78,7 +78,7 @@ function render() {
 
     const letterSpan = document.createElement('span');
     letterSpan.className = 'opt-letter';
-    letterSpan.textContent = letters[i];
+    letterSpan.textContent = letters[i] ?? String(i + 1);
 
     const textSpan = document.createElement('span');
     textSpan.className = 'option-text';

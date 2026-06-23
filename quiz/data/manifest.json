@@ -21,11 +21,20 @@
     {
       "id": "embeddings",
       "title": "Embeddings & LLM",
-      "description": "Проверьте знания о векторных пространствах, механизме внимания и проблемах обучения нейросетей",
+      "description": "Проверьте знания о векторных пространствах, механизме внимания и model collapse",
       "icon": "🔮",
-      "time": "~3 мин",
-      "questionCount": 8,
+      "time": "~2 мин",
+      "questionCount": 5,
       "order": 3
+    },
+    {
+      "id": "codereview",
+      "title": "Code Review",
+      "description": "Цели review, работа с замечаниями, merge strategy, сроки и роль LLM",
+      "icon": "🔍",
+      "time": "~3 мин",
+      "questionCount": 6,
+      "order": 4
     }
   ]
 }
