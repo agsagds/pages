@@ -1,0 +1,31 @@
+{
+  "quizzes": [
+    {
+      "id": "neural-networks",
+      "title": "AI & Embeddings",
+      "description": "Проверьте знания о функциях активации, обратном распространении и семантических векторах",
+      "icon": "🧠",
+      "time": "~2 мин",
+      "questionCount": 5,
+      "order": 1
+    },
+    {
+      "id": "adtech",
+      "title": "AdTech & SA",
+      "description": "Проверьте знания о монетизации, CPM, CPA и эффективности рекламных моделей",
+      "icon": "📊",
+      "time": "~2 мин",
+      "questionCount": 5,
+      "order": 2
+    },
+    {
+      "id": "embeddings",
+      "title": "Embeddings & LLM",
+      "description": "Проверьте знания о векторных пространствах, механизме внимания и проблемах обучения нейросетей",
+      "icon": "🔮",
+      "time": "~3 мин",
+      "questionCount": 8,
+      "order": 3
+    }
+  ]
+}
