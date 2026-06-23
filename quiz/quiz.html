@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Квиз — SA Knowledge Sharing</title>
+  <title>Quiz — SA Knowledge Sharing</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,26 +11,26 @@
   <div class="app-container">
     <div class="screen active" id="startScreen">
       <div class="quiz-icon-large" id="quizIcon">🧠</div>
-      <h1 id="quizTitle">Загрузка...</h1>
+      <h1 id="quizTitle">Loading...</h1>
       <p class="subtitle" id="quizDesc"></p>
       <p class="meta" id="quizMeta"></p>
       <div class="start-actions">
-        <button class="btn btn-primary" id="btnStart" type="button">Начать квиз</button>
-        <a href="index.html" class="btn btn-back">← Назад к списку</a>
+        <button class="btn btn-primary" id="btnStart" type="button">Start quiz</button>
+        <a href="index.html" class="btn btn-back">← Back to list</a>
       </div>
     </div>
 
     <div class="screen quiz-view" id="quizScreen">
       <div class="progress-container">
         <div class="progress-info">
-          <span class="progress-label">Прогресс</span>
+          <span class="progress-label">Progress</span>
           <span class="progress-counter" id="progressCounter">1 / 5</span>
         </div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       </div>
 
       <div class="question-card">
-        <div class="q-badge" id="questionBadge">Вопрос 1</div>
+        <div class="q-badge" id="questionBadge">Question 1</div>
         <p class="q-text" id="questionText"></p>
       </div>
 
@@ -45,13 +45,13 @@
       </div>
 
       <div class="nav-area">
-        <button class="btn btn-next" id="btnNext" type="button">Далее →</button>
+        <button class="btn btn-next" id="btnNext" type="button">Next →</button>
       </div>
     </div>
 
     <div class="screen" id="resultScreen">
       <div class="result-icon">✓</div>
-      <h1>Квиз завершён</h1>
+      <h1>Quiz complete</h1>
       <div class="score-display">
         <span class="score-num" id="scoreNum">0</span>
         <span class="score-tot" id="scoreTot">/ 5</span>
@@ -60,16 +60,16 @@
       <div class="stats-row">
         <div class="stat-item">
           <span class="stat-val green" id="statCorr">0</span>
-          <span class="stat-lbl">Верно</span>
+          <span class="stat-lbl">Correct</span>
         </div>
         <div class="stat-item">
           <span class="stat-val red" id="statWrong">0</span>
-          <span class="stat-lbl">Неверно</span>
+          <span class="stat-lbl">Wrong</span>
         </div>
       </div>
       <div class="start-actions">
-        <button class="btn btn-primary" id="btnRestart" type="button">Пройти заново</button>
-        <a href="index.html" class="btn btn-back">← Все квизы</a>
+        <button class="btn btn-primary" id="btnRestart" type="button">Try again</button>
+        <a href="index.html" class="btn btn-back">← All quizzes</a>
       </div>
     </div>
   </div>

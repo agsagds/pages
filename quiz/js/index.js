@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const meta = document.createElement('div');
       meta.className = 'quiz-meta';
-      meta.textContent = `${quiz.questionCount} вопросов · ${quiz.time}`;
+      meta.textContent = `${quiz.questionCount} questions · ${quiz.time}`;
 
       info.append(title, desc, meta);
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     listContainer.replaceChildren();
     const err = document.createElement('p');
     err.className = 'quiz-list-error';
-    err.textContent = 'Не удалось загрузить список квизов. Запустите через HTTP-сервер.';
+    err.textContent = 'Could not load the quiz list. Run via an HTTP server.';
     listContainer.appendChild(err);
   }
 });

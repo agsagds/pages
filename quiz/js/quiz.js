@@ -8,9 +8,9 @@ const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const QUIZ_ID_PATTERN = /^[a-z0-9-]+$/;
 
 const DEFAULT_SCORE_MESSAGES = {
-  perfect: 'Безупречно! Отличный результат!',
-  good: 'Хороший результат! Есть потенциал для роста.',
-  retry: 'Стоит повторить материал и попробовать снова.'
+  perfect: 'Perfect score! Excellent result!',
+  good: 'Good result — room to grow.',
+  retry: 'Review the material and try again.'
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Error loading quiz:', error);
     loadFailed = true;
-    document.getElementById('quizTitle').textContent = 'Ошибка загрузки';
-    document.getElementById('quizDesc').textContent = 'Квиз не найден или повреждён';
+    document.getElementById('quizTitle').textContent = 'Failed to load';
+    document.getElementById('quizDesc').textContent = 'Quiz not found or invalid';
     document.getElementById('quizMeta').textContent = '';
     document.getElementById('btnStart').disabled = true;
   }
@@ -42,7 +42,7 @@ function initQuiz() {
   document.getElementById('quizTitle').textContent = quizData.title;
   document.getElementById('quizDesc').textContent = quizData.description;
   document.getElementById('quizMeta').textContent =
-    `${quizData.questions.length} вопросов · ${quizData.time || '~3 мин'}`;
+    `${quizData.questions.length} questions · ${quizData.time || '~3 min'}`;
   document.getElementById('quizIcon').textContent = quizData.icon || '🧠';
   document.getElementById('scoreTot').textContent = `/ ${quizData.questions.length}`;
 }
@@ -61,7 +61,7 @@ function render() {
   answered = false;
   const q = quizData.questions[current];
 
-  document.getElementById('questionBadge').textContent = `Вопрос ${current + 1}`;
+  document.getElementById('questionBadge').textContent = `Question ${current + 1}`;
   document.getElementById('questionText').textContent = q.question;
   document.getElementById('progressCounter').textContent =
     `${current + 1} / ${quizData.questions.length}`;
@@ -123,7 +123,7 @@ function select(idx) {
 
   header.className = `exp-header ${isCorrect ? 'correct-header' : 'wrong-header'}`;
   icon.textContent = isCorrect ? '✓' : '✗';
-  title.textContent = isCorrect ? 'Правильно!' : 'Неправильно';
+  title.textContent = isCorrect ? 'Correct!' : 'Incorrect';
   text.textContent = getExplanationText(q, isCorrect);
 
   const explanation = document.getElementById('explanation');
@@ -132,7 +132,7 @@ function select(idx) {
 
   const next = document.getElementById('btnNext');
   next.textContent =
-    current < quizData.questions.length - 1 ? 'Далее →' : 'Результаты';
+    current < quizData.questions.length - 1 ? 'Next →' : 'Results';
   next.classList.add('visible');
 }
 

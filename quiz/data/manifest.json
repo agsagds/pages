@@ -35,6 +35,15 @@
       "time": "~3 мин",
       "questionCount": 6,
       "order": 4
+    },
+    {
+      "id": "lora",
+      "title": "LoRA",
+      "description": "Low-rank adaptation: принципы, инициализация, ранг, merge и сравнение с Full Fine Tuning",
+      "icon": "⚡",
+      "time": "~2 мин",
+      "questionCount": 5,
+      "order": 5
     }
   ]
 }
