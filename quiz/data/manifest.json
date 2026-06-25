@@ -44,6 +44,15 @@
       "time": "~2 мин",
       "questionCount": 5,
       "order": 5
+    },
+    {
+      "id": "peft",
+      "title": "LoRA & PEFT",
+      "description": "LoRA в продакшене, prefix/prompt tuning, BitFit и оценка fine-tuning",
+      "icon": "⚙️",
+      "time": "~3 мин",
+      "questionCount": 5,
+      "order": 6
     }
   ]
 }
