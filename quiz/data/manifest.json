@@ -53,6 +53,15 @@
       "time": "~3 мин",
       "questionCount": 5,
       "order": 6
+    },
+    {
+      "id": "ml-fundamentals",
+      "title": "AI/ML: основы",
+      "description": "Embeddings, softmax, attention, backpropagation и матрицы в нейросетях",
+      "icon": "📐",
+      "time": "~4 мин",
+      "questionCount": 10,
+      "order": 7
     }
   ]
 }
