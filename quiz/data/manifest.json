@@ -62,6 +62,15 @@
       "time": "~4 мин",
       "questionCount": 10,
       "order": 7
+    },
+    {
+      "id": "ml-architecture",
+      "title": "AI/ML: архитектура",
+      "description": "Эмпирический характер DL, блоки трансформера, GPU, residual и multi-head attention",
+      "icon": "🏗️",
+      "time": "~5 мин",
+      "questionCount": 12,
+      "order": 8
     }
   ]
 }
