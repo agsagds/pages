@@ -71,6 +71,15 @@
       "time": "~5 мин",
       "questionCount": 12,
       "order": 8
+    },
+    {
+      "id": "core-dev-workflow",
+      "title": "Core Development Workflow",
+      "description": "Доска разработки ядра: справа налево, лейны, WIP, карточка и approvals",
+      "icon": "📋",
+      "time": "~5 мин",
+      "questionCount": 12,
+      "order": 9
     }
   ]
 }
