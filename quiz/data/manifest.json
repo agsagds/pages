@@ -73,13 +73,22 @@
       "order": 8
     },
     {
+      "id": "transformer-types",
+      "title": "AI/ML: encoder & decoder",
+      "description": "Три типа трансформеров, masked attention, KV-cache и когда что выбирать",
+      "icon": "🔀",
+      "time": "~4 мин",
+      "questionCount": 9,
+      "order": 9
+    },
+    {
       "id": "core-dev-workflow",
       "title": "Core Development Workflow",
       "description": "Доска разработки ядра: справа налево, лейны, WIP, карточка и approvals",
       "icon": "📋",
       "time": "~5 мин",
       "questionCount": 12,
-      "order": 9
+      "order": 10
     }
   ]
 }
