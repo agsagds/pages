@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI-powered development · подходы</title>
+<meta name="description" content="Практический доклад про AI-powered development: подходы Ask-Plan-Build, управление контекстом, локальные модели, наблюдаемость в карточке и инженерные компромиссы.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -28,8 +29,21 @@
     line-height:1.5;
   }
   .mono{font-family:'IBM Plex Mono',monospace}
+  .skip-link{
+    position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;
+  }
+  .skip-link:focus{
+    left:1rem;top:1rem;width:auto;height:auto;z-index:100;
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:.55rem .75rem;color:var(--ink);font-weight:600;
+  }
   a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(15,118,110,.35)}
   a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-bottom-color:transparent;
+  }
 
   .topnav{
     position:sticky;top:0;z-index:40;
@@ -266,9 +280,14 @@
     display:inline-block;margin-top:.5rem;font-weight:600;
     border-bottom:1px solid rgba(15,118,110,.35);
   }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *{transition:none !important}
+  }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#top">Перейти к содержанию</a>
 <header class="topnav">
   <a class="brand" href="#top">AI-powered dev</a>
   <nav class="links" aria-label="Разделы">
@@ -537,7 +556,7 @@ If nothing material is wrong → <span class="str">"It's OK."</span></pre>
     <h2>Cursor</h2>
     <div class="shot-wrap" style="margin-top:.4rem">
       <div class="img">
-        <img class="shot" src="assets/cursor-models.png" alt="Cursor Settings Models: OpenAI key, Override Base URL, Anthropic, Google, Azure, Bedrock">
+        <img class="shot" src="assets/cursor-models.png" loading="lazy" decoding="async" alt="Cursor Settings Models: OpenAI key, Override Base URL, Anthropic, Google, Azure, Bedrock">
       </div>
       <div class="notes">
         <div class="card"><h3>1. API Key</h3><p class="p">Любая non-empty строка для local</p></div>
@@ -610,30 +629,99 @@ If nothing material is wrong → <span class="str">"It's OK."</span></pre>
 
   <section class="screen" id="knowhow">
     <h2>Know-how у проприетарщиков</h2>
-    <p class="lead">Системные промпты и дефолтный набор инструментов</p>
+    <p class="lead">Системные промпты и дефолтный набор инструментов формируют заметную разницу в качестве.</p>
   </section>
 
   <div class="part" id="part-3">
     <h2>Как обеспечить наблюдаемость в карточке?</h2>
   </div>
-  <section class="screen" id="better-than-nothing">
+  <section class="screen dense" id="better-than-nothing">
     <h2>something better than nothing</h2>
+    <p class="lead" style="max-width:37em;margin-bottom:1rem">Минимальный стандарт прозрачности в карточке полезнее, чем отсутствие структуры.</p>
+    <div class="stack" style="max-width:43em">
+      <div class="bullet p"><span>Цель задачи формулируется в одном абзаце: что меняется и какой ожидается эффект.</span></div>
+      <div class="bullet p"><span>Ход работы фиксируется короткими этапами: исследование, реализация, проверка.</span></div>
+      <div class="bullet p"><span>Статус обновляется через наблюдаемые факты: ссылка на diff, номер билда, выдержка из логов.</span></div>
+      <div class="bullet p"><span>Результат закрывается критерием готовности: какие проверки пройдены и что осталось за рамками.</span></div>
+    </div>
+    <div class="grid-2" style="margin-top:.95rem;max-width:42em">
+      <div class="card soft">
+        <h3>Минимальный шаблон</h3>
+        <p class="p"><span class="mono">Контекст → План → Изменения → Проверка → Риски</span></p>
+      </div>
+      <div class="card soft">
+        <h3>Частота обновлений</h3>
+        <p class="p">После каждого завершённого шага и перед сменой направления.</p>
+      </div>
+    </div>
   </section>
-  <section class="screen" id="neurosloop">
+  <section class="screen dense" id="neurosloop">
     <h2>забери свой нейрослоп!</h2>
+    <p class="lead" style="max-width:37em;margin-bottom:1rem">Текст от модели превращается в рабочий материал только после фильтрации и верификации.</p>
+    <div class="stack" style="max-width:43em">
+      <div class="bullet p"><span>Плотные абзацы разбиваются на шаги, которые можно проверить отдельно.</span></div>
+      <div class="bullet p"><span>Каждый технический тезис подтверждается ссылкой на код, документ или воспроизводимую команду.</span></div>
+      <div class="bullet p"><span>Любое «звучит убедительно» проверяется на уровне runtime-сигналов и edge cases.</span></div>
+      <div class="bullet p"><span>Неоднозначные места помечаются открытыми вопросами, а не скрываются под общими формулировками.</span></div>
+    </div>
+    <div class="card" style="margin-top:1rem;max-width:42em">
+      <div class="k">Фильтр качества</div>
+      <p class="p">Факт · источник · проверка · влияние на продукт.</p>
+    </div>
   </section>
 
   <div class="part" id="part-4">
     <h2>Холивар</h2>
   </div>
-  <section class="screen" id="keep-face">
+  <section class="screen dense" id="keep-face">
     <h2>затраты на «держать лицо»</h2>
+    <p class="lead" style="max-width:38em;margin-bottom:1rem">Попытка скрыть неопределённость обычно дороже, чем ранняя фиксация риска.</p>
+    <div class="grid-2" style="max-width:44em">
+      <div class="card">
+        <div class="k">Скрытый риск</div>
+        <p class="p">Проблема обнаруживается поздно, когда стоимость изменения выше.</p>
+      </div>
+      <div class="card accent">
+        <div class="k">Открытый риск</div>
+        <p class="p">Риск фиксируется сразу: гипотеза, план проверки и срок решения.</p>
+      </div>
+    </div>
+    <div class="stack" style="max-width:43em;margin-top:1rem">
+      <div class="bullet p"><span>Нормальная практика: «не подтверждено», «требуется проверка», «нужны данные».</span></div>
+      <div class="bullet p"><span>В карточке хранится не образ уверенности, а траектория принятия решений.</span></div>
+    </div>
   </section>
-  <section class="screen" id="engineer-not-coder">
+  <section class="screen dense" id="engineer-not-coder">
     <h2>инженер — не кодер</h2>
+    <p class="lead" style="max-width:38em;margin-bottom:1rem">Ценность создаётся не количеством строк, а устойчивостью решения и скоростью обратной связи.</p>
+    <div class="stack" style="max-width:43em">
+      <div class="bullet p"><span>Инженерная роль: уточнение задачи, работа с ограничениями, оценка влияния.</span></div>
+      <div class="bullet p"><span>Код — один из артефактов наряду с тестами, наблюдаемостью и документацией решения.</span></div>
+      <div class="bullet p"><span>AI-инструменты ускоряют реализацию, но ответственность за архитектуру и риски остаётся в команде.</span></div>
+    </div>
+    <div class="card soft" style="margin-top:1rem;max-width:42em">
+      <h3>Операционный критерий</h3>
+      <p class="p">Решение считается готовым, если его можно поддерживать без автора через месяц.</p>
+    </div>
   </section>
-  <section class="screen" id="ai-first-lemmings">
+  <section class="screen dense" id="ai-first-lemmings">
     <h2>AI-first лемминги</h2>
+    <p class="lead" style="max-width:38em;margin-bottom:1rem">AI-first работает как стратегия только при явных границах применения.</p>
+    <div class="grid-2" style="max-width:44em">
+      <div class="card">
+        <div class="k">Где уместно</div>
+        <p class="p">Быстрые прототипы, рутинные миграции, генерация тестовых заготовок.</p>
+      </div>
+      <div class="card">
+        <div class="k">Где нужен ручной контроль</div>
+        <p class="p">Критичные доменные правила, безопасность, платежные и правовые сценарии.</p>
+      </div>
+    </div>
+    <div class="stack" style="max-width:43em;margin-top:1rem">
+      <div class="bullet p"><span>Внедрение начинается с пилота и ограниченного контура ответственности.</span></div>
+      <div class="bullet p"><span>Метрики внедрения: lead time, дефекты после релиза, доля ручных откатов.</span></div>
+      <div class="bullet p"><span>Решения по расширению принимаются по данным, а не по тренду.</span></div>
+    </div>
   </section>
 
   <footer class="close" id="close">
