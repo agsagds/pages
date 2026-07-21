@@ -89,6 +89,15 @@
       "time": "~5 мин",
       "questionCount": 12,
       "order": 10
+    },
+    {
+      "id": "ai-assisted-dev",
+      "title": "AI-assisted development",
+      "description": "Цикл Ask→Plan→Build→Validate, контекст, skills и ограничения внешних AI-инструментов",
+      "icon": "🤖",
+      "time": "~3 мин",
+      "questionCount": 5,
+      "order": 11
     }
   ]
 }
