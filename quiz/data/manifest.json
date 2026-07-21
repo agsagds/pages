@@ -98,6 +98,15 @@
       "time": "~3 мин",
       "questionCount": 5,
       "order": 11
+    },
+    {
+      "id": "lora-prompt-datasets",
+      "title": "LoRA vs prompt & datasets",
+      "description": "LoRA и веса модели, отличие от промптов, Recipes и синтетические датасеты",
+      "icon": "🧪",
+      "time": "~3 мин",
+      "questionCount": 5,
+      "order": 12
     }
   ]
 }
