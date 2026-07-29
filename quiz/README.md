@@ -28,9 +28,12 @@ Open in your browser: [http://127.0.0.1:8080/quiz/](http://127.0.0.1:8080/quiz/)
   "icon": "🎯",
   "time": "~2 min",
   "questionCount": 5,
+  "created": "2026-07",
   "order": 6
 }
 ```
+
+`created` is the quiz appearance month (`YYYY-MM`). It is shown on the index cards as-is (e.g. `2026-07`). For new quizzes use the current month; for older ones it was backfilled from git history (`git log --follow --diff-filter=A --format=%cs`).
 
 3. Verify locally: `http://127.0.0.1:8080/quiz/quiz.html?id=my-quiz`
 

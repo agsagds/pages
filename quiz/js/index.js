@@ -27,9 +27,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const desc = document.createElement('p');
       desc.textContent = quiz.description;
 
+      const metaParts = [`${quiz.questionCount} questions`, quiz.time];
+      if (quiz.created) metaParts.push(quiz.created);
+
       const meta = document.createElement('div');
       meta.className = 'quiz-meta';
-      meta.textContent = `${quiz.questionCount} questions · ${quiz.time}`;
+      meta.textContent = metaParts.join(' · ');
 
       info.append(title, desc, meta);
 

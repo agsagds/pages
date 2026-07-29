@@ -45,7 +45,7 @@ Copy and track:
 ```
 - [ ] Pick id / title / description / icon / time
 - [ ] Write quiz/data/<id>.json
-- [ ] Append entry to quiz/data/manifest.json (next order)
+- [ ] Append entry to quiz/data/manifest.json (next order, created = current YYYY-MM)
 - [ ] Validate JSON + counts + correct indices
 ```
 
@@ -74,11 +74,14 @@ If questions are complete: implement immediately with defaults.
   "icon": "<emoji>",
   "time": "~3 мин",
   "questionCount": <N>,
+  "created": "<YYYY-MM>",
   "order": <max existing order + 1>
 }
 ```
 
 `questionCount` **must** equal `questions.length`.
+
+`created`: month the quiz was added (`YYYY-MM`, current month unless the user specifies otherwise). Shown on the index list.
 
 ### JSON shape
 
