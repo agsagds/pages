@@ -107,6 +107,15 @@
       "time": "~3 мин",
       "questionCount": 5,
       "order": 12
+    },
+    {
+      "id": "post-transformer",
+      "title": "AI/ML: после Transformer",
+      "description": "Ограничения Transformer, MoE, квантизация, Paged Attention, Mamba и Diffusion LLM",
+      "icon": "🧬",
+      "time": "~4 мин",
+      "questionCount": 8,
+      "order": 13
     }
   ]
 }
