@@ -149,6 +149,16 @@
       "questionCount": 8,
       "created": "2026-08",
       "order": 15
+    },
+    {
+      "id": "finetune-practice",
+      "title": "Fine-tuning: практика и проверка",
+      "description": "Узкие цели LoRA, контрпримеры, синтетические данные, OOD-тесты и побочные эффекты дообучения",
+      "icon": "🔧",
+      "time": "~3 мин",
+      "questionCount": 7,
+      "created": "2026-08",
+      "order": 16
     }
   ]
 }
