@@ -159,6 +159,16 @@
       "questionCount": 7,
       "created": "2026-08",
       "order": 16
+    },
+    {
+      "id": "task-testing-approach",
+      "title": "Подход к тестированию задачи",
+      "description": "Анализ карточки, пять вопросов, границы теста и достаточность проверок",
+      "icon": "🎯",
+      "time": "~3 мин",
+      "questionCount": 8,
+      "created": "2026-08",
+      "order": 17
     }
   ]
 }
