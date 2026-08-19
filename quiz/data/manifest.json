@@ -179,6 +179,16 @@
       "questionCount": 14,
       "created": "2026-08",
       "order": 18
+    },
+    {
+      "id": "minilm-unsloth",
+      "title": "MiniLM × Unsloth: IAB-категоризация",
+      "description": "LoRA на эмбеддере, in-batch negatives, merge, окно токенов, F1, warmup и retrieval-метрики",
+      "icon": "🧭",
+      "time": "~4 мин",
+      "questionCount": 9,
+      "created": "2026-08",
+      "order": 19
     }
   ]
 }
