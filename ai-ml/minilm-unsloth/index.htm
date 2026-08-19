@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Экспедиция MiniLM × Unsloth — полевой отчёт в двух фазах</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@latest/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@latest/900.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/pt-serif@latest/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/pt-serif@latest/400-italic.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/pt-serif@latest/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@latest/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@latest/700.css">
+<style>
+:root{
+  --paper:#f5efe2; --paper2:#ece2cd; --cream:#f8f3e6;
+  --ink:#242a22; --ink2:#5a6153;
+  --green:#2c4a39; --green-d:#16281f;
+  --terra:#b4551f; --gold:#a97e2b;
+  --line:rgba(36,42,34,.16);
+  --storm:#141a20; --storm-ink:#d9d3c4; --storm-amber:#d08b3c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'PT Serif',Georgia,serif; font-size:17.5px; line-height:1.72;
+  overflow-x:hidden;
+}
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:90; opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+::selection{background:var(--terra); color:var(--cream)}
+.mono, .kicker, .chip, .m-num, .ch-num, .ch-range, .log th, .cc-head, .readout, .f-line, .bd .l, .m-kicker, .scroll-cue, .rail-dot::after, .nav a, .brand-name{
+  font-family:'JetBrains Mono',monospace;
+}
+:not(pre) > code{
+  font-family:'JetBrains Mono',monospace; font-size:.85em;
+  background:rgba(36,42,34,.08); padding:2px 7px; border-radius:4px; white-space:nowrap;
+}
+
+/* ---------- header / progress / rail ---------- */
+#progress{position:fixed; top:0; left:0; right:0; height:3px; z-index:80}
+#bar{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--green),var(--terra),var(--gold))}
+header.top{
+  position:fixed; top:0; left:0; right:0; z-index:70;
+  display:flex; align-items:center; gap:18px; padding:12px 24px;
+  background:rgba(245,239,226,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:12px; flex:0 0 auto}
+.badge{
+  width:36px; height:36px; border:1.5px solid var(--ink); border-radius:5px;
+  display:grid; place-items:center; background:var(--cream);
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.06em;
+}
+.brand-name{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink)}
+nav.chapters{margin-left:auto; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none}
+nav.chapters::-webkit-scrollbar{display:none}
+nav a{
+  font-size:10.5px; letter-spacing:.15em; text-transform:uppercase; text-decoration:none;
+  color:var(--ink2); padding:9px 11px; position:relative; white-space:nowrap; transition:color .25s;
+}
+nav a:hover{color:var(--ink)}
+nav a.active{color:var(--terra)}
+nav a.active::after{content:""; position:absolute; left:11px; right:11px; bottom:5px; height:2px; background:var(--terra)}
+.readout{flex:0 0 auto; font-size:11px; color:var(--ink2); min-width:118px; text-align:right; letter-spacing:.08em}
+.rail{position:fixed; left:24px; top:50%; transform:translateY(-50%); z-index:60; display:flex; flex-direction:column; gap:11px}
+.rail-dot{position:relative; width:9px; height:9px; border-radius:50%; background:rgba(36,42,34,.22); transition:all .3s; display:block}
+.rail-dot:hover{background:rgba(36,42,34,.5)}
+.rail-dot.active{background:var(--terra); transform:scale(1.45); box-shadow:0 0 0 4px rgba(180,85,31,.18)}
+.rail-dot::after{
+  content:attr(data-tip); position:absolute; left:20px; top:50%; transform:translateY(-50%);
+  background:var(--ink); color:var(--cream); font-size:10px; letter-spacing:.06em;
+  padding:5px 9px; border-radius:4px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.rail-dot:hover::after{opacity:1}
+
+/* ---------- hero ---------- */
+.hero{position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden}
+.bg{position:absolute; inset:0; overflow:hidden}
+.bg img{position:absolute; top:-12%; left:0; width:100%; height:124%; object-fit:cover; transform:scale(1.18); will-change:transform}
+.hero .bg::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(18,22,17,.86), rgba(18,22,17,.28) 46%, rgba(18,22,17,.12))}
+.hero-inner{position:relative; z-index:2; width:100%; max-width:1160px; margin:0 auto; padding:140px 34px 16vh}
+.kicker{font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:#e8c98a; display:flex; align-items:center; gap:14px}
+.kicker::before{content:""; width:38px; height:1px; background:#e8c98a}
+h1{
+  font-family:'Playfair Display',serif; font-weight:900; color:#f7f1e2;
+  font-size:clamp(42px,6.4vw,92px); line-height:1.05; max-width:17ch; margin:20px 0 30px; text-wrap:balance;
+}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px}
+.chip{
+  font-size:11px; letter-spacing:.1em; color:#f0ead9; padding:9px 16px; border-radius:999px;
+  border:1px solid rgba(247,241,226,.4); background:rgba(18,22,17,.4); backdrop-filter:blur(4px);
+}
+.scroll-cue{
+  position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:3;
+  font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:rgba(247,241,226,.75);
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+}
+.scroll-cue::after{content:""; width:1px; height:46px; background:linear-gradient(rgba(247,241,226,.85),transparent); animation:drip 2.2s ease-in-out infinite}
+@keyframes drip{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ---------- chapter bands ---------- */
+.chapter{position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; text-align:center; padding:96px 24px; min-height:58vh}
+.chapter .veil{position:absolute; inset:0; background:rgba(16,20,16,.55)}
+.chapter-inner{position:relative; z-index:2; color:#f6f0e1}
+.ch-num{font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:#e8c98a}
+.chapter h2{font-family:'Playfair Display',serif; font-weight:900; font-size:clamp(34px,5vw,66px); margin:14px 0 10px; text-wrap:balance}
+.ch-range{font-size:11px; letter-spacing:.2em; color:rgba(246,240,225,.72)}
+.chapter.paper{background:var(--paper2); color:var(--ink)}
+.chapter.paper .ghost{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  font-family:'Playfair Display',serif; font-weight:900; font-size:44vh; color:rgba(36,42,34,.06); user-select:none;
+}
+.chapter.paper .ch-num{color:var(--terra)}
+.chapter.paper .ch-range{color:var(--ink2)}
+
+/* ---------- milestones ---------- */
+.milestone{position:relative; max-width:880px; margin:0 auto; padding:92px 30px 22px; scroll-margin-top:96px}
+.m-head{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+.m-num{font-size:12px; font-weight:700; letter-spacing:.14em; color:var(--terra); border:1.5px solid currentColor; padding:4px 9px; border-radius:4px}
+.m-kicker{font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink2)}
+h3.m-title{font-family:'Playfair Display',serif; font-weight:700; font-size:clamp(26px,3.4vw,38px); line-height:1.18; margin-bottom:16px; text-wrap:balance}
+.lead{
+  font-size:clamp(19px,2.4vw,23px); font-weight:700; line-height:1.5; margin:0 0 24px;
+  border-left:3px solid var(--terra); padding-left:20px; color:var(--green-d);
+}
+.field-list{list-style:none}
+.field-list li{position:relative; padding-left:28px; margin:13px 0}
+.field-list li::before{content:""; position:absolute; left:2px; top:.58em; width:8px; height:8px; transform:rotate(45deg); background:var(--terra)}
+.field-list .sub{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); margin:22px 0 6px; padding-left:28px}
+.note{margin-top:20px; font-style:italic; color:var(--ink2)}
+.milestone::after{content:"◆"; display:block; text-align:center; margin:64px auto 0; font-size:10px; color:rgba(36,42,34,.28)}
+
+/* ---------- code cards ---------- */
+.codecard{margin:28px 0; border-radius:12px; overflow:hidden; background:#1c231c; border:1px solid rgba(246,240,225,.09); box-shadow:0 22px 44px -26px rgba(22,40,31,.55)}
+.cc-head{display:flex; justify-content:space-between; gap:16px; padding:11px 18px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:#93a892; border-bottom:1px solid rgba(246,240,225,.08)}
+.codecard pre{
+  margin:0; padding:20px 22px; overflow-x:auto;
+  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.72; color:#e9e4d4;
+  white-space:pre; tab-size:4;
+}
+.codecard pre code{
+  display:block; white-space:inherit; background:none; padding:0; border-radius:0;
+  font:inherit; color:inherit;
+}
+.codecard .k{color:#93c7a0}.codecard .s{color:#dcb579}.codecard .n{color:#d99a76}.codecard .f{color:#a9c0dd}
+
+/* ---------- tables ---------- */
+.log{width:100%; border-collapse:collapse; margin:26px 0 12px; font-size:16.5px}
+.log th{font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink2); text-align:left; padding:10px 12px; border-bottom:2px solid var(--ink)}
+.log td{padding:13px 12px; border-bottom:1px solid var(--line)}
+.log tbody tr:nth-child(even){background:rgba(36,42,34,.035)}
+.log .num{text-align:right; font-family:'JetBrains Mono',monospace; font-size:14px}
+.log td.strong{font-weight:700}
+.log td.delta{color:var(--terra); font-weight:700}
+.log.wrap td{vertical-align:top; white-space:normal}
+.log.wrap td:first-child{font-family:'JetBrains Mono',monospace; font-size:13px; white-space:nowrap}
+
+/* ---------- storm zone ---------- */
+.zone-storm{background:var(--storm); color:var(--storm-ink)}
+.zone-storm h3.m-title{color:#f1ebdc}
+.zone-storm .lead{color:#e6dfcd; border-left-color:var(--storm-amber)}
+.zone-storm .m-kicker{color:#8d9a8c}
+.zone-storm .m-num{color:var(--storm-amber)}
+.zone-storm .field-list li::before{background:var(--storm-amber)}
+.zone-storm code{background:rgba(255,255,255,.09); color:#e8e0cd}
+.zone-storm .note{color:#a8b0a0}
+.zone-storm .log th{color:#93a094; border-bottom-color:#d9d3c4}
+.zone-storm .log td{border-bottom-color:rgba(217,211,196,.16)}
+.zone-storm .log tbody tr:nth-child(even){background:rgba(255,255,255,.03)}
+.zone-storm .log td.delta{color:#e0a35c}
+.zone-storm .milestone::after{color:rgba(217,211,196,.3)}
+
+/* ---------- summit cards ---------- */
+.summit{position:relative; max-width:1060px; margin:0 auto; padding:96px 28px 48px; scroll-margin-top:96px}
+.summit-card{
+  position:relative; background:linear-gradient(160deg,#fbf6e9,#f2e7cd);
+  border:1px solid rgba(169,126,43,.55); border-radius:18px;
+  padding:clamp(28px,4.5vw,58px); box-shadow:0 34px 70px -34px rgba(120,90,30,.4);
+}
+.summit-flag{
+  position:absolute; top:-19px; left:50%; transform:translateX(-50%);
+  width:38px; height:38px; border-radius:50%; background:var(--gold); color:#fff8ea;
+  display:grid; place-items:center; font-size:13px; box-shadow:0 8px 18px -6px rgba(120,90,30,.5);
+}
+.big-deltas{display:flex; flex-wrap:wrap; gap:clamp(20px,4.5vw,56px); margin:30px 0 8px}
+.bd .v{font-family:'Playfair Display',serif; font-weight:900; font-size:clamp(40px,6vw,74px); line-height:1; color:var(--terra)}
+.bd .l{font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink2); margin-top:8px}
+
+/* ---------- footer ---------- */
+footer{background:var(--green-d); color:#cfd8c9; text-align:center; padding:80px 24px 66px}
+.f-title{font-family:'Playfair Display',serif; font-weight:700; font-size:30px; color:#f1ead9}
+.f-line{font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:#9db39a; margin-top:16px}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0; transform:translateY(28px); transition:opacity .8s ease, transform .8s ease}
+.rv.in{opacity:1; transform:none}
+
+@media (max-width:1100px){.rail{display:none}}
+@media (max-width:860px){
+  .readout{display:none}
+  .brand-name{display:none}
+  .milestone{padding:70px 20px 16px}
+  .hero-inner{padding:120px 22px 18vh}
+  .log{font-size:14.5px}
+  .log td,.log th{padding:10px 8px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .rv{opacity:1; transform:none; transition:none}
+  .bg img{transform:scale(1.02)}
+  .scroll-cue::after{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"><span id="bar"></span></div>
+
+<header class="top">
+  <div class="brand">
+    <span class="badge">M×U</span>
+    <span class="brand-name">Экспедиция MiniLM × Unsloth</span>
+  </div>
+  <nav class="chapters" aria-label="Главы маршрута">
+    <a href="#s02" data-ch="ch1">Отправление</a>
+    <a href="#s05" data-ch="ch2">Снаряжение</a>
+    <a href="#s10" data-ch="ch3">Перевал</a>
+    <a href="#s14" data-ch="ch4">Вершина I</a>
+    <a href="#s15" data-ch="ch5">Новые земли</a>
+    <a href="#s23" data-ch="ch6">Вершина II</a>
+  </nav>
+  <span class="readout" id="readout">переход 01 / 27</span>
+</header>
+
+<div class="rail" id="rail" aria-hidden="true"></div>
+
+<!-- ======== 01 · TITLE ======== -->
+<section class="hero" id="s01" data-stop="01 · Title" data-chapter="ch0">
+  <div class="bg"><img data-px="0.22" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/1239be52c-c769-413b-901f-4fef6ce66aab.png" alt="Горная дорога на рассвете, одинокий путник вдали"></div>
+  <div class="hero-inner">
+    <span class="kicker">полевой отчёт · маршрут в двух фазах</span>
+    <h1>Phase 1: файнтюн MiniLM на Unsloth LoRA</h1>
+    <div class="hero-meta">
+      <span class="chip">IAB-категоризация сайтов</span>
+      <span class="chip">Phase 1: proof of technology</span>
+      <span class="chip">Retrieval-сетап</span>
+      <span class="chip">sentence-transformers lab</span>
+    </div>
+  </div>
+  <div class="scroll-cue">листайте вниз</div>
+</section>
+
+<!-- ======== ГЛАВА I ======== -->
+<section class="chapter paper">
+  <span class="ghost">I</span>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Глава I</span>
+    <h2>Отправление</h2>
+    <span class="ch-range">переходы 02–04</span>
+  </div>
+</section>
+
+<!-- 02 -->
+<article class="milestone" id="s02" data-stop="02 · Скоуп Phase 1" data-chapter="ch1">
+  <div class="m-head rv"><span class="m-num">02</span><span class="m-kicker">Глава I · Отправление</span></div>
+  <h3 class="m-title rv">Скоуп Phase 1</h3>
+  <p class="lead rv">Гоняем train и eval retrieval-сетапа на контролируемом синтетике.</p>
+  <ul class="field-list rv">
+    <li>Вход: сниппеты, похожие на страницы</li>
+    <li>Лейблы: описания из таксономии</li>
+    <li>Ограничения: маленькая модель, локальная GPU, воспроизводимые запуски</li>
+    <li>Цель: доказать, что train и eval работают end-to-end</li>
+  </ul>
+</article>
+
+<!-- 03 -->
+<article class="milestone" id="s03" data-stop="03 · Критерий приёмки" data-chapter="ch1">
+  <div class="m-head rv"><span class="m-num">03</span><span class="m-kicker">Глава I · Отправление</span></div>
+  <h3 class="m-title rv">Критерий приёмки</h3>
+  <p class="lead rv">Phase 1 засчитана, когда eval base vs tuned даёт читаемую дельту.</p>
+  <ul class="field-list rv">
+    <li>Один и тот же eval-сет для обеих моделей</li>
+    <li>Один и тот же retrieval по косинусу</li>
+    <li>Одни и те же метрики</li>
+    <li>Выход: per-record CSV + сводная таблица</li>
+  </ul>
+</article>
+
+<!-- 04 -->
+<article class="milestone" id="s04" data-stop="04 · Пайплайн" data-chapter="ch1">
+  <div class="m-head rv"><span class="m-num">04</span><span class="m-kicker">Глава I · Отправление</span></div>
+  <h3 class="m-title rv">Пайплайн</h3>
+  <p class="lead rv">Синтетические пары → LoRA-train на Unsloth → merged-чекпоинт → eval по косинусу.</p>
+  <ul class="field-list rv">
+    <li>Пары генерятся из таксономии</li>
+    <li>Train: LoRA поверх Unsloth</li>
+    <li>Сохраняем адаптеры и merged-чекпоинт</li>
+    <li>Base и tuned сравнивает один эвалуатор</li>
+    <li>Зависимости через <code>uv</code></li>
+  </ul>
+</article>
+
+<!-- ======== ГЛАВА II ======== -->
+<section class="chapter">
+  <div class="bg"><img data-px="0.25" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/1b7790397-263a-454f-831d-f7afbd3eb1c9.png" alt="Экспедиционный рюкзак и полевой журнал на бревне в лесу"></div>
+  <div class="veil"></div>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Глава II</span>
+    <h2>Снаряжение</h2>
+    <span class="ch-range">переходы 05–09</span>
+  </div>
+</section>
+
+<!-- 05 -->
+<article class="milestone" id="s05" data-stop="05 · Данные: пары" data-chapter="ch2">
+  <div class="m-head rv"><span class="m-num">05</span><span class="m-kicker">Глава II · Снаряжение</span></div>
+  <h3 class="m-title rv">Данные: пары anchor / positive</h3>
+  <div class="codecard rv">
+    <div class="cc-head"><span>полевой код · данные</span><span>python</span></div>
+<pre><code><span class="k">return</span> Dataset.<span class="f">from_dict</span>({
+    <span class="s">"anchor"</span>: [r[<span class="s">"text"</span>] <span class="k">for</span> r <span class="k">in</span> rows],
+    <span class="s">"positive"</span>: [r[<span class="s">"label_description"</span>] <span class="k">for</span> r <span class="k">in</span> rows],
+})</code></pre>
+  </div>
+  <ul class="field-list rv">
+    <li>anchor = текст страницы, positive = описание её категории</li>
+    <li>Остальные пары батча работают как negatives в лоссе</li>
+  </ul>
+</article>
+
+<!-- 06 -->
+<article class="milestone" id="s06" data-stop="06 · Unsloth + LoRA" data-chapter="ch2">
+  <div class="m-head rv"><span class="m-num">06</span><span class="m-kicker">Глава II · Снаряжение</span></div>
+  <h3 class="m-title rv">Модель: Unsloth + LoRA</h3>
+  <div class="codecard rv">
+    <div class="cc-head"><span>полевой код · модель</span><span>python</span></div>
+<pre><code>model = FastSentenceTransformer.<span class="f">from_pretrained</span>(
+    args.base_model,
+    max_seq_length=args.max_seq_length,
+    full_finetuning=<span class="n">False</span>,
+)
+model = FastSentenceTransformer.<span class="f">get_peft_model</span>(
+    model,
+    r=args.lora_r,
+    target_modules=[<span class="s">"query"</span>, <span class="s">"key"</span>, <span class="s">"value"</span>, <span class="s">"dense"</span>],
+    lora_alpha=args.lora_alpha,
+    lora_dropout=args.lora_dropout,
+    bias=<span class="s">"none"</span>,
+    use_gradient_checkpointing=<span class="s">"unsloth"</span>,
+    random_state=args.seed,
+    use_rslora=<span class="n">False</span>,
+    task_type=<span class="s">"FEATURE_EXTRACTION"</span>,
+)</code></pre>
+  </div>
+  <ul class="field-list rv">
+    <li>Base: <code>unsloth/all-MiniLM-L6-v2</code>, <code>full_finetuning=False</code> — учим только LoRA-патч</li>
+    <li><code>target_modules</code> — имена Linear-слоёв в графе BERT, из которого сделан MiniLM: проекции внимания query / key / value («на какие слова в предложении смотреть») и dense-слои</li>
+    <li>В Llama/Gemma те же роли зовутся <code>q_proj</code>, <code>k_proj</code>. Gemma-список на MiniLM не найдёт слои, и обучение ничего не сдвинет</li>
+    <li><code>r=32</code> — ранг, толщина патча: больше r — больше свободы у <code>A</code>/<code>B</code> и легче запомнить учебные фразы</li>
+    <li><code>lora_alpha=64</code> масштабирует поправку как <code>alpha / r</code>, здесь 2. Поднимаешь r — поднимай alpha пропорционально, иначе вместе с ёмкостью меняется сила шага</li>
+    <li><code>task_type="FEATURE_EXTRACTION"</code>: PEFT извлекает вектор признаков</li>
+    <li><code>dropout=0</code>, <code>bias="none"</code>, <code>use_rslora=False</code> — дефолты Unsloth: нулевая регуляризация, замороженные свободные члены, классическая LoRA</li>
+    <li><code>use_gradient_checkpointing="unsloth"</code> экономит память</li>
+    <li><code>random_state</code> фиксирует случайность, прогон воспроизводим</li>
+  </ul>
+</article>
+
+<!-- 07 -->
+<article class="milestone" id="s07" data-stop="07 · Тренер и MNRL" data-chapter="ch2">
+  <div class="m-head rv"><span class="m-num">07</span><span class="m-kicker">Глава II · Снаряжение</span></div>
+  <h3 class="m-title rv">Тренер и лосс MNRL</h3>
+  <div class="codecard rv">
+    <div class="cc-head"><span>полевой код · тренер</span><span>python</span></div>
+<pre><code>training_args = <span class="f">SentenceTransformerTrainingArguments</span>(
+    ...
+    per_device_train_batch_size=args.batch_size,
+    learning_rate=args.learning_rate,
+    warmup_steps=<span class="n">0.1</span>,
+    batch_sampler=BatchSamplers.NO_DUPLICATES,
+)
+trainer = <span class="f">SentenceTransformerTrainer</span>(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    loss=<span class="f">MultipleNegativesRankingLoss</span>(model),
+)
+trainer.<span class="f">train</span>()</code></pre>
+  </div>
+  <ul class="field-list rv">
+    <li>MNRL: «среди нескольких кандидатов в этом же батче найди своего». 16 пар → модель эмбеддит 16 страниц и 16 описаний; для каждой страницы косинусное сходство со всеми 16 описаниями (от −1 до 1); правильный — свой, остальные 15 — бесплатные negatives из соседей по батчу</li>
+    <li>Размер батча определяет число «чужих» в сравнении: больше батч — больше negatives</li>
+    <li><code>gradient_accumulation</code> увеличивает шаг оптимизатора, но соседей MNRL не добавляет: сравнение идёт внутри мелкого куска</li>
+    <li><code>NO_DUPLICATES</code> запрещает дубликаты текстов в батче: у страниц одной категории описание одно; с дубликатами модель учили бы отталкиваться от своего же эталона</li>
+    <li><code>learning_rate=2e-4</code> — шаг по <code>A</code>/<code>B</code>, на порядок больше, чем 2e-5 при полном файнтюне MiniLM: патч маленький, двигаем смелее</li>
+    <li>Три эпохи — три полных прохода по таблице</li>
+    <li><code>warmup_steps=0.1</code> в текущем transformers — доля шагов: первые 10% lr плавно поднимают с нуля, чтобы случайные <code>A</code>/<code>B</code> сразу не дёрнуть слишком сильно</li>
+    <li><code>fp16</code>/<code>bf16</code> — часть операций в меньшем числе бит, быстрее и экономнее по памяти; выбор зависит от видеокарты</li>
+  </ul>
+</article>
+
+<!-- 08 -->
+<article class="milestone" id="s08" data-stop="08 · Eval-контракт" data-chapter="ch2">
+  <div class="m-head rv"><span class="m-num">08</span><span class="m-kicker">Глава II · Снаряжение</span></div>
+  <h3 class="m-title rv">Eval-контракт</h3>
+  <p class="lead rv">Base и tuned сравниваются одним и тем же retrieval-тестом.</p>
+  <p class="rv">Для обеих моделей:</p>
+  <ul class="field-list rv">
+    <li>энкодим тексты и промпты таксономии</li>
+    <li>предсказание — cosine argmax</li>
+    <li>метрики: accuracy@1, accuracy@3, macro-F1, mean similarity к верному лейблу</li>
+    <li>таблица на выходе: <code>metric | base | tuned | delta</code></li>
+  </ul>
+</article>
+
+<!-- 09 -->
+<article class="milestone" id="s09" data-stop="09 · Проверка" data-chapter="ch2">
+  <div class="m-head rv"><span class="m-num">09</span><span class="m-kicker">Глава II · Снаряжение</span></div>
+  <h3 class="m-title rv">Проверка: косинус и argmax</h3>
+  <div class="codecard rv">
+    <div class="cc-head"><span>полевой код · проверка</span><span>python</span></div>
+<pre><code>text_emb  = model.<span class="f">encode</span>(texts, convert_to_numpy=<span class="n">True</span>, normalize_embeddings=<span class="n">True</span>)
+label_emb = model.<span class="f">encode</span>(label_texts, convert_to_numpy=<span class="n">True</span>, normalize_embeddings=<span class="n">True</span>)
+sims      = <span class="f">cos_sim</span>(text_emb, label_emb).cpu().numpy()
+pred_idx  = sims.<span class="f">argmax</span>(axis=<span class="n">1</span>)</code></pre>
+  </div>
+  <ul class="field-list rv">
+    <li>Берём страницы, которых модель не учила, и все описания категорий</li>
+    <li><code>normalize_embeddings=True</code> сжимает каждый вектор до длины 1: косинус совпадает со скалярным произведением, «громкость» вектора маскируется под «похожесть»</li>
+    <li>Строка матрицы сходств — одна страница против всех описаний; <code>argmax</code> — индекс самого близкого, это и есть ответ модели</li>
+    <li>Тот же вопрос, что задаёт MNRL, только среди полного списка категорий, а не 16 случайных соседей</li>
+    <li>Сравниваем исходную MiniLM и LoRA-версию: ближе к правильному описанию стало чаще — сдвиг сработал</li>
+  </ul>
+</article>
+
+<!-- ======== ГЛАВА III ======== -->
+<section class="chapter">
+  <div class="bg"><img data-px="0.25" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/1cab676e5-fd43-41d3-86cb-0f0eb8cf4c8c.png" alt="Грозовой фронт над горным перевалом"></div>
+  <div class="veil"></div>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Глава III</span>
+    <h2>Перевал</h2>
+    <span class="ch-range">переходы 10–13</span>
+  </div>
+</section>
+
+<div class="zone-storm">
+
+<!-- 10 -->
+<article class="milestone" id="s10" data-stop="10 · Железо" data-chapter="ch3">
+  <div class="m-head rv"><span class="m-num">10</span><span class="m-kicker">Глава III · Перевал</span></div>
+  <h3 class="m-title rv">Железо: фейковый ROCm и мёртвый GPU</h3>
+  <p class="lead rv">Первые запуски падали с ошибками ROCm.</p>
+  <ul class="field-list rv">
+    <li>ROCm — открытый стек AMD для вычислений на GPU</li>
+    <li>В ноутбуке NVIDIA RTX 5060, Torch на CUDA 13</li>
+    <li>Unsloth увидел <code>/dev/kfd</code> от встроенной AMD-графики (iGPU) и полез в AMD-путь</li>
+    <li>NVIDIA GPU была мертва для CUDA — <code>torch.cuda.is_available() == False</code>, <code>remapped_rows</code> кричит «GPU requires reset»</li>
+    <li>Тихий фолбэк на vanilla ST скрыл проблему</li>
+    <li>Фикс: CUDA preflight перед train, пиннуем Torch на CUDA-индекс, ребут машины</li>
+    <li>После ребута: <code>cuda_ok</code>, LoRA-чекпоинтинг живой, ~54 samples/s</li>
+    <li>Варны про <code>Python.h</code>, Triton и <code>position_ids</code> — шум</li>
+  </ul>
+</article>
+
+<!-- 11 -->
+<article class="milestone" id="s11" data-stop="11 · Метрики не двинулись" data-chapter="ch3">
+  <div class="m-head rv"><span class="m-num">11</span><span class="m-kicker">Глава III · Перевал</span></div>
+  <h3 class="m-title rv">Trouble 2: метрики не двинулись</h3>
+  <p class="lead rv">Первый «настоящий» eval после Unsloth показал дельту около нуля.</p>
+  <ul class="field-list rv">
+    <li>accuracy@1: 1.00 → 1.00</li>
+    <li>косинус к верному лейблу: ~0.97 уже на base</li>
+    <li>дельта: +0.002</li>
+  </ul>
+</article>
+
+<!-- 12 -->
+<article class="milestone" id="s12" data-stop="12 · Root cause" data-chapter="ch3">
+  <div class="m-head rv"><span class="m-num">12</span><span class="m-kicker">Глава III · Перевал</span></div>
+  <h3 class="m-title rv">Root cause: saturated eval + немердженые адаптеры</h3>
+  <p class="lead rv">Две проблемы сразу.</p>
+  <ul class="field-list rv">
+    <li>Eval сатурнирован: синтетика была копией промпта таксономии. Base на таком не может ошибиться.</li>
+    <li>В «merged»-чекпоинте остались файлы LoRA-адаптеров.</li>
+  </ul>
+  <p class="note rv">Обычный <code>SentenceTransformer</code> адаптеры просто игнорирует — tuned ведёт себя как base.</p>
+</article>
+
+<!-- 13 -->
+<article class="milestone" id="s13" data-stop="13 · Фикс merge + eval" data-chapter="ch3">
+  <div class="m-head rv"><span class="m-num">13</span><span class="m-kicker">Глава III · Перевал</span></div>
+  <h3 class="m-title rv">Фикс: честный merge + жёсткий eval</h3>
+  <p class="lead rv">Merge делаем проверяемым, eval — нечитерским.</p>
+  <ul class="field-list rv">
+    <li><code>save_pretrained_merged(..., save_method="merged_16bit")</code></li>
+    <li>адаптеры остались — <code>merge_and_unload</code></li>
+    <li><code>adapter_config.json</code> после merge — фейлим ран</li>
+    <li><code>merged_has_adapters=False</code> — критерий успеха</li>
+    <li>вместо копий промптов — сниппеты, похожие на страницы</li>
+  </ul>
+</article>
+
+</div>
+
+<!-- ======== ВЕРШИНА I ======== -->
+<section class="chapter">
+  <div class="bg"><img data-px="0.25" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/19470b6f4-5b27-4ca1-8d0d-c685c2c6ab75.png" alt="Вершина в золотом свете над морем облаков"></div>
+  <div class="veil"></div>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Вершина I</span>
+    <h2>Результат Phase 1</h2>
+    <span class="ch-range">переход 14</span>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="summit" id="s14" data-stop="14 · Результат Phase 1" data-chapter="ch4">
+  <div class="summit-card rv">
+    <span class="summit-flag">▲</span>
+    <h3 class="m-title">Результат Phase 1</h3>
+    <p class="lead">Жёсткий eval, честный merge, LoRA на Unsloth, 3 эпохи.</p>
+    <div class="big-deltas">
+      <div class="bd"><div class="v">+0.25</div><div class="l">accuracy@1</div></div>
+      <div class="bd"><div class="v">+0.17</div><div class="l">accuracy@3</div></div>
+      <div class="bd"><div class="v">+0.28</div><div class="l">macro-F1</div></div>
+    </div>
+    <table class="log">
+      <thead><tr><th>метрика</th><th class="num">base MiniLM</th><th class="num">tuned</th><th class="num">delta</th></tr></thead>
+      <tbody>
+        <tr><td>accuracy@1</td><td class="num">0.42</td><td class="num strong">0.67</td><td class="num delta">+0.25</td></tr>
+        <tr><td>accuracy@3</td><td class="num">0.75</td><td class="num strong">0.92</td><td class="num delta">+0.17</td></tr>
+        <tr><td>macro-F1</td><td class="num">0.39</td><td class="num strong">0.67</td><td class="num delta">+0.28</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Кейват: 12 holdout-синтетик-страниц. Это доказательство пайпы.</p>
+  </div>
+</section>
+
+<!-- ======== ГЛАВА IV ======== -->
+<section class="chapter">
+  <div class="bg"><img data-px="0.25" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/16d16441d-bd8d-4e10-8fd2-ae3493fd582d.png" alt="Неизведанная долина с извилистой рекой"></div>
+  <div class="veil"></div>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Глава IV</span>
+    <h2>Новые земли</h2>
+    <span class="ch-range">переходы 15–22</span>
+  </div>
+</section>
+
+<!-- 15 -->
+<article class="milestone" id="s15" data-stop="15 · Phase 2" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">15</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Phase 2: Unsloth MiniLM на реальных страницах</h3>
+  <p class="lead rv">От синтетических сниппетов к размеченным окнам из Common Crawl.</p>
+  <ul class="field-list rv">
+    <li>Тот же трейнер</li>
+    <li>Тот же эвалуатор</li>
+    <li>sentence-transformers lab</li>
+  </ul>
+</article>
+
+<!-- 16 -->
+<article class="milestone" id="s16" data-stop="16 · Recap" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">16</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Recap</h3>
+  <p class="lead rv">Phase 1 доказала, что пайпа работает.</p>
+  <ul class="field-list rv">
+    <li class="sub">Знаем</li>
+    <li>Unsloth LoRA обучает MiniLM</li>
+    <li>merge проверяем</li>
+    <li>синтет-eval показывает дельту</li>
+    <li class="sub">Не знали до Phase 2</li>
+    <li>как поведёт себя на реальных C4-страницах</li>
+    <li>что ломает трункация в 256 токенов</li>
+    <li>дают ли человеческие лейблы измеримую дельту</li>
+  </ul>
+</article>
+
+<!-- 17 -->
+<article class="milestone" id="s17" data-stop="17 · Данные: C4" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">17</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Данные: C4</h3>
+  <p class="lead rv">Берём C4 English train, один шард.</p>
+  <ul class="field-list rv">
+    <li>URL + plain text из коробки</li>
+    <li>страницы, которые человек может категоризовать</li>
+    <li>шарды качаются по одному</li>
+    <li>одного шарда хватает, чтобы выбрать 50–100 размеченных строк</li>
+  </ul>
+  <p class="note rv">Wikipedia отброшена: в C4 уже есть <code>url</code> + <code>text</code>.</p>
+</article>
+
+<!-- 18 -->
+<article class="milestone" id="s18" data-stop="18 · Пайплайн не меняется" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">18</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Пайплайн не меняется</h3>
+  <p class="lead rv">Меняются только CSV.</p>
+  <div class="codecard rv">
+    <div class="cc-head"><span>схема маршрута</span><span>text</span></div>
+<pre><code>C4 shard
+  → кандидаты
+  → человеческий label_id
+  → train/eval split
+  → LoRA-train
+  → косинус-таблица base vs tuned</code></pre>
+  </div>
+  <ul class="field-list rv">
+    <li>Тот же контракт: <code>id</code>, <code>text</code>, <code>label_id</code>, <code>label_description</code></li>
+    <li>Тот же лосс: anchor = страница, positive = описание, in-batch negatives</li>
+  </ul>
+</article>
+
+<!-- 19 -->
+<article class="milestone" id="s19" data-stop="19 · Длинные страницы" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">19</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Решение по длинным страницам</h3>
+  <p class="lead rv">MiniLM живёт в окне 256 токенов.</p>
+  <ul class="field-list rv">
+    <li><code>encode()</code> трункейтит</li>
+    <li>оставляем трункацию</li>
+    <li>без chunk-mean-pooling</li>
+    <li>без chunk-voting</li>
+  </ul>
+  <p class="note rv">Правило: считаются только первые 256 токенов.</p>
+</article>
+
+<!-- 20 -->
+<article class="milestone" id="s20" data-stop="20 · Контракт разметки" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">20</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Контракт разметки</h3>
+  <p class="lead rv">Человек размечает окно, которое видит модель.</p>
+  <ul class="field-list rv">
+    <li><code>text</code> кандидата = encode/decode токенизатором на 256 токенов</li>
+    <li>полный body страницы в лист не кладём</li>
+    <li><code>was_truncated</code> = yes/no</li>
+    <li>судим только по <code>text</code></li>
+    <li>окно не категоризуется — скипаем строку</li>
+  </ul>
+</article>
+
+<!-- 21 -->
+<article class="milestone" id="s21" data-stop="21 · Рассинхрон окон" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">21</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Trouble: рассинхрон окон</h3>
+  <p class="lead rv">Train и eval расходились в размере окна.</p>
+  <table class="log rv">
+    <thead><tr><th>сторона</th><th class="num">окно</th></tr></thead>
+    <tbody>
+      <tr><td>изначальный дефолт train</td><td class="num">512</td></tr>
+      <tr><td>MiniLM / eval <code>encode()</code></td><td class="num">256</td></tr>
+    </tbody>
+  </table>
+  <p class="note rv">Можно было обучить на одном окне и оценить на другом.</p>
+</article>
+
+<!-- 22 -->
+<article class="milestone" id="s22" data-stop="22 · max length" data-chapter="ch5">
+  <div class="m-head rv"><span class="m-num">22</span><span class="m-kicker">Глава IV · Новые земли</span></div>
+  <h3 class="m-title rv">Фикс: выравниваем max length</h3>
+  <p class="lead rv">Форсим одно окно в 256 токенов везде.</p>
+  <ul class="field-list rv">
+    <li>дефолт train: 256</li>
+    <li><code>model.max_seq_length = 256</code></li>
+    <li>и для base, и для tuned на eval</li>
+    <li>512-токенный чекпоинт не пролезает незаметно</li>
+  </ul>
+</article>
+
+<!-- ======== ГЛАВА V ======== -->
+<section class="chapter">
+  <div class="bg"><img data-px="0.25" src="https://image.qwenlm.ai/public_source/f6fd699a-eb1c-42f0-ac6a-41a345c0cc32/14bbce0a0-44bf-461f-ac28-bf7bf3c4f362.png" alt="Деревянный указатель на тропе в сумерках, первые звёзды"></div>
+  <div class="veil"></div>
+  <div class="chapter-inner rv">
+    <span class="ch-num">Глава V</span>
+    <h2>Вторая вершина</h2>
+    <span class="ch-range">переходы 23–27</span>
+  </div>
+</section>
+
+<!-- 23 -->
+<article class="milestone" id="s23" data-stop="23 · Первый прогон" data-chapter="ch6">
+  <div class="m-head rv"><span class="m-num">23</span><span class="m-kicker">Глава V · Вторая вершина</span></div>
+  <h3 class="m-title rv">Первый реальный прогон</h3>
+  <p class="lead rv">Первый прогон на C4: 64 train / 46 eval.</p>
+  <table class="log rv">
+    <thead><tr><th>метрика</th><th class="num">base</th><th class="num">tuned</th><th class="num">delta</th></tr></thead>
+    <tbody>
+      <tr><td>accuracy@1</td><td class="num">0.261</td><td class="num strong">0.283</td><td class="num delta">+0.022</td></tr>
+      <tr><td>accuracy@3</td><td class="num">0.457</td><td class="num strong">0.543</td><td class="num delta">+0.087</td></tr>
+      <tr><td>mean sim to gold</td><td class="num">0.311</td><td class="num strong">0.389</td><td class="num delta">+0.078</td></tr>
+    </tbody>
+  </table>
+  <p class="note rv">Top-1: 12/46 → 13/46.</p>
+</article>
+
+<!-- 24 -->
+<article class="milestone" id="s24" data-stop="24 · Starved train" data-chapter="ch6">
+  <div class="m-head rv"><span class="m-num">24</span><span class="m-kicker">Глава V · Вторая вершина</span></div>
+  <h3 class="m-title rv">Диагноз: starved train</h3>
+  <p class="lead rv">Крошечная дельта — это голодный train-сплит.</p>
+  <ul class="field-list rv">
+    <li>выкинули 102 синглтон-лейбла</li>
+    <li>классы с двумя примерами порезали 1 / 1</li>
+    <li>размеченные строки не использовали до конца</li>
+  </ul>
+  <p class="note rv">Самый дешёвый фикс — переразбить уже размеченное.</p>
+</article>
+
+<!-- 25 -->
+<article class="milestone" id="s25" data-stop="25 · Переразбиваем" data-chapter="ch6">
+  <div class="m-head rv"><span class="m-num">25</span><span class="m-kicker">Глава V · Вторая вершина</span></div>
+  <h3 class="m-title rv">Фикс: переразбиваем</h3>
+  <p class="lead rv">Меняем сплит.</p>
+  <ul class="field-list rv">
+    <li>синглтоны — только в train</li>
+    <li>eval-доля: 0.25 → 0.10</li>
+    <li>у классов с двумя страницами остаётся одна holdout-строка</li>
+  </ul>
+  <table class="log rv">
+    <thead><tr><th></th><th class="num">первый прогон</th><th class="num">второй прогон</th></tr></thead>
+    <tbody>
+      <tr><td>train</td><td class="num">64</td><td class="num strong">167</td></tr>
+      <tr><td>eval</td><td class="num">46</td><td class="num">45</td></tr>
+    </tbody>
+  </table>
+</article>
+
+<!-- 26 -->
+<section class="summit" id="s26" data-stop="26 · Результат Phase 2" data-chapter="ch6">
+  <div class="summit-card rv">
+    <span class="summit-flag">▲</span>
+    <h3 class="m-title">Результат Phase 2</h3>
+    <p class="lead">Второй прогон на C4: больше train-строк, тот же эвалуатор.</p>
+    <div class="big-deltas">
+      <div class="bd"><div class="v">+0.067</div><div class="l">accuracy@1</div></div>
+      <div class="bd"><div class="v">+0.156</div><div class="l">accuracy@3</div></div>
+      <div class="bd"><div class="v">+0.146</div><div class="l">mean sim to gold</div></div>
+    </div>
+    <table class="log">
+      <thead><tr><th>метрика</th><th class="num">base</th><th class="num">tuned</th><th class="num">delta</th></tr></thead>
+      <tbody>
+        <tr><td>accuracy@1</td><td class="num">0.244</td><td class="num strong">0.311</td><td class="num delta">+0.067</td></tr>
+        <tr><td>accuracy@3</td><td class="num">0.444</td><td class="num strong">0.600</td><td class="num delta">+0.156</td></tr>
+        <tr><td>macro-F1</td><td class="num">0.233</td><td class="num strong">0.300</td><td class="num delta">+0.067</td></tr>
+        <tr><td>mean sim to gold</td><td class="num">0.309</td><td class="num strong">0.456</td><td class="num delta">+0.146</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Читать как directional-свидетельство на 45 holdout-окнах.</p>
+  </div>
+</section>
+
+<!-- 27 -->
+<article class="milestone" id="s27" data-stop="27 · Метрики" data-chapter="ch6">
+  <div class="m-head rv"><span class="m-num">27</span><span class="m-kicker">Глава V · Вторая вершина</span></div>
+  <h3 class="m-title rv">Что значат метрики</h3>
+  <p class="lead rv">Считаются дважды на одном eval-сете: base и tuned.</p>
+  <p class="rv">Предсказание — cosine argmax по всем промптам таксономии.</p>
+  <table class="log wrap rv">
+    <thead><tr><th>метрика</th><th>смысл</th><th>как читать</th></tr></thead>
+    <tbody>
+      <tr><td>accuracy@1</td><td>Доля страниц, где ближайший промпт — верный лейбл</td><td>Основная метрика. 0.31 — это 14 из 45.</td></tr>
+      <tr><td>accuracy@3</td><td>Верный лейбл в тройке ближайших промптов</td><td>Нужна, когда соседние IAB близки.</td></tr>
+      <tr><td>macro-F1</td><td>F1 по каждому верному классу, затем среднее</td><td>Не завышается частыми классами. На Phase 2 почти все eval-классы — по одному примеру, поэтому macro-F1 ≈ accuracy@1.</td></tr>
+      <tr><td>mean sim to gold</td><td>Средний косинус страницы к верному описанию</td><td>Рост значит: страница ближе к верному промпту, даже если top-1 ещё другой.</td></tr>
+      <tr><td>mean_margin</td><td>sim(pred) − sim(gold)</td><td>Ниже — лучше. Если top-1 верен, margin = 0. Если нет — насколько победил неверный промпт. Минус в delta — улучшение.</td></tr>
+    </tbody>
+  </table>
+</article>
+
+<footer>
+  <div class="f-title">Конец маршрута</div>
+  <div class="f-line">27 переходов · 2 фазы · одна пайпа</div>
+  <div class="f-line">sentence-transformers lab</div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stops = Array.prototype.slice.call(document.querySelectorAll('[data-stop]'));
+  var rail = document.getElementById('rail');
+  var readout = document.getElementById('readout');
+  var bar = document.getElementById('bar');
+  var chLinks = Array.prototype.slice.call(document.querySelectorAll('nav.chapters a'));
+  var current = 0;
+
+  stops.forEach(function(s, i){
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.className = 'rail-dot';
+    a.setAttribute('data-tip', s.getAttribute('data-stop'));
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      s.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+      history.replaceState(null, '', '#' + s.id);
+    });
+    rail.appendChild(a);
+  });
+  var dots = Array.prototype.slice.call(rail.children);
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      current = stops.indexOf(en.target);
+      dots.forEach(function(d, i){ d.classList.toggle('active', i === current); });
+      readout.textContent = 'переход ' + pad(current + 1) + ' / ' + stops.length;
+      var ch = en.target.getAttribute('data-chapter') || '';
+      chLinks.forEach(function(l){ l.classList.toggle('active', l.getAttribute('data-ch') === ch); });
+    });
+  }, {rootMargin: '-40% 0px -55% 0px', threshold: 0});
+  stops.forEach(function(s){ io.observe(s); });
+
+  var rv = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add('in'); rv.unobserve(en.target); }
+    });
+  }, {threshold: .12});
+  document.querySelectorAll('.rv').forEach(function(el){ rv.observe(el); });
+
+  var pxEls = Array.prototype.slice.call(document.querySelectorAll('[data-px]'));
+  var ticking = false;
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - window.innerHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    if(!reduce){
+      pxEls.forEach(function(img){
+        var r = img.parentElement.getBoundingClientRect();
+        if(r.bottom < -100 || r.top > window.innerHeight + 100) return;
+        var sp = parseFloat(img.getAttribute('data-px')) || .22;
+        var off = (r.top + r.height / 2 - window.innerHeight / 2) * sp;
+        img.style.transform = 'translate3d(0,' + off.toFixed(1) + 'px,0) scale(1.18)';
+      });
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
+  }, {passive: true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  window.addEventListener('keydown', function(e){
+    var t = e.target;
+    if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    var next = null;
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown'){ next = Math.min(current + 1, stops.length - 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp'){ next = Math.max(current - 1, 0); }
+    else if(e.key === 'Home'){ next = 0; }
+    else if(e.key === 'End'){ next = stops.length - 1; }
+    if(next !== null){
+      e.preventDefault();
+      stops[next].scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+    }
+  });
+})();
+</script>
+</body>
+</html>
+
