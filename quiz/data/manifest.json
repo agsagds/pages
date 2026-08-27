@@ -189,6 +189,16 @@
       "questionCount": 9,
       "created": "2026-08",
       "order": 19
+    },
+    {
+      "id": "llm-serving",
+      "title": "Запуск LLM в продакшене",
+      "description": "Serving и LMOps, контейнеры и веса моделей, параллелизм, NVLink и автоскейлинг",
+      "icon": "🚀",
+      "time": "~4 мин",
+      "questionCount": 10,
+      "created": "2026-08",
+      "order": 20
     }
   ]
 }
