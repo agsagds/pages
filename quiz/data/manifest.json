@@ -199,6 +199,16 @@
       "questionCount": 10,
       "created": "2026-08",
       "order": 20
+    },
+    {
+      "id": "vibecoding-playwright",
+      "title": "Вайбкодинг Playwright-автотестов",
+      "description": "Тест-дизайн vs код, Record & Play, локаторы и MCP, скиллы vs агенты, риск Healer",
+      "icon": "🎭",
+      "time": "~4 мин",
+      "questionCount": 10,
+      "created": "2026-08",
+      "order": 21
     }
   ]
 }
