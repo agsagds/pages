@@ -209,6 +209,16 @@
       "questionCount": 10,
       "created": "2026-08",
       "order": 21
+    },
+    {
+      "id": "agent-harness",
+      "title": "AI-агенты и harness",
+      "description": "Обвязка LLM: память, инструменты, DAG, guardrails, сбои агента и Self-Harness",
+      "icon": "🪢",
+      "time": "~4 мин",
+      "questionCount": 10,
+      "created": "2026-09",
+      "order": 22
     }
   ]
 }
