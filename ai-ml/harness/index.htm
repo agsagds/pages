@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harness for AI — интерактивный разбор</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f9ff;
+            --bg-2: #ffffff;
+            --card: #ffffff;
+            --ink: #121e23;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --accent: #0ea5e9;
+            --accent-soft: #e0f2fe;
+            --accent-2: #38bdf8;
+            --success: #19caa2;
+            --error: #f76355;
+            --warn: #f5b64d;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #f0f9ff 42%, #ffffff 42%, #ffffff 100%);
+            color: var(--ink);
+            overflow: hidden;
+            height: 100vh;
+        }
+        code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .slide {
+            position: absolute; inset: 0; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 2.5rem 3.5rem 5rem; transform: translateY(20px);
+        }
+        .slide.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 10; }
+
+        #progress {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: var(--accent); width: 0%; z-index: 50; transition: width 0.3s;
+        }
+        .slide-meta {
+            position: fixed; top: 0.85rem; right: 1.25rem; z-index: 45;
+            text-align: right; line-height: 1.25;
+        }
+        .slide-meta .num { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+        .slide-meta .sec { font-size: 0.68rem; color: var(--accent); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+        #section-jump {
+            position: fixed; top: 0.7rem; left: 50%; transform: translateX(-50%);
+            z-index: 45; display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: center;
+            max-width: min(72vw, 52rem);
+        }
+        .sec-chip {
+            background: rgba(255,255,255,0.85); border: 1px solid var(--line);
+            color: var(--muted); border-radius: 999px; padding: 0.25rem 0.65rem;
+            font-size: 0.68rem; font-weight: 600; cursor: pointer; backdrop-filter: blur(6px);
+        }
+        .sec-chip:hover, .sec-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+        .nav-btn {
+            position: fixed; bottom: 2rem; padding: 0.6rem 1.2rem;
+            background: var(--bg-2); border: 1px solid var(--line);
+            color: var(--ink); border-radius: 999px; cursor: pointer; z-index: 40;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.08);
+            font-weight: 600; font-size: 0.9rem;
+        }
+        .nav-btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+        .nav-btn:disabled { opacity: 0.25; cursor: default; }
+        #prev-btn { left: 2rem; } #next-btn { right: 2rem; }
+        #nav-hint {
+            position: fixed; bottom: 4.6rem; right: 2rem; z-index: 40;
+            font-size: 0.72rem; color: var(--muted); max-width: 14rem; text-align: right;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        }
+        #nav-hint.show { opacity: 1; }
+
+        .reveal-item { opacity: 0; transform: translateX(-20px); transition: all 0.5s ease-out; }
+        .reveal-item.visible { opacity: 1; transform: translateX(0); }
+
+        a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s; }
+        a:hover { color: #0284c7; }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.06);
+        }
+        .chip {
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid #bae6fd;
+        }
+
+        .tq-row {
+            display: grid; grid-template-columns: 1.5fr 2fr 0.5fr; gap: 1rem;
+            padding: 1rem; border-bottom: 1px solid var(--line); align-items: center;
+        }
+        .tq-select {
+            background: var(--bg-2); color: var(--ink);
+            border: 1px solid var(--line); padding: 0.5rem; border-radius: 8px;
+            width: 100%; outline: none;
+        }
+        .tq-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        .tq-row.correct { background: rgba(25, 202, 162, 0.08); }
+        .tq-row.incorrect { background: rgba(247, 99, 85, 0.08); }
+
+        .faq-item { border-bottom: 1px solid var(--line); }
+        .faq-q { padding: 1.2rem 0; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; }
+        .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; color: var(--muted); line-height: 1.7; padding-right: 2rem; }
+        .faq-item.open .faq-a { max-height: 320px; padding-bottom: 1.2rem; }
+        .faq-item.open .faq-q { color: var(--accent); }
+
+        .muted { color: var(--muted); }
+        .accent { color: var(--accent); }
+
+        .mermaid-wrap {
+            width: 100%; max-width: 58rem;
+            max-height: min(62vh, calc(100vh - 11rem));
+            overflow: hidden; background: var(--bg-2);
+            border: 1px solid var(--line); border-radius: 1rem;
+            padding: 0.65rem 0.85rem;
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.06);
+        }
+        .mermaid-wrap.compact { max-width: 100%; max-height: min(48vh, calc(100vh - 14rem)); }
+        .mermaid-wrap .mermaid { display: flex; justify-content: center; }
+        .mermaid-wrap svg { max-width: 100%; height: auto; }
+        .slide-note { font-size: 0.875rem; color: var(--muted); margin-top: 0.75rem; max-width: 48rem; text-align: center; }
+        .takeaway {
+            font-size: 0.9rem; font-weight: 600; color: var(--ink);
+            margin-top: 0.35rem; margin-bottom: 0.75rem; max-width: 48rem; text-align: center;
+        }
+
+        .pat-col h3 { font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; text-align: center; }
+        .pat-col p { font-size: 0.72rem; color: var(--muted); text-align: center; margin-bottom: 0.5rem; min-height: 2.4em; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 3px; }
+
+        @media (max-width: 900px) {
+            #section-jump { display: none; }
+            .slide { padding: 2rem 1.25rem 5rem; }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'base',
+            flowchart: { htmlLabels: true, curve: 'basis', nodeSpacing: 28, rankSpacing: 28, padding: 8 },
+            themeVariables: {
+                primaryColor: '#e0f2fe',
+                primaryTextColor: '#121e23',
+                primaryBorderColor: '#0ea5e9',
+                lineColor: '#0ea5e9',
+                secondaryColor: '#f0f9ff',
+                tertiaryColor: '#ffffff',
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: '13px'
+            }
+        });
+        window.__mermaid = mermaid;
+        window.dispatchEvent(new Event('mermaid-ready'));
+    </script>
+</head>
+<body>
+
+<div id="progress"></div>
+<div class="slide-meta"><div class="num" id="slide-num">1 / 1</div><div class="sec" id="slide-sec"></div></div>
+<nav id="section-jump" aria-label="Секции"></nav>
+
+<div id="deck">
+    <div class="slide active" data-section="Основы">
+        <h1 class="text-7xl font-extrabold tracking-tight mb-6 text-center" style="color:var(--ink)">Harness for AI</h1>
+        <p class="text-2xl muted text-center max-w-3xl">Что это такое, зачем нужно и какие типы существуют.</p>
+        <div class="mt-12 mono text-xs muted chip px-4 py-2 rounded-full">НАЖМИТЕ ↓ ИЛИ SPACE, ЧТОБЫ НАЧАТЬ</div>
+        <p class="mt-8 text-sm"><a href="https://solutionarchitects.tech/" target="_blank" class="no-underline font-semibold">solutionarchitects.tech</a></p>
+    </div>
+
+    <div class="slide" data-section="Основы">
+        <h2 class="text-4xl font-bold mb-10 w-full max-w-5xl">Harness: что это?</h2>
+        <div class="grid md:grid-cols-2 gap-16 items-center w-full max-w-5xl">
+            <div class="space-y-6 text-lg leading-relaxed" style="color:#374151">
+                <p>Agent harness — весь код, конфигурация и логика исполнения вокруг language model.</p>
+                <p>Model даёт интеллект. Harness даёт state, tools, memory, orchestration и ограничения.</p>
+                <div class="mono text-xl panel p-4 border-l-4 mt-8" style="border-left-color:var(--accent)">Agent = Model + Harness</div>
+            </div>
+            <div class="relative aspect-square w-full max-w-md mx-auto border-2 rounded-2xl flex items-center justify-center p-8" style="border-color:#bae6fd;background:var(--bg-2)">
+                <span class="absolute top-6 text-xs font-bold tracking-[0.2em] muted uppercase">Harness Layer</span>
+                <div class="w-3/4 h-3/4 rounded-xl flex items-center justify-center relative" style="background:rgba(14,165,233,0.08);border:1px solid rgba(14,165,233,0.35);box-shadow:0 0 30px rgba(14,165,233,0.12)">
+                    <span class="text-3xl font-bold accent">MODEL</span>
+                    <div class="absolute -top-8 text-xs muted whitespace-nowrap">Prompts · Tools · Memory · Loop</div>
+                    <div class="absolute -bottom-8 text-xs muted whitespace-nowrap">Guardrails · Observability · Storage</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Основы" data-reveal-count="4">
+        <h2 class="text-4xl font-bold mb-12 w-full max-w-4xl">Чего harness НЕ делает</h2>
+        <div class="w-full max-w-4xl space-y-4">
+            <div class="reveal-item flex gap-5 p-5 rounded-xl panel">
+                <span class="text-3xl font-bold leading-none mt-1" style="color:var(--error)">×</span>
+                <div><h3 class="text-xl font-semibold">Не задаёт цель</h3><p class="muted mt-1">Задачу формулируете вы. Harness только исполняет.</p></div>
+            </div>
+            <div class="reveal-item flex gap-5 p-5 rounded-xl panel">
+                <span class="text-3xl font-bold leading-none mt-1" style="color:var(--error)">×</span>
+                <div><h3 class="text-xl font-semibold">Не рассуждает о задаче</h3><p class="muted mt-1">Рассуждает model. Harness управляет потоком reasoning.</p></div>
+            </div>
+            <div class="reveal-item flex gap-5 p-5 rounded-xl panel">
+                <span class="text-3xl font-bold leading-none mt-1" style="color:var(--error)">×</span>
+                <div><h3 class="text-xl font-semibold">Не гарантирует правильный ответ</h3><p class="muted mt-1">Verification-слой проверяет результат, который выдала model.</p></div>
+            </div>
+            <div class="reveal-item flex gap-5 p-5 rounded-xl panel">
+                <span class="text-3xl font-bold leading-none mt-1" style="color:var(--error)">×</span>
+                <div><h3 class="text-xl font-semibold">Не улучшает capability модели</h3><p class="muted mt-1">Harness выжимает максимум из уже существующих weights.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Основы">
+        <h2 class="text-4xl font-bold mb-10">Восемь строительных блоков</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-6xl">
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">01</div><h3 class="font-semibold">System Prompts</h3><p class="text-xs muted mt-2">Роль и постоянные правила</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">02</div><h3 class="font-semibold">Tools</h3><p class="text-xs muted mt-2">Доступ к внешним системам</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">03</div><h3 class="font-semibold">Sandboxes</h3><p class="text-xs muted mt-2">Безопасный запуск кода</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">04</div><h3 class="font-semibold">Storage</h3><p class="text-xs muted mt-2">Сохранение сессии</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">05</div><h3 class="font-semibold">Memory</h3><p class="text-xs muted mt-2">Управление контекстом</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">06</div><h3 class="font-semibold">Verification</h3><p class="text-xs muted mt-2">Сигналы самокоррекции</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">07</div><h3 class="font-semibold">Guardrails</h3><p class="text-xs muted mt-2">Границы безопасности</p></div>
+            <div class="panel p-6"><div class="accent mono font-bold mb-2">08</div><h3 class="font-semibold">Observability</h3><p class="text-xs muted mt-2">Audit trails и логи</p></div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Основы" data-gate="table-quiz">
+        <h2 class="text-4xl font-bold mb-4">Проверка mental model</h2>
+        <p class="muted mb-8">Сопоставьте вопрос с нужным компонентом harness.</p>
+        <div class="w-full max-w-4xl panel overflow-hidden">
+            <div class="tq-row font-bold accent text-sm uppercase tracking-wider" style="background:var(--accent-soft)">
+                <div>Вопрос</div><div>Ваш ответ</div><div class="text-center">Статус</div>
+            </div>
+            <div class="tq-row" data-correct="prompt">
+                <div class="font-medium">Что задаёт поведение model?</div>
+                <select class="tq-select"><option value="">Выберите...</option><option value="tools">Tools</option><option value="prompt">System Prompt</option><option value="loop">Agentic Loop</option></select>
+                <div class="status text-center mono text-sm">-</div>
+            </div>
+            <div class="tq-row" data-correct="tools">
+                <div class="font-medium">Что позволяет влиять на мир?</div>
+                <select class="tq-select"><option value="">Выберите...</option><option value="memory">Memory</option><option value="tools">Tools</option><option value="translation">Translation Layer</option></select>
+                <div class="status text-center mono text-sm">-</div>
+            </div>
+            <div class="tq-row" data-correct="loop">
+                <div class="font-medium">Что делает один ответ агентом?</div>
+                <select class="tq-select"><option value="">Выберите...</option><option value="prompt">System Prompt</option><option value="loop">Agentic Loop</option><option value="storage">Durable Storage</option></select>
+                <div class="status text-center mono text-sm">-</div>
+            </div>
+            <div class="tq-row" data-correct="translation">
+                <div class="font-medium">Что даёт поддержку нескольких model?</div>
+                <select class="tq-select"><option value="">Выберите...</option><option value="guardrails">Guardrails</option><option value="translation">Translation Layer</option><option value="sandbox">Sandbox</option></select>
+                <div class="status text-center mono text-sm">-</div>
+            </div>
+        </div>
+        <div id="tq-feedback" class="mt-6 h-6 font-semibold opacity-0 transition-opacity text-sm" style="color:var(--success)">Всё верно! Навигация разблокирована.</div>
+    </div>
+
+    <div class="slide" data-section="Основы">
+        <h2 class="text-4xl font-bold mb-12">Базовый цикл: Reason → Act → Observe</h2>
+        <div class="flex flex-col items-center w-full max-w-3xl">
+            <svg viewBox="0 0 400 200" class="w-full h-64">
+                <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0ea5e9"/></marker></defs>
+                <path d="M 50 100 A 150 80 0 1 1 350 100" fill="none" stroke="#0ea5e9" stroke-width="3" marker-end="url(#ah)"/>
+                <path d="M 350 100 A 150 80 0 1 1 50 100" fill="none" stroke="#0ea5e9" stroke-width="3" marker-end="url(#ah)"/>
+                <text x="200" y="55" text-anchor="middle" fill="#121e23" font-size="18" font-weight="bold" font-family="Montserrat">REASON</text>
+                <text x="365" y="108" text-anchor="middle" fill="#121e23" font-size="18" font-weight="bold" font-family="Montserrat">ACT</text>
+                <text x="200" y="165" text-anchor="middle" fill="#121e23" font-size="18" font-weight="bold" font-family="Montserrat">OBSERVE</text>
+            </svg>
+            <div class="grid grid-cols-3 gap-8 mt-8 text-center text-sm muted w-full">
+                <div>Model читает контекст и выбирает следующее действие</div>
+                <div>Harness запускает tool и фиксирует результат</div>
+                <div>Результат возвращается как новый контекст</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Почему">
+        <h2 class="text-4xl font-bold mb-10">Почему это важно?</h2>
+        <div class="grid md:grid-cols-2 gap-12 w-full max-w-5xl items-start">
+            <div class="space-y-6">
+                <p class="text-2xl leading-relaxed">Model постоянна.<br><span class="accent font-bold">Harness — переменная.</span></p>
+                <ul class="space-y-4 text-lg" style="color:#374151">
+                    <li class="flex items-center gap-3"><span class="text-xl" style="color:var(--success)">✓</span> Та же model — Top 5 при хорошем harness</li>
+                    <li class="flex items-center gap-3"><span class="text-xl" style="color:var(--error)">✗</span> Та же model — Bottom 30 при плохом harness</li>
+                </ul>
+            </div>
+            <div class="panel p-8 w-full">
+                <h3 class="font-bold text-lg mb-6 pb-3 border-b" style="border-color:var(--line)">Доказательства</h3>
+                <div class="space-y-5 text-sm">
+                    <div><div class="muted text-xs uppercase tracking-wider mb-1">Terminal-Bench 2.0 · LangChain</div><div class="font-medium">Только смена harness → большой прирост</div></div>
+                    <div><div class="muted text-xs uppercase tracking-wider mb-1">OfficeQA Pro · Databricks</div><div class="font-medium">52.63% (Pro Harness) vs 36.10%</div></div>
+                    <div><div class="muted text-xs uppercase tracking-wider mb-1">ARC-AGI · YC Panel</div><div class="font-medium">Те же weights: 30% → 95% за счёт harness</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Почему">
+        <h2 class="text-4xl font-bold mb-10">Три инженерные дисциплины</h2>
+        <div class="w-full max-w-4xl overflow-hidden panel">
+            <table class="w-full text-left">
+                <thead class="text-sm uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-5">Дисциплина</th><th class="p-5">Фокус</th><th class="p-5">Главный артефакт</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-5 font-semibold">Prompt Engineering</td><td class="p-5">Формулировка входа</td><td class="p-5 mono text-sm muted">Промпт</td></tr>
+                    <tr><td class="p-5 font-semibold">Context Engineering</td><td class="p-5">Информация, которую видит model</td><td class="p-5 mono text-sm muted">Retrieval &amp; memory design</td></tr>
+                    <tr style="background:rgba(14,165,233,0.06)"><td class="p-5 font-semibold">Harness Engineering</td><td class="p-5">Вся система вокруг model</td><td class="p-5 mono text-sm accent">Сам harness</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="mt-8 muted text-sm">Prompt и context engineering живут внутри harness engineering.</p>
+    </div>
+
+    <div class="slide" data-section="Почему">
+        <h2 class="text-4xl font-bold mb-10">Сбои в production — это сбои harness</h2>
+        <div class="w-full max-w-5xl overflow-hidden panel">
+            <table class="w-full text-left text-sm">
+                <thead class="uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-4">Failure Mode</th><th class="p-4">Причина</th><th class="p-4">Контрмера</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-4 font-medium">Context Rot</td><td class="p-4 muted">Переполняется context window</td><td class="p-4" style="color:var(--success)">Compaction &amp; summarization</td></tr>
+                    <tr><td class="p-4 font-medium">Tool Overload</td><td class="p-4 muted">Слишком много tools сразу</td><td class="p-4" style="color:var(--success)">Малый набор + code execution</td></tr>
+                    <tr><td class="p-4 font-medium">Brittle Wiring</td><td class="p-4 muted">Тихие schema changes</td><td class="p-4" style="color:var(--success)">Версионированные tool contracts</td></tr>
+                    <tr><td class="p-4 font-medium">Bad Retrieval</td><td class="p-4 muted">Неверные memory/search results</td><td class="p-4" style="color:var(--success)">Фильтры и проверки retrieval</td></tr>
+                    <tr><td class="p-4 font-medium">Weak Verification</td><td class="p-4 muted">Нет test loop</td><td class="p-4" style="color:var(--success)">Детерминированные success checks</td></tr>
+                    <tr><td class="p-4 font-medium">Missing Guardrails</td><td class="p-4 muted">Нет approval gates</td><td class="p-4" style="color:var(--success)">Human-in-the-loop controls</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Почему">
+        <h2 class="text-3xl font-bold mb-4">Внутри production-цикла: DAG, роли, Budget</h2>
+        <p class="takeaway">Plan целиком → parallel Workers → Critic; Budget давит через pressure scalar.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Goal[goal] --> Planner --> DAG[Validated DAG]
+  DAG --> W1[Worker] & W2[Worker] & W3[Worker]
+  W1 & W2 & W3 --> Critic --> Result[result]
+  Budget[BudgetMulti] -.-> Pressure[pressure]
+  Pressure -.-> Planner & Critic
+            </pre>
+        </div>
+        <a href="https://github.com/DataForScience/LLMs/blob/master/03%20-%20Advanced%20Agentic%20Harness.ipynb" target="_blank" class="inline-block mt-4 text-sm mono chip px-4 py-2 rounded border no-underline">Смотреть реализацию DAG →</a>
+    </div>
+
+    <div class="slide" data-section="Self-Harness">
+        <h2 class="text-4xl font-bold mb-8">Self-Harness: агенты, которые улучшают себя</h2>
+        <div class="w-full max-w-3xl space-y-6 text-lg leading-relaxed" style="color:#374151">
+            <p>Self-harness позволяет агенту улучшать собственный scaffolding без участия человека.</p>
+            <div class="grid md:grid-cols-3 gap-4 my-6">
+                <div class="panel p-5 text-center"><div class="accent font-bold mb-2">1. Mine</div><div class="text-sm muted">Слабые места в tools / memory</div></div>
+                <div class="panel p-5 text-center"><div class="accent font-bold mb-2">2. Propose</div><div class="text-sm muted">Изменения собственных инструкций</div></div>
+                <div class="panel p-5 text-center"><div class="accent font-bold mb-2">3. Validate</div><div class="text-sm muted">Проверка на benchmark</div></div>
+            </div>
+            <p class="takeaway" style="text-align:left;margin:0">Прирост на бенчмарках без смены model — за счёт лучшего harness.</p>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Self-Harness">
+        <h2 class="text-3xl font-bold mb-2">Manual vs Self-Harness</h2>
+        <p class="takeaway">Люди — узкое место при каждом новом model; Self-Harness крутит цикл по traces.</p>
+        <div class="grid md:grid-cols-2 gap-4 w-full max-w-6xl">
+            <div>
+                <h3 class="text-sm font-bold accent mb-2 text-center">Ручной цикл</h3>
+                <div class="mermaid-wrap compact">
+                    <pre class="mermaid">
+flowchart LR
+  M[New Model] --> H[Humans analyze]
+  H --> D[Design harness]
+  D --> T[Manual test]
+  T -->|fail| H
+  T -->|ok| Dep[Deploy]
+  M2[Another Model] --> H
+  style H fill:#ff6b6b,color:#fff
+  style D fill:#ff6b6b,color:#fff
+  style T fill:#ff6b6b,color:#fff
+                    </pre>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold accent mb-2 text-center">Self-Harness loop</h3>
+                <div class="mermaid-wrap compact">
+                    <pre class="mermaid">
+flowchart LR
+  Tr[Traces] --> Mine[Mine]
+  Mine --> Prop[Propose]
+  Prop --> Val[Validate]
+  Val -->|fail| Prop
+  Val -->|ok| Upd[Updated Harness]
+  Upd --> Bench[Benchmarks]
+  Bench --> Tr
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Паттерны">
+        <h2 class="text-4xl font-bold mb-8">Паттерны и бизнес-ценность</h2>
+        <div class="w-full max-w-5xl overflow-hidden panel">
+            <table class="w-full text-left">
+                <thead class="text-sm uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-5">Паттерн</th><th class="p-5">Описание</th><th class="p-5">Главная выгода</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-5 font-semibold">Simple Retry</td><td class="p-5">Model → verify → retry</td><td class="p-5 font-medium" style="color:var(--success)">Повторяемость</td></tr>
+                    <tr><td class="p-5 font-semibold">Plan-Then-Execute</td><td class="p-5">Plan, затем шаги по очереди</td><td class="p-5 font-medium" style="color:var(--success)">Observability</td></tr>
+                    <tr><td class="p-5 font-semibold">Multi-Agent</td><td class="p-5">Coordinator + specialists</td><td class="p-5 font-medium" style="color:var(--success)">Evaluation</td></tr>
+                    <tr><td class="p-5 font-semibold">Meta-Harness</td><td class="p-5">Система меняет tools и критерии</td><td class="p-5 font-medium" style="color:var(--success)">Safety &amp; Cost</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Паттерны">
+        <h2 class="text-3xl font-bold mb-2">Три паттерна harness</h2>
+        <p class="takeaway">Retry для дешёвой verification; Plan для сложных задач; Multi-Agent для специализации.</p>
+        <div class="grid md:grid-cols-3 gap-3 w-full max-w-6xl">
+            <div class="pat-col">
+                <h3>Simple Retry</h3>
+                <p>Claude Code <span class="mono">/loop</span> · tests, lint</p>
+                <div class="mermaid-wrap compact">
+                    <pre class="mermaid">
+flowchart LR
+  G[goal] --> C[model] --> T[tool] --> V{verify}
+  V -->|fail| C
+  V -->|pass| X[exit]
+                    </pre>
+                </div>
+            </div>
+            <div class="pat-col">
+                <h3>Plan-Then-Execute</h3>
+                <p>Сначала plan, потом шаги</p>
+                <div class="mermaid-wrap compact">
+                    <pre class="mermaid">
+flowchart LR
+  G[goal] --> P[plan] --> S1[step] --> S2[step] --> V[verify]
+                    </pre>
+                </div>
+            </div>
+            <div class="pat-col">
+                <h3>Multi-Agent</h3>
+                <p>Coordinator → specialists</p>
+                <div class="mermaid-wrap compact">
+                    <pre class="mermaid">
+flowchart TB
+  G[goal] --> Co[coordinator]
+  Co --> Cd[coder] & Rv[reviewer] & Ts[tester]
+  Cd & Rv & Ts --> Ag[aggregate] --> V[verify]
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-4xl font-bold mb-10">Runtime vs Framework vs Harness</h2>
+        <div class="w-full max-w-5xl overflow-hidden panel">
+            <table class="w-full text-left">
+                <thead class="text-sm uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-5">Слой</th><th class="p-5">Что даёт</th><th class="p-5">Opinion</th><th class="p-5">Примеры</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-5 font-semibold">Runtime</td><td class="p-5">Execution state и durable flows</td><td class="p-5 muted">Нет</td><td class="p-5 mono text-xs muted">LangGraph, Temporal</td></tr>
+                    <tr><td class="p-5 font-semibold">Framework</td><td class="p-5">Абстракции агентов и tools</td><td class="p-5 muted">Низкая</td><td class="p-5 mono text-xs muted">LangChain, CrewAI, OpenAI SDK</td></tr>
+                    <tr style="background:rgba(14,165,233,0.06)"><td class="p-5 font-semibold">Harness</td><td class="p-5">Opinionated config и bundled infra</td><td class="p-5 accent font-bold">Высокая</td><td class="p-5 mono text-xs accent">Claude Code, Codex, Cursor</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="mt-8 muted text-sm italic">Node — runtime, Express — framework, Next.js — harness.</p>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-4xl font-bold mb-10">Карта рынка: типы harness</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-6xl">
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-lg font-bold accent mb-2">Compositional Runtime</h3>
+                <p class="text-sm muted mb-4 flex-grow">Каждый компонент — заменяемый plugin.</p>
+                <a href="https://deepseek.com/harness" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">DeepSeek Harness</a>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-lg font-bold accent mb-2">Minimal Coding Agent</h3>
+                <p class="text-sm muted mb-4 flex-grow">Маленькое ядро, богатая система расширений.</p>
+                <div class="flex gap-2">
+                    <a href="https://github.com/earendil-works/pi" target="_blank" class="flex-1 text-center py-2 rounded text-xs font-semibold no-underline text-white" style="background:var(--accent)">Pi</a>
+                    <a href="https://opencode.ai/" target="_blank" class="flex-1 text-center py-2 rounded text-xs font-semibold no-underline text-white" style="background:var(--accent)">OpenCode</a>
+                </div>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-lg font-bold accent mb-2">Personal Gateway</h3>
+                <p class="text-sm muted mb-4 flex-grow">Один агент на каждой messaging-платформе.</p>
+                <a href="https://openclaw.ai/" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">OpenClaw</a>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-lg font-bold accent mb-2">Learning Runtime</h3>
+                <p class="text-sm muted mb-4 flex-grow">Skills и memory накапливаются со временем.</p>
+                <a href="https://hermes-agent.nousresearch.com" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Hermes Agent</a>
+            </div>
+            <div class="panel p-6 flex flex-col md:col-span-2">
+                <h3 class="text-lg font-bold accent mb-2">Agent Fleet Environment</h3>
+                <p class="text-sm muted mb-4 flex-grow">Одна точка управления для множества параллельных агентов.</p>
+                <div class="flex gap-3">
+                    <a href="https://onorca.dev" target="_blank" class="flex-1 text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Orca</a>
+                    <a href="https://herdr.dev" target="_blank" class="flex-1 text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Herdr</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-6">DeepSeek Harness vs OpenCode</h2>
+        <div class="w-full max-w-5xl overflow-x-auto panel">
+            <table class="w-full text-left text-sm min-w-[600px]">
+                <thead class="uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-4 w-1/4"></th><th class="p-4">DeepSeek Harness</th><th class="p-4">OpenCode</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-4 font-semibold muted">Идея</td><td class="p-4">Всё — plugin (Cordis)</td><td class="p-4">Terminal-first coding agent</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Интерфейс</td><td class="p-4">Web UI :3080</td><td class="p-4">TUI + Desktop + IDE</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Providers</td><td class="p-4">DeepSeek, Anthropic, OpenAI…</td><td class="p-4">75+ включая Ollama</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Memory</td><td class="p-4">Skills &amp; config plugins</td><td class="p-4">AGENTS.md через /init</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Зрелость</td><td class="p-4" style="color:var(--warn)">Preview 0.1.0-rc.5</td><td class="p-4" style="color:var(--success)">Production use</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: DeepSeek Harness</h2>
+        <p class="takeaway">Запоминайте: Cordis — пустой loader; capability = plugins.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Loader[Cordis Loader] --> ModelP[Model]
+  Loader --> ToolsP[Tools]
+  Loader --> LoopP[Loop]
+  Loader --> SessP[Session]
+  Loader --> SandP[Sandbox]
+  Loader --> UIP[UI :3080]
+  ModelP & ToolsP & LoopP --> Agent[Agent]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenCode / Pi</h2>
+        <p class="takeaway">Маленькое ядро + Plugins / Hooks / MCP; память в AGENTS.md.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Dev[Developer] --> UI[TUI/IDE] --> Core[Small Core]
+  Core --> LLM[Providers]
+  Core --> Ext[Plugins·Hooks·MCP]
+  Core --> Mem[AGENTS.md]
+  Core --> FS[Repo/Shell]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-6">Hermes Agent vs OpenClaw</h2>
+        <div class="w-full max-w-5xl overflow-x-auto panel">
+            <table class="w-full text-left text-sm min-w-[600px]">
+                <thead class="uppercase tracking-wider accent" style="background:var(--accent-soft)">
+                    <tr><th class="p-4 w-1/4"></th><th class="p-4">OpenClaw</th><th class="p-4">Hermes Agent</th></tr>
+                </thead>
+                <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                    <tr><td class="p-4 font-semibold muted">Идея</td><td class="p-4">Multi-channel personal agent</td><td class="p-4">Self-improving loop</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Architecture</td><td class="p-4">Channel → Gateway → Runner</td><td class="p-4">Memory, Skills, Soul, Crons</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Learning</td><td class="p-4 muted">Нет встроенного</td><td class="p-4" style="color:var(--success)">Skill extraction</td></tr>
+                    <tr><td class="p-4 font-semibold muted">Сильный день</td><td class="p-4 accent font-bold">Day 1</td><td class="p-4 accent font-bold">Day 90</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="mt-4 text-sm muted">Hermes: ~40% сокращения времени на повторяющихся задачах.</p>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenClaw</h2>
+        <p class="takeaway">Channel → Gateway → Runner: один агент на всех messaging-платформах.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Ch[Channels 10+] --> GW[Gateway] --> Run[Agent Runner]
+  Run --> Ctx[SOUL.md + memory]
+  Run --> Loop[Loop + Tools] --> LLM[Model]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Hermes Agent</h2>
+        <p class="takeaway">Skills + Memory + Nudge + Cron — знание накапливается со временем.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Task --> Exec[Execution]
+  Exec --> Skills & Mem[Memory] & Nudge
+  Nudge -->|write| Skills
+  Skills -->|reload| Exec
+  Cron --> Exec --> LLM[Model]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-6">Управление флотом: Orca vs Herdr</h2>
+        <div class="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
+            <div class="w-full overflow-x-auto panel">
+                <table class="w-full text-left text-sm">
+                    <thead class="uppercase tracking-wider accent" style="background:var(--accent-soft)"><tr><th class="p-4"></th><th class="p-4">Orca</th><th class="p-4">Herdr</th></tr></thead>
+                    <tbody class="divide-y" style="color:#374151;border-color:var(--line)">
+                        <tr><td class="p-3 font-semibold muted text-xs">Форма</td><td class="p-3">Desktop IDE</td><td class="p-3">Terminal multiplexer</td></tr>
+                        <tr><td class="p-3 font-semibold muted text-xs">Изоляция</td><td class="p-3">Git worktree</td><td class="p-3">Pane на агента</td></tr>
+                        <tr><td class="p-3 font-semibold muted text-xs">Обзор</td><td class="p-3">Diff review</td><td class="p-3">State sidebar</td></tr>
+                        <tr><td class="p-3 font-semibold muted text-xs">Remote</td><td class="p-3">SSH / Cloud VM</td><td class="p-3">SSH thin client</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="space-y-4 text-sm flex flex-col justify-center" style="color:#374151">
+                <div class="panel p-4">Orca: worktree + terminal + browser на задачу.</div>
+                <div class="panel p-4">Herdr: state через process matching.</div>
+                <div class="panel p-4">Socket API: lead agent порождает helpers.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Orca</h2>
+        <p class="takeaway">Fleet IDE: изоляция через git worktree на каждую задачу.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  UI[Orca IDE] --> Ctrl[Control Plane]
+  Ctrl --> T1[Task A] & T2[Task B]
+  T1 --> WT1[worktree]
+  T2 --> WT2[worktree]
+  Ctrl --> Diff[Diff Review] --> Human[Approve]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Herdr</h2>
+        <p class="takeaway">Multiplexer: panes + state detector + socket API для lead agent.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Lead[Lead Agent] --> API[Socket API] --> Mux[Mux]
+  Mux --> P1[Pane 1] & P2[Pane 2] & P3[Pane N]
+  P1 & P2 & P3 --> Det[State] --> Side[Sidebar]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Практика">
+        <h2 class="text-4xl font-bold mb-10">Гид по выбору</h2>
+        <div class="w-full max-w-3xl space-y-3">
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Код сегодня с минимумом сюрпризов</span><span class="font-bold w-1/2 text-right">OpenCode</span></div>
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Кастомная agent infrastructure</span><span class="font-bold w-1/2 text-right">DeepSeek Harness</span></div>
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Ассистент на каждой платформе</span><span class="font-bold w-1/2 text-right">OpenClaw</span></div>
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Ускорять повторяющуюся работу</span><span class="font-bold w-1/2 text-right">Hermes Agent</span></div>
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Parallel agent diffs в IDE</span><span class="font-bold w-1/2 text-right">Orca</span></div>
+            <div class="flex items-center panel p-4"><span class="muted w-1/2 text-sm">Много terminal-агентов по SSH</span><span class="font-bold w-1/2 text-right">Herdr</span></div>
+        </div>
+    </div>
+
+    <div class="slide" data-fq data-section="Практика">
+        <h2 class="text-4xl font-bold mb-8">Финальная проверка</h2>
+        <div class="w-full max-w-2xl min-h-[300px]">
+            <div id="fq-container"></div>
+            <div class="mt-8 flex justify-between items-center">
+                <div id="fq-progress" class="muted text-sm mono">Вопрос 1/6</div>
+                <button id="fq-next" class="px-6 py-2 rounded-full text-white font-bold disabled:opacity-30 disabled:cursor-default transition-all" style="background:var(--accent)" disabled>Далее →</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Практика">
+        <h2 class="text-4xl font-bold mb-8">Частые вопросы</h2>
+        <div class="w-full max-w-3xl max-h-[65vh] overflow-y-auto pr-2">
+            <div class="faq-item"><div class="faq-q">Что такое AI harness? <span class="muted">+</span></div><div class="faq-a">AI harness — ПО, конфигурация и логика исполнения вокруг large language model: prompts, tools, memory, orchestration, evaluation и guardrails. Коротко: Agent = Model + Harness.</div></div>
+            <div class="faq-item"><div class="faq-q">Чем AI agent отличается от AI harness? <span class="muted">+</span></div><div class="faq-a">AI agent — целая система. AI harness — часть без model: scaffolding, tools и проверка output. Агент = model + harness.</div></div>
+            <div class="faq-item"><div class="faq-q">Framework вроде LangChain — это harness? <span class="muted">+</span></div><div class="faq-a">Нет. Framework — toolkit, чтобы быстрее собрать harness. Harness — конкретная конфигурация под ваш use case.</div></div>
+            <div class="faq-item"><div class="faq-q">Нужен ли harness, чтобы собрать AI agent? <span class="muted">+</span></div><div class="faq-a">Да. Любой agent с tools, контекстом, state или validation уже работает через harness — вопрос в осознанном дизайне.</div></div>
+            <div class="faq-item"><div class="faq-q">Какие ядровые компоненты у AI harness? <span class="muted">+</span></div><div class="faq-a">Контекст, tools, memory, orchestration, evaluation, tracing/observability, guardrails — обычно наращивают постепенно.</div></div>
+            <div class="faq-item"><div class="faq-q">С чего начать сборку AI harness? <span class="muted">+</span></div><div class="faq-a">Версионированные промпты, retrieval pipeline, registry tools, validation output, логирование; затем evaluation и tracing.</div></div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Практика">
+        <h2 class="text-4xl font-bold mb-8">Связанные материалы</h2>
+        <div class="w-full max-w-4xl max-h-[65vh] overflow-y-auto space-y-3 text-sm">
+            <a class="block panel p-4 no-underline" href="https://www.databricks.com/blog/ai-harness" target="_blank"><span class="font-semibold" style="color:var(--ink)">Databricks</span> <span class="muted">— AI Harness</span></a>
+            <a class="block panel p-4 no-underline" href="https://explainx.ai/blog/agent-harness-dag-planner-worker-critic-budget-pressure-2026" target="_blank"><span class="font-semibold" style="color:var(--ink)">ExplainX</span> <span class="muted">— DAG, Planner, Worker, Critic, Budget</span></a>
+            <a class="block panel p-4 no-underline" href="https://explainx.ai/blog/what-is-agent-harness-complete-guide-2026" target="_blank"><span class="font-semibold" style="color:var(--ink)">ExplainX</span> <span class="muted">— Complete Guide</span></a>
+            <a class="block panel p-4 no-underline" href="https://www.builder.io/blog/agent-harness" target="_blank"><span class="font-semibold" style="color:var(--ink)">Builder.io</span> <span class="muted">— Agent Harness</span></a>
+            <a class="block panel p-4 no-underline" href="https://www.ninetwothree.co/blog/what-is-ai-harness" target="_blank"><span class="font-semibold" style="color:var(--ink)">NineTwentyThree</span> <span class="muted">— What is AI Harness</span></a>
+            <a class="block panel p-4 no-underline" href="https://xcloud.host/deepseek-harness-vs-opencode/" target="_blank"><span class="font-semibold" style="color:var(--ink)">xCloud</span> <span class="muted">— DeepSeek vs OpenCode</span></a>
+            <a class="block panel p-4 no-underline" href="https://blog.sandbase.ai/deepseek-harness-vs-openclaw-vs-hermes-2026/" target="_blank"><span class="font-semibold" style="color:var(--ink)">Sandbase</span> <span class="muted">— DeepSeek vs OpenClaw vs Hermes</span></a>
+            <a class="block panel p-4 no-underline" href="https://www.bitdoze.com/herdr-agent-multiplexer/" target="_blank"><span class="font-semibold" style="color:var(--ink)">BitDoze</span> <span class="muted">— Herdr</span></a>
+            <a class="block panel p-4 no-underline" href="https://www.onorca.dev/docs" target="_blank"><span class="font-semibold" style="color:var(--ink)">Orca</span> <span class="muted">— Docs</span></a>
+            <div class="pt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+                <a href="https://arxiv.org/abs/2210.03629" target="_blank">ReAct (arxiv)</a>
+                <a href="https://arxiv.org/abs/2606.09498" target="_blank">Self-Harness (arxiv)</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Практика">
+        <h2 class="text-4xl font-bold mb-10">Спасибо</h2>
+        <div class="w-full max-w-3xl text-center space-y-6">
+            <p class="text-xl muted">Harness — переменная. Model — константа.</p>
+            <p class="mono text-xs muted chip inline-block px-4 py-2 rounded-full">HOME / ESC · СТРЕЛКИ · SPACE</p>
+            <p class="text-sm"><a href="https://solutionarchitects.tech/" target="_blank" class="no-underline font-semibold">solutionarchitects.tech</a></p>
+        </div>
+    </div>
+</div>
+
+<button id="prev-btn" class="nav-btn" disabled>← Назад</button>
+<div id="nav-hint"></div>
+<button id="next-btn" class="nav-btn">Далее →</button>
+
+<script>
+const S = { idx: 0, total: 0, revealStep: 0, tableDone: false, fqIdx: 0, fqScore: 0 };
+
+const FQ = [
+    { q: "Какова базовая формула AI Agent?", o: ["Agent = Model + Data", "Agent = Model + Harness", "Agent = Prompt + API"], c: 1 },
+    { q: "Какой компонент отвечает за безопасный запуск кода?", o: ["System Prompt", "Sandbox", "Memory Manager"], c: 1 },
+    { q: "Чем Harness отличается от Framework?", o: ["Harness — opinionated & bundled; Framework — абстракции", "Framework быстрее; Harness медленнее", "Это синонимы"], c: 0 },
+    { q: "В паттерне DAG когда валидируется plan?", o: ["После завершения исполнения", "Во время исполнения", "До любого исполнения"], c: 2 },
+    { q: "Что управляет graceful degradation в budget-aware harness?", o: ["Только token count", "Pressure scalar", "Wall clock time"], c: 1 },
+    { q: "В каком файле обычно лежит persistent memory в Pi/OpenCode?", o: ["config.json", "AGENTS.md", "system.prompt"], c: 1 }
+];
+
+const slides = document.querySelectorAll('.slide');
+S.total = slides.length;
+const bar = document.getElementById('progress');
+const prevB = document.getElementById('prev-btn');
+const nextB = document.getElementById('next-btn');
+const navHint = document.getElementById('nav-hint');
+const slideNum = document.getElementById('slide-num');
+const slideSec = document.getElementById('slide-sec');
+const sectionJump = document.getElementById('section-jump');
+const fqC = document.getElementById('fq-container');
+const fqN = document.getElementById('fq-next');
+const fqP = document.getElementById('fq-progress');
+const fqSlide = document.querySelector('[data-fq]');
+const fqSlideIdx = [...slides].indexOf(fqSlide);
+
+const sectionFirst = {};
+slides.forEach((s, i) => {
+    const sec = s.dataset.section || '';
+    if (sec && !(sec in sectionFirst)) sectionFirst[sec] = i;
+});
+Object.keys(sectionFirst).forEach(sec => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sec-chip';
+    b.textContent = sec;
+    b.dataset.sec = sec;
+    b.addEventListener('click', () => {
+        S.idx = sectionFirst[sec];
+        if (slides[S.idx].dataset.revealCount) S.revealStep = 0;
+        update();
+    });
+    sectionJump.appendChild(b);
+});
+
+async function renderMermaid(slide) {
+    if (!window.__mermaid || !slide) return;
+    const nodes = [...slide.querySelectorAll('.mermaid')].filter(n => !n.dataset.processed);
+    if (!nodes.length) return;
+    try { await window.__mermaid.run({ nodes }); } catch (e) { console.warn(e); }
+}
+
+function blockedReason(cur) {
+    if (cur.dataset.revealCount && S.revealStep < parseInt(cur.dataset.revealCount, 10))
+        return 'Space / Далее — следующий пункт';
+    if (cur.dataset.gate === 'table-quiz' && !S.tableDone)
+        return 'Ответьте на все вопросы, чтобы продолжить';
+    return '';
+}
+
+function update() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === S.idx));
+    bar.style.width = `${((S.idx + 1) / S.total) * 100}%`;
+    prevB.disabled = S.idx === 0;
+    slideNum.textContent = `${S.idx + 1} / ${S.total}`;
+    const cur = slides[S.idx];
+    const sec = cur.dataset.section || '';
+    slideSec.textContent = sec;
+    sectionJump.querySelectorAll('.sec-chip').forEach(c => c.classList.toggle('active', c.dataset.sec === sec));
+
+    const reason = blockedReason(cur);
+    const blocked = !!reason;
+    nextB.disabled = blocked || S.idx === S.total - 1;
+    nextB.textContent = S.idx === S.total - 1 ? 'Готово' : 'Далее →';
+    navHint.textContent = reason;
+    navHint.classList.toggle('show', blocked);
+    renderMermaid(cur);
+}
+
+function next() {
+    const cur = slides[S.idx];
+    if (cur.dataset.revealCount) {
+        const items = cur.querySelectorAll('.reveal-item');
+        if (S.revealStep < items.length) { items[S.revealStep].classList.add('visible'); S.revealStep++; update(); return; }
+    }
+    if (blockedReason(cur)) return;
+    if (S.idx < S.total - 1) { S.idx++; if (slides[S.idx].dataset.revealCount) S.revealStep = 0; update(); }
+}
+
+function prev() { if (S.idx > 0) { S.idx--; update(); } }
+function goHome() { S.idx = 0; S.revealStep = 0; update(); }
+
+document.querySelectorAll('.tq-select').forEach(sel => {
+    sel.addEventListener('change', e => {
+        const row = e.target.closest('.tq-row');
+        const ok = e.target.value === row.dataset.correct;
+        row.className = `tq-row ${e.target.value ? (ok ? 'correct' : 'incorrect') : ''}`;
+        row.querySelector('.status').textContent = e.target.value ? (ok ? '✓' : '✗') : '-';
+        row.querySelector('.status').style.color = ok ? 'var(--success)' : 'var(--error)';
+        const allSel = document.querySelectorAll('.tq-select');
+        S.tableDone = [...allSel].every(s => s.value && s.value === s.closest('.tq-row').dataset.correct);
+        document.getElementById('tq-feedback').style.opacity = S.tableDone ? '1' : '0';
+        update();
+    });
+});
+
+function renderFQ() {
+    if (S.fqIdx >= FQ.length) {
+        fqC.innerHTML = `<div class="text-center py-12"><div class="text-6xl mb-4">✓</div><h3 class="text-3xl font-bold mb-2">Готово!</h3><p class="muted">${S.fqScore} / ${FQ.length}</p></div>`;
+        fqN.style.display = 'none'; fqP.textContent = 'Готово'; return;
+    }
+    const q = FQ[S.fqIdx];
+    fqP.textContent = `Вопрос ${S.fqIdx + 1}/${FQ.length}`;
+    fqN.disabled = true;
+    fqC.innerHTML = `<h3 class="text-2xl font-bold mb-6">${q.q}</h3>` +
+        q.o.map((o, i) => `<button class="fq-opt block w-full text-left panel p-4 mb-3 hover:border-[var(--accent)] transition-all" data-i="${i}">${o}</button>`).join('') +
+        `<div id="fq-fb" class="mt-4 text-sm opacity-0 transition-opacity"></div>`;
+    fqC.querySelectorAll('.fq-opt').forEach(b => b.addEventListener('click', () => {
+        const ci = q.c, si = parseInt(b.dataset.i, 10);
+        fqC.querySelectorAll('.fq-opt').forEach(x => x.style.pointerEvents = 'none');
+        if (si === ci) { b.style.borderColor = 'var(--success)'; b.style.background = 'rgba(25,202,162,0.1)'; S.fqScore++; }
+        else { b.style.borderColor = 'var(--error)'; b.style.background = 'rgba(247,99,85,0.1)'; fqC.querySelector(`[data-i="${ci}"]`).style.borderColor = 'var(--success)'; }
+        const fb = document.getElementById('fq-fb');
+        fb.textContent = si === ci ? 'Верно!' : 'Неверно.';
+        fb.style.color = si === ci ? 'var(--success)' : 'var(--error)';
+        fb.style.opacity = '1';
+        fqN.disabled = false;
+    }));
+}
+
+fqN.addEventListener('click', () => { S.fqIdx++; renderFQ(); });
+if (fqSlide) {
+    new MutationObserver(() => { if (fqSlide.classList.contains('active') && !fqC.innerHTML) renderFQ(); })
+        .observe(fqSlide, { attributes: true, attributeFilter: ['class'] });
+}
+
+document.querySelectorAll('.faq-q').forEach(q => q.addEventListener('click', () => {
+    const item = q.parentElement; item.classList.toggle('open');
+    q.querySelector('span').textContent = item.classList.contains('open') ? '−' : '+';
+}));
+
+nextB.addEventListener('click', next);
+prevB.addEventListener('click', prev);
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' || e.key === 'Home') { e.preventDefault(); goHome(); return; }
+    if (['ArrowRight','ArrowDown',' '].includes(e.key)) {
+        e.preventDefault();
+        if (S.idx === fqSlideIdx && !fqN.disabled) fqN.click(); else next();
+    }
+    if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); prev(); }
+});
+
+window.addEventListener('mermaid-ready', () => renderMermaid(slides[S.idx]));
+update();
+</script>
+</body>
+</html>
