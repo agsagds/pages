@@ -219,6 +219,16 @@
       "questionCount": 10,
       "created": "2026-09",
       "order": 22
+    },
+    {
+      "id": "claude-memory",
+      "title": "Память Claude",
+      "description": "Оркестрация контекста, три системы памяти, правила, хуки и автозаметки",
+      "icon": "🧩",
+      "time": "~5 мин",
+      "questionCount": 11,
+      "created": "2026-09",
+      "order": 23
     }
   ]
 }
