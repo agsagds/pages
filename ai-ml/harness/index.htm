@@ -121,12 +121,12 @@
         .mermaid-wrap {
             width: 100%; max-width: 58rem;
             max-height: min(62vh, calc(100vh - 11rem));
-            overflow: hidden; background: var(--bg-2);
+            overflow: auto; background: var(--bg-2);
             border: 1px solid var(--line); border-radius: 1rem;
             padding: 0.65rem 0.85rem;
             box-shadow: 0 8px 30px rgba(14, 165, 233, 0.06);
         }
-        .mermaid-wrap.compact { max-width: 100%; max-height: min(48vh, calc(100vh - 14rem)); }
+        .mermaid-wrap.compact { max-width: 100%; max-height: min(42vh, calc(100vh - 14rem)); }
         .mermaid-wrap .mermaid { display: flex; justify-content: center; }
         .mermaid-wrap svg { max-width: 100%; height: auto; }
         .slide-note { font-size: 0.875rem; color: var(--muted); margin-top: 0.75rem; max-width: 48rem; text-align: center; }
@@ -180,7 +180,6 @@
         <h1 class="text-7xl font-extrabold tracking-tight mb-6 text-center" style="color:var(--ink)">Harness for AI</h1>
         <p class="text-2xl muted text-center max-w-3xl">Что это такое, зачем нужно и какие типы существуют.</p>
         <div class="mt-12 mono text-xs muted chip px-4 py-2 rounded-full">НАЖМИТЕ ↓ ИЛИ SPACE, ЧТОБЫ НАЧАТЬ</div>
-        <p class="mt-8 text-sm"><a href="https://solutionarchitects.tech/" target="_blank" class="no-underline font-semibold">solutionarchitects.tech</a></p>
     </div>
 
     <div class="slide" data-section="Основы">
@@ -351,11 +350,15 @@
         <div class="mermaid-wrap">
             <pre class="mermaid">
 flowchart LR
-  Goal[goal] --> Planner --> DAG[Validated DAG]
-  DAG --> W1[Worker] & W2[Worker] & W3[Worker]
-  W1 & W2 & W3 --> Critic --> Result[result]
-  Budget[BudgetMulti] -.-> Pressure[pressure]
-  Pressure -.-> Planner & Critic
+  Goal["goal"] --> Planner
+  Planner --> DAG["Validated DAG"]
+  DAG --> W1["Worker"] & W2["Worker"] & W3["Worker"]
+  W1 & W2 & W3 --> Critic
+  Critic --> Result["result"]
+
+  Budget["BudgetMulti<br/>tokens · tools · time · $"] --> Pressure["pressure scalar"]
+  Pressure -.->|graceful degradation| Planner
+  Pressure -.-> W1 & W2 & Critic
             </pre>
         </div>
         <a href="https://github.com/DataForScience/LLMs/blob/master/03%20-%20Advanced%20Agentic%20Harness.ipynb" target="_blank" class="inline-block mt-4 text-sm mono chip px-4 py-2 rounded border no-underline">Смотреть реализацию DAG →</a>
@@ -377,21 +380,23 @@ flowchart LR
     <div class="slide" data-section="Self-Harness">
         <h2 class="text-3xl font-bold mb-2">Manual vs Self-Harness</h2>
         <p class="takeaway">Люди — узкое место при каждом новом model; Self-Harness крутит цикл по traces.</p>
-        <div class="grid md:grid-cols-2 gap-4 w-full max-w-6xl">
+        <div class="flex flex-col gap-4 w-full max-w-5xl">
             <div>
                 <h3 class="text-sm font-bold accent mb-2 text-center">Ручной цикл</h3>
                 <div class="mermaid-wrap compact">
                     <pre class="mermaid">
-flowchart LR
-  M[New Model] --> H[Humans analyze]
-  H --> D[Design harness]
-  D --> T[Manual test]
-  T -->|fail| H
-  T -->|ok| Dep[Deploy]
-  M2[Another Model] --> H
-  style H fill:#ff6b6b,color:#fff
-  style D fill:#ff6b6b,color:#fff
-  style T fill:#ff6b6b,color:#fff
+graph TD
+    A[New Model Released] --> B[Human Engineers Analyze]
+    B --> C[Design Model-Specific Harness]
+    C --> D[Manual Testing &amp; Iteration]
+    D --> E{Performance OK?}
+    E -->|No| B
+    E -->|Yes| F[Deploy]
+    G[Another Model Released] --> B
+
+    style B fill:#ff6b6b,color:#fff
+    style C fill:#ff6b6b,color:#fff
+    style D fill:#ff6b6b,color:#fff
                     </pre>
                 </div>
             </div>
@@ -399,14 +404,19 @@ flowchart LR
                 <h3 class="text-sm font-bold accent mb-2 text-center">Self-Harness loop</h3>
                 <div class="mermaid-wrap compact">
                     <pre class="mermaid">
-flowchart LR
-  Tr[Traces] --> Mine[Mine]
-  Mine --> Prop[Propose]
-  Prop --> Val[Validate]
-  Val -->|fail| Prop
-  Val -->|ok| Upd[Updated Harness]
-  Upd --> Bench[Benchmarks]
-  Bench --> Tr
+graph LR
+    A[Execution Traces] --> B[Stage 1: Weakness Mining]
+    B --> C[Identified Failure Patterns]
+    C --> D[Stage 2: Harness Proposal]
+    D --> E[Candidate Harness Modifications]
+    E --> F[Stage 3: Proposal Validation]
+    F --> G{Regression Tests Pass?}
+    G -->|Yes| H[Accept Changes]
+    G -->|No| I[Reject Changes]
+    H --> J[Updated Harness]
+    I --> D
+    J --> K[Run Benchmark Tasks]
+    K --> A
                     </pre>
                 </div>
             </div>
@@ -433,27 +443,38 @@ flowchart LR
     <div class="slide" data-section="Паттерны">
         <h2 class="text-3xl font-bold mb-2">Три паттерна harness</h2>
         <p class="takeaway">Retry для дешёвой verification; Plan для сложных задач; Multi-Agent для специализации.</p>
-        <div class="grid md:grid-cols-3 gap-3 w-full max-w-6xl">
-            <div class="pat-col">
-                <h3>Simple Retry</h3>
-                <p>Claude Code <span class="mono">/loop</span> · tests, lint</p>
-                <div class="mermaid-wrap compact">
-                    <pre class="mermaid">
+        <div class="grid md:grid-cols-2 gap-4 w-full max-w-6xl">
+            <div class="flex flex-col gap-3">
+                <div class="pat-col">
+                    <h3>Simple Retry</h3>
+                    <p>Claude Code <span class="mono">/loop</span> · tests, lint</p>
+                    <div class="mermaid-wrap compact">
+                        <pre class="mermaid">
 flowchart LR
-  G[goal] --> C[model] --> T[tool] --> V{verify}
-  V -->|fail| C
-  V -->|pass| X[exit]
-                    </pre>
+  Goal[goal] --> Call[model call]
+  Call --> Tool[tool execution]
+  Tool --> Ver{verify}
+  Ver -->|fail| Call
+  Ver -->|pass| Exit[exit]
+
+  style Ver fill:#0ea5e9,color:#fff
+                        </pre>
+                    </div>
                 </div>
-            </div>
-            <div class="pat-col">
-                <h3>Plan-Then-Execute</h3>
-                <p>Сначала plan, потом шаги</p>
-                <div class="mermaid-wrap compact">
-                    <pre class="mermaid">
+                <div class="pat-col">
+                    <h3>Plan-Then-Execute</h3>
+                    <p>Сначала plan, потом шаги</p>
+                    <div class="mermaid-wrap compact">
+                        <pre class="mermaid">
 flowchart LR
-  G[goal] --> P[plan] --> S1[step] --> S2[step] --> V[verify]
-                    </pre>
+  Goal[goal] --> Plan[model: plan]
+  Plan --> S1["step 1: model → tool"]
+  S1 --> S2["step 2: model → tool"]
+  S2 --> Sn["step N: …"]
+  Sn --> Ver[verify]
+  Ver --> Exit[exit]
+                        </pre>
+                    </div>
                 </div>
             </div>
             <div class="pat-col">
@@ -462,9 +483,16 @@ flowchart LR
                 <div class="mermaid-wrap compact">
                     <pre class="mermaid">
 flowchart TB
-  G[goal] --> Co[coordinator]
-  Co --> Cd[coder] & Rv[reviewer] & Ts[tester]
-  Cd & Rv & Ts --> Ag[aggregate] --> V[verify]
+  Goal[goal] --> Coord[coordinator model]
+  Coord --> Coder[coder agent]
+  Coord --> Reviewer[reviewer agent]
+  Coord --> Tester[tester agent]
+  Coder --> Code[code]
+  Reviewer --> Review[review]
+  Tester --> Tests[test results]
+  Code &amp; Review &amp; Tests --> Agg[aggregate]
+  Agg --> Ver[verify]
+  Ver --> Exit[exit]
                     </pre>
                 </div>
             </div>
@@ -486,6 +514,7 @@ flowchart TB
             </table>
         </div>
         <p class="mt-8 muted text-sm italic">Node — runtime, Express — framework, Next.js — harness.</p>
+        <p class="mt-4 text-sm muted max-w-3xl text-center leading-relaxed"><strong class="accent" style="font-weight:600">Opinion / opinionated</strong> — насколько слой заранее решает за вас (loop, memory, tools, safety, defaults). Runtime — почти без opinion; Framework — низкая (абстракции, вы собираете); Harness — высокая (готовая система «из коробки»).</p>
     </div>
 
     <div class="slide" data-section="Рынок">
@@ -526,6 +555,72 @@ flowchart TB
     </div>
 
     <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-8">DeepSeek Harness + OpenCode / Pi</h2>
+        <div class="grid md:grid-cols-2 gap-6 w-full max-w-5xl">
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">DeepSeek Harness</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Compositional runtime на Cordis: everything-is-a-plugin — model, tools, loop, sandbox и UI собираются из заменяемых модулей.</p>
+                <a href="https://deepseek.com/harness" target="_blank" class="text-sm font-semibold">deepseek.com/harness →</a>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">OpenCode / Pi</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Terminal-first coding agent с маленьким ядром и 75+ model providers; расширения через Plugins, Hooks и MCP, память в AGENTS.md.</p>
+                <div class="flex flex-wrap gap-4 text-sm font-semibold">
+                    <a href="https://opencode.ai/" target="_blank">opencode.ai →</a>
+                    <a href="https://github.com/earendil-works/pi" target="_blank">github.com/…/pi →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: DeepSeek Harness</h2>
+        <p class="takeaway">Запоминайте: Cordis — пустой loader; capability = plugins.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart TB
+  subgraph Cordis["Cordis Runtime"]
+    Loader["Plugin Loader<br/>load / unload / deps"]
+  end
+
+  Loader --> ModelP["Model Plugin"]
+  Loader --> ToolsP["Tool Plugins"]
+  Loader --> LoopP["Loop / Scheduler"]
+  Loader --> SessP["Session Store<br/>append-only log"]
+  Loader --> SandP["Sandbox"]
+  Loader --> StorP["Storage"]
+  Loader --> SkillP["Skills / Config"]
+  Loader --> UIP["UI Plugin<br/>:3080"]
+  Loader --> TelP["Telemetry"]
+
+  ModelP &amp; ToolsP &amp; LoopP --> Agent["Agent = Model + assembled plugins"]
+  SessP --> Agent
+  SandP --> Agent
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenCode / Pi</h2>
+        <p class="takeaway">Маленькое ядро + Plugins / Hooks / MCP; память в AGENTS.md.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  User["Developer"] --> TUI["TUI / Desktop / IDE"]
+  TUI --> Core["Small Core<br/>agentic loop"]
+  Core --> LLM["Model Providers<br/>75+ / Ollama"]
+  Core --> Ext["Extensions"]
+  Ext --> Plugins["Plugins"]
+  Ext --> Hooks["Hooks"]
+  Ext --> MCP["MCP Servers"]
+  Core --> Mem["AGENTS.md<br/>/init"]
+  Core --> Sess["Sessions<br/>share · undo/redo"]
+  Core --> FS["Repo / Shell / Edit"]
+            </pre>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
         <h2 class="text-3xl font-bold mb-6">DeepSeek Harness vs OpenCode</h2>
         <div class="w-full max-w-5xl overflow-x-auto panel">
             <table class="w-full text-left text-sm min-w-[600px]">
@@ -544,33 +639,62 @@ flowchart TB
     </div>
 
     <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: DeepSeek Harness</h2>
-        <p class="takeaway">Запоминайте: Cordis — пустой loader; capability = plugins.</p>
+        <h2 class="text-3xl font-bold mb-8">OpenClaw + Hermes Agent</h2>
+        <div class="grid md:grid-cols-2 gap-6 w-full max-w-5xl">
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">OpenClaw</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Multi-channel personal gateway: один агент на WhatsApp, Slack, Telegram и десятках других каналов через единый Gateway.</p>
+                <a href="https://openclaw.ai/" target="_blank" class="text-sm font-semibold">openclaw.ai →</a>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">Hermes Agent</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Self-improving learning runtime: skills и memory накапливаются из прошлых успехов, nudge-система фиксирует уроки между задачами.</p>
+                <a href="https://hermes-agent.nousresearch.com" target="_blank" class="text-sm font-semibold">hermes-agent.nousresearch.com →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenClaw</h2>
+        <p class="takeaway">Channel → Gateway → Runner: один агент на всех messaging-платформах.</p>
         <div class="mermaid-wrap">
             <pre class="mermaid">
-flowchart LR
-  Loader[Cordis Loader] --> ModelP[Model]
-  Loader --> ToolsP[Tools]
-  Loader --> LoopP[Loop]
-  Loader --> SessP[Session]
-  Loader --> SandP[Sandbox]
-  Loader --> UIP[UI :3080]
-  ModelP & ToolsP & LoopP --> Agent[Agent]
+flowchart TB
+  subgraph Channels["Channel Layer"]
+    WA["WhatsApp"] &amp; SL["Slack"] &amp; TG["Telegram"]
+    DC["Discord"] &amp; SG["Signal"] &amp; OT["…10+"]
+  end
+
+  Channels --> GW["Gateway Server<br/>auth · routing · queue"]
+  GW --> Norm["Normalized message"]
+  Norm --> Runner["Agent Runner"]
+  Runner --> Ctx["Context + SOUL.md"]
+  Runner --> Mem["Layered Markdown memory"]
+  Runner --> Loop["Agentic Loop + Tools"]
+  Loop --> LLM["Any OpenAI-compatible Model"]
             </pre>
         </div>
     </div>
 
     <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenCode / Pi</h2>
-        <p class="takeaway">Маленькое ядро + Plugins / Hooks / MCP; память в AGENTS.md.</p>
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Hermes Agent</h2>
+        <p class="takeaway">Skills + Memory + Nudge + Cron — знание накапливается со временем.</p>
         <div class="mermaid-wrap">
             <pre class="mermaid">
-flowchart LR
-  Dev[Developer] --> UI[TUI/IDE] --> Core[Small Core]
-  Core --> LLM[Providers]
-  Core --> Ext[Plugins·Hooks·MCP]
-  Core --> Mem[AGENTS.md]
-  Core --> FS[Repo/Shell]
+flowchart TB
+  Task["Incoming Task"] --> Exec["Task Execution"]
+
+  Exec --> Skills["Skill Docs<br/>procedures from past wins"]
+  Exec --> Mem["Memory<br/>user.md + memory.md"]
+  Exec --> Soul["Soul<br/>persona / prefs"]
+  Exec --> Nudge["Nudge System<br/>persist learnings"]
+
+  Nudge -->|write skill| Skills
+  Skills -->|load on similar task| Exec
+  Mem --> Exec
+
+  Cron["Cron Scheduler<br/>offline work"] --> Exec
+  Exec --> LLM["Model"]
             </pre>
         </div>
     </div>
@@ -594,29 +718,69 @@ flowchart LR
     </div>
 
     <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: OpenClaw</h2>
-        <p class="takeaway">Channel → Gateway → Runner: один агент на всех messaging-платформах.</p>
+        <h2 class="text-3xl font-bold mb-8">Orca + Herdr</h2>
+        <div class="grid md:grid-cols-2 gap-6 w-full max-w-5xl">
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">Orca</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Desktop fleet IDE: параллельные агенты в изолированных git worktrees с terminal, browser и diff review в одной точке управления.</p>
+                <a href="https://onorca.dev" target="_blank" class="text-sm font-semibold">onorca.dev →</a>
+            </div>
+            <div class="panel p-6 flex flex-col">
+                <h3 class="text-xl font-bold accent mb-3">Herdr</h3>
+                <p class="text-sm leading-relaxed mb-4 flex-grow" style="color:#374151">Terminal multiplexer для агентов: panes, state sidebar через process matching и socket API, чтобы lead agent порождал helpers.</p>
+                <a href="https://herdr.dev" target="_blank" class="text-sm font-semibold">herdr.dev →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Orca</h2>
+        <p class="takeaway">Fleet IDE: изоляция через git worktree на каждую задачу.</p>
         <div class="mermaid-wrap">
             <pre class="mermaid">
-flowchart LR
-  Ch[Channels 10+] --> GW[Gateway] --> Run[Agent Runner]
-  Run --> Ctx[SOUL.md + memory]
-  Run --> Loop[Loop + Tools] --> LLM[Model]
+flowchart TB
+  UI["Orca Desktop IDE"] --> Ctrl["Control Plane"]
+
+  Ctrl --> T1["Task A"]
+  Ctrl --> T2["Task B"]
+  Ctrl --> T3["Task C"]
+
+  subgraph IsoA["Isolation A"]
+    T1 --> WT1["Git worktree"]
+    T1 --> Term1["Terminal"]
+    T1 --> Br1["Browser tab"]
+  end
+
+  subgraph IsoB["Isolation B"]
+    T2 --> WT2["Git worktree"]
+    T2 --> Term2["Terminal"]
+  end
+
+  Ctrl --> Diff["Diff Review"]
+  Ctrl --> Remote["SSH / Cloud VM"]
+  Diff --> Human["Human approve / merge"]
             </pre>
         </div>
     </div>
 
     <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: Hermes Agent</h2>
-        <p class="takeaway">Skills + Memory + Nudge + Cron — знание накапливается со временем.</p>
+        <h2 class="text-3xl font-bold mb-2">Архитектура: Herdr</h2>
+        <p class="takeaway">Multiplexer: panes + state detector + socket API для lead agent.</p>
         <div class="mermaid-wrap">
             <pre class="mermaid">
-flowchart LR
-  Task --> Exec[Execution]
-  Exec --> Skills & Mem[Memory] & Nudge
-  Nudge -->|write| Skills
-  Skills -->|reload| Exec
-  Cron --> Exec --> LLM[Model]
+flowchart TB
+  Lead["Lead Agent"] --> API["Herdr Socket API"]
+  API --> Mux["Terminal Multiplexer"]
+
+  Mux --> P1["Pane · Agent 1"]
+  Mux --> P2["Pane · Agent 2"]
+  Mux --> P3["Pane · Agent N"]
+
+  Det["State Detector<br/>process matching + integrations"] --> Sidebar["State Sidebar"]
+  P1 &amp; P2 &amp; P3 --> Det
+
+  API -->|spawn helpers · await results| Lead
+  Client["SSH Thin Client"] --> Mux
             </pre>
         </div>
     </div>
@@ -640,34 +804,6 @@ flowchart LR
                 <div class="panel p-4">Herdr: state через process matching.</div>
                 <div class="panel p-4">Socket API: lead agent порождает helpers.</div>
             </div>
-        </div>
-    </div>
-
-    <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: Orca</h2>
-        <p class="takeaway">Fleet IDE: изоляция через git worktree на каждую задачу.</p>
-        <div class="mermaid-wrap">
-            <pre class="mermaid">
-flowchart LR
-  UI[Orca IDE] --> Ctrl[Control Plane]
-  Ctrl --> T1[Task A] & T2[Task B]
-  T1 --> WT1[worktree]
-  T2 --> WT2[worktree]
-  Ctrl --> Diff[Diff Review] --> Human[Approve]
-            </pre>
-        </div>
-    </div>
-
-    <div class="slide" data-section="Рынок">
-        <h2 class="text-3xl font-bold mb-2">Архитектура: Herdr</h2>
-        <p class="takeaway">Multiplexer: panes + state detector + socket API для lead agent.</p>
-        <div class="mermaid-wrap">
-            <pre class="mermaid">
-flowchart LR
-  Lead[Lead Agent] --> API[Socket API] --> Mux[Mux]
-  Mux --> P1[Pane 1] & P2[Pane 2] & P3[Pane N]
-  P1 & P2 & P3 --> Det[State] --> Side[Sidebar]
-            </pre>
         </div>
     </div>
 
@@ -730,7 +866,6 @@ flowchart LR
         <div class="w-full max-w-3xl text-center space-y-6">
             <p class="text-xl muted">Harness — переменная. Model — константа.</p>
             <p class="mono text-xs muted chip inline-block px-4 py-2 rounded-full">HOME / ESC · СТРЕЛКИ · SPACE</p>
-            <p class="text-sm"><a href="https://solutionarchitects.tech/" target="_blank" class="no-underline font-semibold">solutionarchitects.tech</a></p>
         </div>
     </div>
 </div>
