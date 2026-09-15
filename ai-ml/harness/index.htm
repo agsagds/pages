@@ -138,6 +138,31 @@
         .pat-col h3 { font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; text-align: center; }
         .pat-col p { font-size: 0.72rem; color: var(--muted); text-align: center; margin-bottom: 0.5rem; min-height: 2.4em; }
 
+        .tip {
+            position: relative; cursor: help;
+            border-bottom: 1px dotted var(--muted);
+        }
+        .tip::after {
+            content: attr(data-tip);
+            position: absolute; left: 50%; bottom: calc(100% + 0.45rem);
+            transform: translateX(-50%);
+            width: max-content; max-width: min(22rem, 70vw);
+            padding: 0.55rem 0.7rem; border-radius: 0.5rem;
+            background: var(--ink); color: #fff; font-size: 0.7rem; font-weight: 500;
+            line-height: 1.35; text-align: left; white-space: normal;
+            opacity: 0; pointer-events: none; z-index: 40;
+            box-shadow: 0 8px 24px rgba(18, 30, 35, 0.2);
+            transition: opacity 0.12s ease;
+        }
+        .tip:hover::after, .tip:focus::after, .tip:focus-visible::after { opacity: 1; }
+
+        .market-grid { max-height: min(68vh, calc(100vh - 10rem)); overflow-y: auto; padding-right: 0.25rem; }
+        .chip-link {
+            display: inline-block; text-align: center; padding: 0.4rem 0.75rem;
+            border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600;
+            text-decoration: none; color: #fff; background: var(--accent);
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 3px; }
@@ -518,39 +543,104 @@ flowchart TB
     </div>
 
     <div class="slide" data-section="Рынок">
-        <h2 class="text-4xl font-bold mb-10">Карта рынка: типы harness</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full max-w-6xl">
-            <div class="panel p-6 flex flex-col">
-                <h3 class="text-lg font-bold accent mb-2">Compositional Runtime</h3>
-                <p class="text-sm muted mb-4 flex-grow">Каждый компонент — заменяемый plugin.</p>
+        <h2 class="text-3xl font-bold mb-4">Карта рынка: типы harness</h2>
+        <div class="market-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-6xl">
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">Compositional Runtime</h3>
+                <p class="text-sm muted mb-3 flex-grow">Каждый компонент — заменяемый plugin.</p>
                 <a href="https://deepseek.com/harness" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">DeepSeek Harness</a>
             </div>
-            <div class="panel p-6 flex flex-col">
-                <h3 class="text-lg font-bold accent mb-2">Minimal Coding Agent</h3>
-                <p class="text-sm muted mb-4 flex-grow">Маленькое ядро, богатая система расширений.</p>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">Minimal Coding Agent</h3>
+                <p class="text-sm muted mb-3 flex-grow">Маленькое ядро, богатая система расширений.</p>
                 <div class="flex gap-2">
                     <a href="https://github.com/earendil-works/pi" target="_blank" class="flex-1 text-center py-2 rounded text-xs font-semibold no-underline text-white" style="background:var(--accent)">Pi</a>
                     <a href="https://opencode.ai/" target="_blank" class="flex-1 text-center py-2 rounded text-xs font-semibold no-underline text-white" style="background:var(--accent)">OpenCode</a>
                 </div>
             </div>
-            <div class="panel p-6 flex flex-col">
-                <h3 class="text-lg font-bold accent mb-2">Personal Gateway</h3>
-                <p class="text-sm muted mb-4 flex-grow">Один агент на каждой messaging-платформе.</p>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">Personal Gateway</h3>
+                <p class="text-sm muted mb-3 flex-grow">Один агент на каждой messaging-платформе.</p>
                 <a href="https://openclaw.ai/" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">OpenClaw</a>
             </div>
-            <div class="panel p-6 flex flex-col">
-                <h3 class="text-lg font-bold accent mb-2">Learning Runtime</h3>
-                <p class="text-sm muted mb-4 flex-grow">Skills и memory накапливаются со временем.</p>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">Learning Runtime</h3>
+                <p class="text-sm muted mb-3 flex-grow">Skills и memory накапливаются со временем.</p>
                 <a href="https://hermes-agent.nousresearch.com" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Hermes Agent</a>
             </div>
-            <div class="panel p-6 flex flex-col md:col-span-2">
-                <h3 class="text-lg font-bold accent mb-2">Agent Fleet Environment</h3>
-                <p class="text-sm muted mb-4 flex-grow">Одна точка управления для множества параллельных агентов.</p>
+            <div class="panel p-5 flex flex-col md:col-span-2">
+                <h3 class="text-base font-bold accent mb-2">Agent Fleet Environment</h3>
+                <p class="text-sm muted mb-3 flex-grow">Одна точка управления для множества параллельных агентов.</p>
                 <div class="flex gap-3">
                     <a href="https://onorca.dev" target="_blank" class="flex-1 text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Orca</a>
                     <a href="https://herdr.dev" target="_blank" class="flex-1 text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">Herdr</a>
                 </div>
             </div>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">
+                    <span class="tip" tabindex="0" data-tip="В статье OpenJarvis: personal AI как typed spec из пяти примитивов; LLM-guided spec search согласует stack с local model." title="В статье OpenJarvis: personal AI как typed spec из пяти примитивов; LLM-guided spec search согласует stack с local model.">Optimizable Spec Stack</span>
+                </h3>
+                <p class="text-sm muted mb-3 flex-grow">Editable spec (Intelligence, Engine, Agents, Tools &amp; Memory, Learning) — по описанию авторов.</p>
+                <a href="https://openjarvis.stanford.edu/" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">OpenJarvis</a>
+            </div>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">
+                    <span class="tip" tabindex="0" data-tip="В статье PRO-LONG: append-only log + programmatic read (grep/Python) поверх coding agent; без обязательного dump всего лога в prompt." title="В статье PRO-LONG: append-only log + programmatic read (grep/Python) поверх coding agent; без обязательного dump всего лога в prompt.">Programmatic Memory</span>
+                </h3>
+                <p class="text-sm muted mb-3 flex-grow">Lossless write в log и поиск нужных фрагментов кодом — один из подходов к long-horizon context.</p>
+                <a href="https://github.com/alexisfox7/PRO-LONG" target="_blank" class="block text-center py-2 rounded text-sm font-semibold no-underline text-white" style="background:var(--accent)">PRO-LONG</a>
+            </div>
+            <div class="panel p-5 flex flex-col">
+                <h3 class="text-base font-bold accent mb-2">Long-horizon / ARC exploratory</h3>
+                <p class="text-xs muted mb-3">Примеры specialized harness из литературы по ARC-AGI-3 / long-horizon (не полный обзор рынка).</p>
+                <div class="flex flex-wrap gap-2 mt-auto">
+                    <a href="https://schema-harness.github.io/" target="_blank" class="chip-link tip" tabindex="0" data-tip="Harness вокруг coding agent: state grounding + mechanism discovery как исполняемая программа, backtest и планирование в world model (Impossible Research)." title="Harness вокруг coding agent: state grounding + mechanism discovery как исполняемая программа, backtest и планирование в world model (Impossible Research).">Schema</a>
+                    <a href="https://github.com/astroseger/arc-3-agents-baseline1" target="_blank" class="chip-link tip" tabindex="0" data-tip="В обзоре PRO-LONG: Codex-harness с executable Python world model, replay/verify и planning через модель (Rodionov; в репо — baseline1 / ewma)." title="В обзоре PRO-LONG: Codex-harness с executable Python world model, replay/verify и planning через модель (Rodionov; в репо — baseline1 / ewma).">WorldModeler</a>
+                    <a href="https://github.com/symbolica-ai/arcgentica" target="_blank" class="chip-link tip" tabindex="0" data-tip="В обзоре PRO-LONG: multi-agent harness (orchestrator + Explorer / Theorist / Tester / Solver) и shared memory гипотез (Symbolica)." title="В обзоре PRO-LONG: multi-agent harness (orchestrator + Explorer / Theorist / Tester / Solver) и shared memory гипотез (Symbolica).">Arcgentica</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">OpenJarvis: personal AI как Spec</h2>
+        <p class="takeaway">В статье: декомпозиция stack в editable typed spec; LLM-guided spec search предлагает правки по traces, gate принимает без неприемлемых регрессий; получившийся spec рассчитан на on-device inference.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart TB
+  Spec[TypedSpec]
+  Spec --> Intel[Intelligence]
+  Spec --> Eng[Engine]
+  Spec --> Ag[Agents]
+  Spec --> TM[Tools_Memory]
+  Spec --> Learn[Learning]
+  Traces[Traces] --> Teach[Teacher_diagnose_propose]
+  Teach --> Gate[Heldout_gate]
+  Gate -->|accept| Spec
+            </pre>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm justify-center">
+            <a href="https://arxiv.org/abs/2605.17172" target="_blank">arXiv:2605.17172</a>
+            <a href="https://github.com/open-jarvis/OpenJarvis" target="_blank">GitHub</a>
+            <a href="https://openjarvis.stanford.edu/" target="_blank">Landing</a>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Рынок">
+        <h2 class="text-3xl font-bold mb-2">PRO-LONG: programmatic memory</h2>
+        <p class="takeaway">Авторы формулируют write как append-all в structured log и read как поиск через code/grep — ответ на tradeoff fidelity vs tractability на long-horizon задачах.</p>
+        <div class="mermaid-wrap">
+            <pre class="mermaid">
+flowchart LR
+  Agent[Coding_agent] -->|lifecycle_events| Log[Append_only_log]
+  Log -->|grep_Python_when_needed| Ctx[Relevant_prior_context]
+  Ctx --> Agent
+            </pre>
+        </div>
+        <p class="slide-note">В research harness для ARC-AGI-3 рядом часто фигурирует ActionQueue: plan → FIFO → flush при смене score.</p>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm justify-center">
+            <a href="https://arxiv.org/abs/2607.20064" target="_blank">arXiv:2607.20064</a>
+            <a href="https://github.com/alexisfox7/PRO-LONG" target="_blank">GitHub</a>
         </div>
     </div>
 
@@ -854,19 +944,25 @@ flowchart TB
             <a class="block panel p-4 no-underline" href="https://blog.sandbase.ai/deepseek-harness-vs-openclaw-vs-hermes-2026/" target="_blank"><span class="font-semibold" style="color:var(--ink)">Sandbase</span> <span class="muted">— DeepSeek vs OpenClaw vs Hermes</span></a>
             <a class="block panel p-4 no-underline" href="https://www.bitdoze.com/herdr-agent-multiplexer/" target="_blank"><span class="font-semibold" style="color:var(--ink)">BitDoze</span> <span class="muted">— Herdr</span></a>
             <a class="block panel p-4 no-underline" href="https://www.onorca.dev/docs" target="_blank"><span class="font-semibold" style="color:var(--ink)">Orca</span> <span class="muted">— Docs</span></a>
+            <a class="block panel p-4 no-underline" href="https://openjarvis.stanford.edu/" target="_blank"><span class="font-semibold" style="color:var(--ink)">OpenJarvis</span> <span class="muted">— Landing · personal AI on-device</span></a>
+            <a class="block panel p-4 no-underline" href="https://github.com/open-jarvis/OpenJarvis" target="_blank"><span class="font-semibold" style="color:var(--ink)">OpenJarvis</span> <span class="muted">— GitHub</span></a>
+            <a class="block panel p-4 no-underline" href="https://arxiv.org/abs/2605.17172" target="_blank"><span class="font-semibold" style="color:var(--ink)">OpenJarvis</span> <span class="muted">— arXiv:2605.17172</span></a>
+            <a class="block panel p-4 no-underline" href="https://github.com/alexisfox7/PRO-LONG" target="_blank"><span class="font-semibold" style="color:var(--ink)">PRO-LONG</span> <span class="muted">— GitHub · programmatic memory</span></a>
+            <a class="block panel p-4 no-underline" href="https://arxiv.org/abs/2607.20064" target="_blank"><span class="font-semibold" style="color:var(--ink)">PRO-LONG</span> <span class="muted">— arXiv:2607.20064</span></a>
+            <a class="block panel p-4 no-underline" href="https://schema-harness.github.io/" target="_blank"><span class="font-semibold" style="color:var(--ink)">Schema</span> <span class="muted">— ARC-AGI-3 harness (Impossible Research)</span></a>
+            <a class="block panel p-4 no-underline" href="https://github.com/astroseger/arc-3-agents-baseline1" target="_blank"><span class="font-semibold" style="color:var(--ink)">WorldModeler / baseline1</span> <span class="muted">— GitHub · arXiv:2605.05138</span></a>
+            <a class="block panel p-4 no-underline" href="https://github.com/symbolica-ai/arcgentica" target="_blank"><span class="font-semibold" style="color:var(--ink)">Arcgentica</span> <span class="muted">— GitHub · Symbolica</span></a>
             <div class="pt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs">
                 <a href="https://arxiv.org/abs/2210.03629" target="_blank">ReAct (arxiv)</a>
                 <a href="https://arxiv.org/abs/2606.09498" target="_blank">Self-Harness (arxiv)</a>
+                <a href="https://arxiv.org/abs/2605.17172" target="_blank">OpenJarvis (arxiv)</a>
+                <a href="https://arxiv.org/abs/2607.20064" target="_blank">PRO-LONG (arxiv)</a>
             </div>
         </div>
     </div>
 
     <div class="slide" data-section="Практика">
         <h2 class="text-4xl font-bold mb-10">Спасибо</h2>
-        <div class="w-full max-w-3xl text-center space-y-6">
-            <p class="text-xl muted">Harness — переменная. Model — константа.</p>
-            <p class="mono text-xs muted chip inline-block px-4 py-2 rounded-full">HOME / ESC · СТРЕЛКИ · SPACE</p>
-        </div>
     </div>
 </div>
 
