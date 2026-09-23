@@ -1,0 +1,133 @@
+{
+  "title": "Harness: паттерны и рынок",
+  "description": "Паттерны retry/plan/multi-agent, Runtime vs Framework, карта продуктов и гид выбора",
+  "icon": "🗺️",
+  "time": "~4 мин",
+  "scoreMessages": {
+    "perfect": "Отлично! Паттерны, opinion слоёв и карта продуктов harness собраны в цельную картину.",
+    "good": "Хороший результат. Стоит освежить различия Runtime/Framework/Harness и когда выбирать OpenCode, OpenClaw, Hermes, Orca или Herdr.",
+    "retry": "Перечитайте вторую часть материалов по harness (паттерны и рынок) и попробуйте снова."
+  },
+  "questions": [
+    {
+      "question": "Какой паттерн harness даёт главную выгоду в виде повторяемости за счёт цикла model → verify → retry?",
+      "options": [
+        "Plan-Then-Execute",
+        "Meta-Harness",
+        "Multi-Agent",
+        "Simple Retry"
+      ],
+      "correct": 3,
+      "correctExpl": "Верно! Simple Retry — цикл model → verify → retry; главная выгода — повторяемость при дешёвой verification.",
+      "wrongExpl": "Неверно. Повторяемость через model → verify → retry даёт Simple Retry (вариант D). Plan-Then-Execute сильнее в observability, Multi-Agent — в evaluation."
+    },
+    {
+      "question": "Для чего особенно полезен паттерн Multi-Agent (coordinator + specialists)?",
+      "options": [
+        "Только для сокращения числа вызовов модели",
+        "Только для хранения памяти в одном файле",
+        "Для evaluation за счёт разделения ролей (coder, reviewer, tester)",
+        "Для дешёвой verification без специализации ролей"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! Multi-Agent: coordinator направляет specialists; главная выгода паттерна — evaluation через разделение ролей.",
+      "wrongExpl": "Неверно. Multi-Agent полезен для evaluation через specialists (вариант C). Дешёвая verification — зона Simple Retry."
+    },
+    {
+      "question": "Как соотносятся Runtime, Framework и Harness по уровню opinion / opinionated?",
+      "options": [
+        "Runtime — почти без opinion; Framework — низкая; Harness — высокая",
+        "Runtime — высокая opinion; Harness — почти без opinion",
+        "Все три слоя одинаково opinionated",
+        "Framework всегда выше opinion, чем Harness"
+      ],
+      "correct": 0,
+      "correctExpl": "Верно! Opinion — насколько слой заранее решает loop, memory, tools, safety и defaults. Runtime почти без opinion; Framework даёт абстракции; Harness — готовая система «из коробки».",
+      "wrongExpl": "Неверно. Правильная шкала: Runtime почти без opinion, Framework — низкая, Harness — высокая (вариант A)."
+    },
+    {
+      "question": "Что означает compositional runtime в духе DeepSeek Harness?",
+      "options": [
+        "Только веб-UI без плагинов модели и tools",
+        "Один жёстко встроенный loop без расширений",
+        "Каждый компонент (model, tools, loop, sandbox, UI) — заменяемый plugin",
+        "Только кэш промптов без оркестрации"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! На Cordis everything-is-a-plugin: model, tools, loop, sandbox и UI собираются из заменяемых модулей; Cordis — пустой loader.",
+      "wrongExpl": "Неверно. Compositional runtime — заменяемые plugins для model, tools, loop, sandbox и UI (вариант C), а не монолитный loop без расширений."
+    },
+    {
+      "question": "Чем OpenCode / Pi отличается как coding agent?",
+      "options": [
+        "Terminal-first ядро с расширениями через Plugins, Hooks и MCP; память в AGENTS.md",
+        "Только multi-channel gateway для мессенджеров",
+        "Только fleet IDE на git worktrees",
+        "Только облачный chat без доступа к репозиторию"
+      ],
+      "correct": 0,
+      "correctExpl": "Верно! OpenCode / Pi — terminal-first coding agent: маленькое ядро, 75+ providers, расширения Plugins/Hooks/MCP, память через AGENTS.md (/init).",
+      "wrongExpl": "Неверно. OpenCode / Pi — terminal-first agent с Plugins/Hooks/MCP и памятью в AGENTS.md (вариант A). Gateway — OpenClaw; fleet IDE — Orca."
+    },
+    {
+      "question": "Какая роль у OpenClaw в карте рынка?",
+      "options": [
+        "Programmatic memory через append-only log и grep",
+        "Только compositional plugin-runtime без каналов",
+        "Personal gateway: один агент на многих messaging-платформах через единый Gateway",
+        "Desktop IDE для параллельных git worktrees"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! OpenClaw — multi-channel personal gateway: WhatsApp, Slack, Telegram и другие каналы → Gateway → Runner.",
+      "wrongExpl": "Неверно. OpenClaw — personal gateway на messaging-каналах (вариант C). Worktrees — Orca; programmatic memory — PRO-LONG."
+    },
+    {
+      "question": "Чем Hermes Agent сильнее на длинной дистанции по сравнению с OpenClaw?",
+      "options": [
+        "Только веб-UI на порту :3080",
+        "Отсутствием памяти между задачами",
+        "Большим числом messaging-каналов из коробки",
+        "Встроенным learning runtime: skills и memory накапливаются; сильный день — Day 90"
+      ],
+      "correct": 3,
+      "correctExpl": "Верно! Hermes — self-improving learning runtime (skills, memory, nudge, cron). У OpenClaw нет встроенного skill extraction; у Hermes сильный день — Day 90 (~40% ускорения на повторах).",
+      "wrongExpl": "Неверно. Hermes сильнее learning runtime и Day 90 (вариант D). Каналы — сильная сторона OpenClaw."
+    },
+    {
+      "question": "Как Orca изолирует параллельных агентов во флоте?",
+      "options": [
+        "Только через один shared working tree",
+        "Общим процессом без изоляции репозитория",
+        "Через git worktree на каждую задачу плюс terminal/browser в control plane",
+        "Только через markdown-память SOUL.md"
+      ],
+      "correct": 2,
+      "correctExpl": "Верно! Orca — desktop fleet IDE: изолированные git worktrees на задачу, terminal, browser и diff review в одной точке управления.",
+      "wrongExpl": "Неверно. Orca изолирует задачи через git worktree (+ terminal/browser) (вариант C). SOUL.md относится к OpenClaw."
+    },
+    {
+      "question": "Когда по гиду выбора уместен Herdr?",
+      "options": [
+        "Когда достаточно одного chat без panes",
+        "Когда нужны многие terminal-агенты по SSH с multiplexer и state sidebar",
+        "Когда нужен ассистент сразу на WhatsApp, Slack и Telegram",
+        "Когда цель — только editable typed spec без runtime"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! Herdr — terminal multiplexer для агентов: panes, state sidebar (process matching), socket API, SSH thin client. Lead agent порождает helpers.",
+      "wrongExpl": "Неверно. Herdr выбирают для многих terminal-агентов по SSH (вариант B). Мессенджеры — OpenClaw; typed spec — OpenJarvis."
+    },
+    {
+      "question": "Что такое programmatic memory в подходе PRO-LONG?",
+      "options": [
+        "Удаление истории после каждого шага агента",
+        "Lossless write: append-all в structured log и поиск нужных фрагментов кодом/grep",
+        "Сжатие всего контекста в один системный промпт без лога",
+        "Только векторный индекс без возможности grep"
+      ],
+      "correct": 1,
+      "correctExpl": "Верно! PRO-LONG формулирует write как append-all в structured log, а read — как поиск через code/grep: ответ на tradeoff fidelity vs tractability на long-horizon задачах.",
+      "wrongExpl": "Неверно. Programmatic memory — append-only log и выбор контекста кодом/grep (вариант B), а не сжатие в один промпт или удаление истории."
+    }
+  ]
+}

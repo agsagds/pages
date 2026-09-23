@@ -229,6 +229,16 @@
       "questionCount": 11,
       "created": "2026-09",
       "order": 23
+    },
+    {
+      "id": "harness-landscape",
+      "title": "Harness: паттерны и рынок",
+      "description": "Паттерны retry/plan/multi-agent, Runtime vs Framework, карта продуктов и гид выбора",
+      "icon": "🗺️",
+      "time": "~4 мин",
+      "questionCount": 10,
+      "created": "2026-09",
+      "order": 24
     }
   ]
 }
