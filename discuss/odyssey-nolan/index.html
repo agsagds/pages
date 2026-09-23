@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Одиссея Нолана</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --clay: #c4783a;
+  --clay-light: #e8b87a;
+  --clay-deep: #8f4e22;
+  --ink: #1a1208;
+  --ink-soft: #3a2a18;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: "EB Garamond", Georgia, serif;
+  background: var(--clay-deep);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+.deck {
+  position: relative; width: 100%; height: 100%;
+  background: linear-gradient(165deg, #d49252 0%, var(--clay) 45%, #b86a30 100%);
+}
+.slide {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column;
+  padding: clamp(2rem, 4vw, 3.2rem) clamp(1.4rem, 4vw, 3.5rem) 4.2rem;
+  overflow: auto;
+  opacity: 0; transform: translateX(16px);
+  transition: opacity .25s ease, transform .25s ease;
+  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 12px var(--clay-light), inset 0 0 0 15px var(--ink);
+}
+.slide::before {
+  content: ""; position: absolute; left: 20px; right: 20px; top: 14px; height: 7px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 9px, transparent 9px 14px, var(--ink) 14px 19px, transparent 19px 24px);
+  opacity: .85; pointer-events: none;
+}
+.slide.active { display: flex; opacity: 1; transform: none; z-index: 1; }
+.slide h1, .slide h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 700; line-height: 1.15;
+}
+.slide h1 { font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: .5em; }
+.slide h2 {
+  font-size: clamp(1.5rem, 3.2vw, 2.2rem);
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: .2em; margin-bottom: .75em;
+}
+.slide p, .slide li { font-size: clamp(1.05rem, 1.7vw, 1.3rem); line-height: 1.45; }
+.slide ul { list-style: none; margin: .3em 0; }
+.slide li { margin: .4em 0; padding-left: 1.1em; position: relative; }
+.slide li::before { content: "◆"; position: absolute; left: 0; font-size: .65em; top: .35em; }
+.slide blockquote {
+  border-left: 6px solid var(--ink);
+  padding: .55em .9em; margin: .4em 0 1em;
+  font-style: italic;
+  background: rgba(232,184,122,.28);
+  font-size: clamp(1.15rem, 2.1vw, 1.5rem);
+}
+.slide.title { justify-content: center; align-items: center; text-align: center; }
+.slide.title h1 { border: 0; }
+.slide.title .sub { font-size: clamp(1.1rem, 2vw, 1.4rem); color: var(--ink-soft); }
+.slide.title .tag {
+  margin-top: 1.3em; font-size: .9rem; letter-spacing: .16em; text-transform: uppercase;
+  border: 2px solid var(--ink); padding: .35em .85em; display: inline-block;
+}
+.slide.diagram {
+  justify-content: center; align-items: center; text-align: center; padding: 1.2rem 1.2rem 3.8rem;
+}
+.slide.diagram h2 { border: 0; margin-bottom: .4em; font-size: clamp(1.2rem, 2.5vw, 1.7rem); }
+.slide.diagram img {
+  max-width: 98%; max-height: min(82vh, 860px);
+  object-fit: contain; border: 3px solid var(--ink);
+}
+table {
+  width: 100%; max-width: 960px; border-collapse: collapse;
+  margin: .2em 0; background: rgba(232,184,122,.3);
+  font-size: clamp(.95rem, 1.35vw, 1.12rem);
+}
+th, td { border: 2px solid var(--ink); padding: .4em .6em; text-align: left; vertical-align: top; }
+th { background: rgba(26,18,8,.12); }
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem 1rem .65rem;
+  background: rgba(143,78,34,.92); color: var(--clay-light);
+  border-top: 2px solid var(--ink); font-size: .9rem;
+}
+.bar button {
+  font-family: inherit; font-weight: 700; cursor: pointer;
+  background: var(--clay-light); color: var(--ink);
+  border: 2px solid var(--ink); padding: .3em .8em;
+}
+.bar button:disabled { opacity: .4; cursor: default; }
+.bar .dots { display: flex; gap: .3rem; flex: 1; justify-content: center; flex-wrap: wrap; }
+.bar .dot {
+  width: 9px; height: 9px; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 1.5px solid var(--clay-light); background: transparent;
+}
+.bar .dot.on { background: var(--clay-light); }
+.bar .count { min-width: 3.8em; text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<section class="slide title active" data-title="Титул">
+  <h1>Одиссея<br>Кристофера Нолана</h1>
+  <p class="sub">Пространство · время · стратагема · каст</p>
+  <p class="tag">The Odyssey · 2026</p>
+</section>
+
+<section class="slide" data-title="Посыл">
+  <h2>Основной посыл</h2>
+  <blockquote>Что мы должны другим, когда уже слишком много взяли себе?</blockquote>
+  <ul>
+    <li>Не триумф хитреца — <strong>цена</strong> Троянского коня</li>
+    <li>Возвращение = испытание <strong>права</strong> править</li>
+    <li>Финал — <strong>за горизонт</strong>, долг павшим, не добыча</li>
+  </ul>
+</section>
+
+<section class="slide diagram" data-title="Схема">
+  <h2>Пространственно-временная композиция</h2>
+  <img src="assets/schema.jpg" alt="Острова пространства и потоки времени">
+</section>
+
+<section class="slide" data-title="Гомер">
+  <h2>Не Гомер</h2>
+  <ul>
+    <li>Без феаков: циклы — монтажные буруны, не рассказ за пиром</li>
+    <li>Одиссей не обаятельный лжец, а человек с виной за Трою</li>
+    <li>Калипсо отпускает; «Никто» у циклопа убран</li>
+    <li>Финал — отплытие с Пенелопой, не набеги за добычей</li>
+  </ul>
+</section>
+
+<section class="slide" data-title="Стратагемы">
+  <h2>Стратагемы</h2>
+  <ul>
+    <li><strong>Ещё язык фильма:</strong> конь и Синон, маска нищего, Афина как режим ума</li>
+    <li><strong>Уже не катарсис:</strong> хитрость не спасает морально</li>
+    <li>Сирены говорят то, что он знает: домой он не рвётся</li>
+    <li>Над <em>metis</em> — вопрос ответственности</li>
+  </ul>
+</section>
+
+<section class="slide" data-title="Каст">
+  <h2>Основной каст</h2>
+  <table>
+    <thead><tr><th>Актёр</th><th>Персонаж</th><th>Что делает</th></tr></thead>
+    <tbody>
+      <tr><td>Matt Damon</td><td>Одиссей</td><td>Царь в пути; вина за Трою, возвращение и право на дом</td></tr>
+      <tr><td>Anne Hathaway</td><td>Пенелопа</td><td>Держит Итаку и двор против женихов</td></tr>
+      <tr><td>Tom Holland</td><td>Телемах</td><td>Сын ищет отца; путь к взрослой роли</td></tr>
+      <tr><td>Robert Pattinson</td><td>Антиной</td><td>Главный жених; претендует на трон</td></tr>
+      <tr><td>Zendaya</td><td>Афина</td><td>Богиня-советчица; видна лишь Одиссею</td></tr>
+      <tr><td>Charlize Theron</td><td>Калипсо</td><td>Остров Огигия; семь лет, отпущение</td></tr>
+      <tr><td>Samantha Morton</td><td>Цирцея</td><td>Эя; суд над жадностью команды</td></tr>
+      <tr><td>Lupita Nyong'o</td><td>Елена / Клитемнестра</td><td>Троянский узел и его тень дома</td></tr>
+      <tr><td>Jon Bernthal</td><td>Менелай</td><td>Спарта; память о коне и войне</td></tr>
+      <tr><td>Benny Safdie</td><td>Агамемнон</td><td>Вождь ахейцев; цена победы</td></tr>
+      <tr><td>Himesh Patel</td><td>Еврилох</td><td>Второй на флоте; спор с царём</td></tr>
+      <tr><td>Bill Irwin</td><td>Полифем</td><td>Циклоп; остров и пещера</td></tr>
+      <tr><td>Elliot Page</td><td>Синон</td><td>Пешка коня; голос вины у мёртвых</td></tr>
+      <tr><td>John Leguizamo</td><td>Евмей</td><td>Верный свинопас на Итаке</td></tr>
+      <tr><td>Mia Goth</td><td>Меланфо</td><td>Предательство во дворце</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="slide title" data-title="Финал">
+  <h1>Калипсо → Итака → горизонт</h1>
+</section>
+
+</div>
+
+<div class="bar" role="navigation">
+  <button type="button" id="prev">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="count" id="count">1 / 1</span>
+  <button type="button" id="next">→</button>
+</div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const dots = document.getElementById('dots');
+  const count = document.getElementById('count');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  let i = 0;
+  slides.forEach((_, n) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'dot';
+    b.title = slides[n].dataset.title || String(n + 1);
+    b.addEventListener('click', () => go(n));
+    dots.appendChild(b);
+  });
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    count.textContent = `${i + 1} / ${slides.length}`;
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === slides.length - 1;
+    history.replaceState(null, '', `#${i + 1}`);
+  }
+  prevBtn.onclick = () => go(i - 1);
+  nextBtn.onclick = () => go(i + 1);
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key) && !(e.key === ' ' && e.shiftKey)) {
+      e.preventDefault(); go(i + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey)) {
+      e.preventDefault(); go(i - 1);
+    } else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+  });
+  const h = parseInt(location.hash.slice(1), 10);
+  go(Number.isFinite(h) && h >= 1 ? h - 1 : 0);
+})();
+</script>
+</body>
+</html>
