@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Умение предвидеть — системный разбор книги Боба Айгера</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/manrope/index.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/manrope/500.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/manrope/600.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/manrope/700.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/manrope/800.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond/index.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond/600.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond/700.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond/400-italic.css" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink:   '#0B1220',
+        navy:  '#0E1B2E',
+        navy2: '#13253D',
+        paper: '#FAF7F0',
+        sand:  '#F1EBDF',
+        gold:  '#C9A227',
+        gold2: '#E2BA55',
+        steel: '#64748B'
+      },
+      fontFamily: {
+        serif: ['"Cormorant Garamond"','Georgia','Times New Roman','serif'],
+        sans:  ['Manrope','-apple-system','Segoe UI','Roboto','sans-serif']
+      }
+    }
+  }
+}
+</script>
+
+<style>
+:root{
+  --ink:#0B1220; --navy:#0E1B2E; --navy2:#13253D;
+  --paper:#FAF7F0; --sand:#F1EBDF; --gold:#C9A227; --gold2:#E2BA55;
+  --line:#E3DCCE; --line2:rgba(255,255,255,.09);
+}
+*{ -webkit-tap-highlight-color: transparent; }
+html{ scroll-behavior:smooth; }
+body{ font-family:'Manrope',-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--paper); color:var(--ink); overflow-x:hidden; }
+.serif{ font-family:'Cormorant Garamond',Georgia,serif; }
+::selection{ background:#F6E7B8; color:#3A2E05; }
+
+/* ---------- progress + nav ---------- */
+#bar{ position:fixed; top:0; left:0; height:2px; width:0%; background:linear-gradient(90deg,var(--gold),var(--gold2)); z-index:100; transition:width .1s linear; }
+#nav{ backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); background:rgba(11,18,32,.72); border-bottom:1px solid var(--line2); }
+#nav a.nl{ position:relative; color:#94A3B8; transition:color .25s; }
+#nav a.nl:hover{ color:#fff; }
+#nav a.nl.on{ color:var(--gold2); }
+#nav a.nl.on::after{ content:''; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--gold2); }
+
+/* ---------- hero ---------- */
+.hero{ background:
+   radial-gradient(1200px 600px at 78% 12%, rgba(201,162,39,.20), transparent 60%),
+   radial-gradient(900px 500px at 12% 88%, rgba(43,95,217,.16), transparent 62%),
+   linear-gradient(180deg,#080F1C 0%, #0E1B2E 55%, #13253D 100%);
+}
+.grain::after{
+  content:''; position:absolute; inset:0; pointer-events:none; opacity:.35; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+@keyframes tw{ 0%,100%{opacity:.15; transform:scale(.8)} 50%{opacity:1; transform:scale(1.25)} }
+.star{ animation:tw 4s ease-in-out infinite; transform-origin:center; }
+@keyframes floaty{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+.floaty{ animation:floaty 7s ease-in-out infinite; }
+
+/* ---------- reveal ---------- */
+.rv{ opacity:0; transform:translateY(26px); transition:opacity .75s cubic-bezier(.2,.8,.2,1), transform .75s cubic-bezier(.2,.8,.2,1); }
+.rv.in{ opacity:1; transform:none; }
+
+/* ---------- cards ---------- */
+.pcard{ background:#fff; border:1px solid var(--line); border-radius:14px; transition:box-shadow .35s, transform .35s, border-color .35s; position:relative; overflow:hidden; }
+.pcard::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--gold),transparent); opacity:0; transition:opacity .35s; }
+.pcard:hover{ box-shadow:0 18px 40px -24px rgba(14,27,46,.45); border-color:#D9D0BE; transform:translateY(-2px); }
+.pcard.open::before{ opacity:1; }
+.pcard.hide{ display:none !important; }
+
+.ghost{ position:absolute; right:14px; top:-18px; font-family:'Cormorant Garamond',serif; font-weight:700; font-size:7rem; line-height:1; color:#0B1220; opacity:.045; pointer-events:none; user-select:none; }
+
+/* expandable */
+.reveal{ display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .5s cubic-bezier(.4,0,.2,1), opacity .4s ease; }
+.reveal>div{ overflow:hidden; min-height:0; }
+.pcard.open .reveal{ grid-template-rows:1fr; opacity:1; }
+
+.qbtn{ display:inline-flex; align-items:center; gap:.5rem; border:1px solid var(--line); background:#FCFAF5; color:#7A6A3F;
+  padding:.45rem .9rem; border-radius:999px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  transition:all .25s; cursor:pointer; }
+.qbtn:hover{ background:var(--gold); border-color:var(--gold); color:#fff; }
+.qbtn .chev{ transition:transform .35s; }
+.pcard.open .qbtn .chev{ transform:rotate(180deg); }
+.pcard.open .qbtn{ background:#0E1B2E; border-color:#0E1B2E; color:#E2BA55; }
+
+.manuscript{ background:linear-gradient(180deg,#FBF8F1,#F5EFE3); border:1px solid #E6DCC6; border-left:3px solid var(--gold);
+  border-radius:10px; position:relative; }
+.manuscript p{ font-family:'Cormorant Garamond',Georgia,serif; font-size:1.14rem; line-height:1.75; color:#2A2418; }
+.manuscript p + p{ margin-top:.9rem; }
+
+.copybtn{ position:absolute; top:10px; right:10px; font-size:.6rem; letter-spacing:.1em; text-transform:uppercase; font-weight:800;
+  color:#9A8A5E; border:1px solid #E0D5BC; background:rgba(255,255,255,.7); border-radius:6px; padding:.25rem .5rem; cursor:pointer; transition:.2s; }
+.copybtn:hover{ color:#fff; background:var(--gold); border-color:var(--gold); }
+
+/* chips / toolbar */
+.chip{ border:1px solid var(--line); background:#fff; border-radius:999px; padding:.35rem .8rem; font-size:.7rem; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:#6B7280; cursor:pointer; transition:.22s; white-space:nowrap; }
+.chip:hover{ border-color:var(--gold); color:#7A6A3F; }
+.chip.on{ background:var(--ink); border-color:var(--ink); color:var(--gold2); }
+
+#stickybar{ position:sticky; top:60px; z-index:40; backdrop-filter:blur(12px); background:rgba(250,247,240,.88); border-bottom:1px solid var(--line); }
+
+input#q{ background:#fff; border:1px solid var(--line); border-radius:999px; padding:.55rem 1rem .55rem 2.4rem; font-size:.85rem; width:100%; outline:none; transition:.25s; }
+input#q:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,.16); }
+
+/* timeline */
+.tl{ position:relative; }
+.tl::before{ content:''; position:absolute; left:11px; top:6px; bottom:6px; width:1px; background:linear-gradient(180deg,var(--gold),rgba(201,162,39,.12)); }
+.tl .dot{ position:absolute; left:5px; top:7px; width:13px; height:13px; border-radius:50%; background:var(--paper); border:2px solid var(--gold); transition:.3s; }
+.tl .row:hover .dot{ background:var(--gold); transform:scale(1.25); }
+
+/* comparison */
+.cmp{ display:grid; grid-template-columns:1.1fr 1fr 1fr; }
+@media (max-width:767px){ .cmp{ grid-template-columns:1fr; } }
+.cmp .cell{ padding:1.05rem 1.1rem; border-bottom:1px solid var(--line); }
+.cmp .row:hover .cell{ background:#FFFDF7; }
+
+/* toast */
+#toast{ position:fixed; left:50%; bottom:34px; transform:translate(-50%,26px); opacity:0; pointer-events:none;
+  background:var(--ink); color:var(--gold2); padding:.7rem 1.15rem; border-radius:999px; font-size:.78rem; font-weight:700;
+  letter-spacing:.05em; z-index:200; transition:.35s cubic-bezier(.2,.8,.2,1); box-shadow:0 14px 34px -12px rgba(0,0,0,.6); }
+#toast.on{ opacity:1; transform:translate(-50%,0); }
+
+.kbd{ border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 .3rem; font-size:.68rem; font-weight:700; background:#fff; color:#6B7280; }
+.empty{ display:none; padding:3rem 1rem; text-align:center; color:#94A3B8; }
+.empty.on{ display:block; }
+
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:#EFEAE0; }
+::-webkit-scrollbar-thumb{ background:#C9C0AE; border-radius:6px; border:2px solid #EFEAE0; }
+::-webkit-scrollbar-thumb:hover{ background:#A79C86; }
+</style>
+</head>
+
+<body class="antialiased">
+<div id="bar"></div>
+
+<!-- ================= NAV ================= -->
+<nav id="nav" class="fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 h-[60px] flex items-center justify-between gap-6">
+    <a href="#top" class="flex items-center gap-3 shrink-0">
+      <span class="w-7 h-7 rounded-md bg-gold flex items-center justify-center serif font-bold text-ink text-lg leading-none">У</span>
+      <span class="text-white font-extrabold tracking-tight text-[13px] uppercase hidden sm:block">Умение предвидеть<span class="text-gold2"> · разбор</span></span>
+    </a>
+    <div class="hidden lg:flex items-center gap-7 text-[11px] font-bold uppercase tracking-[.14em]">
+      <a class="nl" href="#book">Книга</a>
+      <a class="nl" href="#iger">Айгер</a>
+      <a class="nl" href="#people">Сеть</a>
+      <a class="nl" href="#disney">Disney</a>
+      <a class="nl" href="#principles">Принципы</a>
+      <a class="nl" href="#cases">Кейсы</a>
+      <a class="nl" href="#synth">Синтез</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-bold uppercase tracking-[.14em] text-slate-500 hidden md:block"><span class="kbd text-slate-300 bg-white/10 border-white/15">/</span> поиск</span>
+      <button id="navToggle" class="lg:hidden text-white p-2" aria-label="Меню">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="lg:hidden hidden border-t border-white/10 bg-ink/95">
+    <div class="px-6 py-4 grid grid-cols-2 gap-3 text-[12px] font-bold uppercase tracking-[.1em]">
+      <a class="text-slate-300 py-1" href="#book">Книга</a><a class="text-slate-300 py-1" href="#iger">Айгер</a>
+      <a class="text-slate-300 py-1" href="#people">Сеть</a><a class="text-slate-300 py-1" href="#disney">Disney</a>
+      <a class="text-slate-300 py-1" href="#principles">Принципы</a><a class="text-slate-300 py-1" href="#cases">Кейсы</a>
+      <a class="text-gold2 py-1" href="#synth">Синтез</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header id="top" class="hero grain relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
+  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#16293F"/><stop offset="100%" stop-color="#080F1C"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#E2BA55" stop-opacity=".55"/><stop offset="100%" stop-color="#E2BA55" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g fill="#FFF6DC">
+      <circle class="star" cx="180" cy="120" r="1.6" style="animation-delay:.2s"/>
+      <circle class="star" cx="420" cy="80"  r="1.1" style="animation-delay:1.4s"/>
+      <circle class="star" cx="640" cy="170" r="1.8" style="animation-delay:.8s"/>
+      <circle class="star" cx="880" cy="90"  r="1.2" style="animation-delay:2.2s"/>
+      <circle class="star" cx="1120" cy="150" r="1.7" style="animation-delay:.5s"/>
+      <circle class="star" cx="1320" cy="70"  r="1.2" style="animation-delay:1.8s"/>
+      <circle class="star" cx="260" cy="260" r="1.3" style="animation-delay:3.1s"/>
+      <circle class="star" cx="760" cy="300" r="1.1" style="animation-delay:2.6s"/>
+      <circle class="star" cx="1240" cy="320" r="1.5" style="animation-delay:1.1s"/>
+      <circle class="star" cx="980" cy="230" r="1" style="animation-delay:3.6s"/>
+      <circle class="star" cx="520" cy="330" r="1.2" style="animation-delay:.9s"/>
+    </g>
+    <ellipse cx="1150" cy="640" rx="420" ry="180" fill="url(#glow)"/>
+    <!-- castle -->
+    <g class="floaty" opacity=".95">
+      <g fill="url(#hill)" stroke="#C9A227" stroke-opacity=".35" stroke-width="1">
+        <polygon points="1150,300 1168,360 1132,360"/>
+        <rect x="1136" y="360" width="28" height="150"/>
+        <polygon points="1096,380 1112,430 1080,430"/>
+        <rect x="1084" y="430" width="24" height="80"/>
+        <polygon points="1206,370 1222,424 1190,424"/>
+        <rect x="1194" y="424" width="24" height="86"/>
+        <rect x="1050" y="510" width="200" height="60" rx="4"/>
+      </g>
+      <circle cx="1150" cy="352" r="3.4" fill="#E2BA55"/>
+      <circle cx="1096" cy="440" r="2.4" fill="#E2BA55" opacity=".8"/>
+      <circle cx="1206" cy="436" r="2.4" fill="#E2BA55" opacity=".8"/>
+    </g>
+    <!-- network -->
+    <g stroke="#C9A227" stroke-opacity=".22" stroke-width="1">
+      <line x1="120" y1="560" x2="260" y2="480"/><line x1="260" y1="480" x2="400" y2="540"/>
+      <line x1="260" y1="480" x2="330" y2="620"/><line x1="400" y1="540" x2="330" y2="620"/>
+      <line x1="120" y1="560" x2="330" y2="620"/>
+    </g>
+    <g fill="#E2BA55">
+      <circle class="star" cx="120" cy="560" r="2.6" style="animation-delay:.3s"/>
+      <circle class="star" cx="260" cy="480" r="3.2" style="animation-delay:1.2s"/>
+      <circle class="star" cx="400" cy="540" r="2.6" style="animation-delay:2.1s"/>
+      <circle class="star" cx="330" cy="620" r="2.2" style="animation-delay:.7s"/>
+    </g>
+    <path d="M0,660 Q360,600 720,665 T1440,640 L1440,800 L0,800 Z" fill="#060C17" opacity=".9"/>
+  </svg>
+
+  <div class="relative max-w-7xl mx-auto px-5 md:px-8">
+    <div class="max-w-3xl">
+      <div class="flex items-center gap-3 mb-7 rv">
+        <span class="h-px w-10 bg-gold"></span>
+        <span class="text-gold2 text-[11px] font-extrabold uppercase tracking-[.28em]">Robert Iger · The Ride of a Lifetime · 2019</span>
+      </div>
+      <h1 class="serif text-white font-bold leading-[.92] tracking-tight rv" style="font-size:clamp(3.2rem,10vw,7.4rem)">
+        Умение<br><span class="italic font-normal text-gold2">предвидеть</span>
+      </h1>
+      <p class="mt-8 text-slate-300 text-lg md:text-xl leading-relaxed font-light max-w-2xl rv">
+        Чему я научился за 15 лет на посту главы The Walt Disney Company.
+        Системный разбор: мета-информация, сеть ключевых людей, состояние Disney
+        <span class="text-white font-semibold">2005 ↔ 2026</span> и все полученные цитаты с интерпретацией.
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-3 rv">
+        <a href="#principles" class="bg-gold hover:bg-gold2 text-ink font-extrabold text-[12px] uppercase tracking-[.14em] px-6 py-3.5 rounded-full transition">10 принципов →</a>
+        <a href="#cases" class="border border-white/25 hover:border-gold2 hover:text-gold2 text-white font-extrabold text-[12px] uppercase tracking-[.14em] px-6 py-3.5 rounded-full transition">13 кейсов из глав</a>
+      </div>
+    </div>
+
+    <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-px bg-white/10 border border-white/10 rounded-2xl overflow-hidden rv">
+      <div class="bg-navy/60 p-6">
+        <div class="serif text-4xl md:text-5xl font-bold text-white"><span class="cnt" data-to="15">0</span></div>
+        <div class="mt-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-400">лет у руля Disney<br><span class="text-gold2 normal-case tracking-normal">2005–2020 · 2022–2026</span></div>
+      </div>
+      <div class="bg-navy/60 p-6">
+        <div class="serif text-4xl md:text-5xl font-bold text-white">$<span class="cnt" data-to="94.4" data-dec="1">0</span><span class="text-gold2 text-2xl"> млрд</span></div>
+        <div class="mt-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-400">выручка FY2025<br><span class="text-gold2 normal-case tracking-normal">против $31,3 млрд в 2005</span></div>
+      </div>
+      <div class="bg-navy/60 p-6">
+        <div class="serif text-4xl md:text-5xl font-bold text-white">~$<span class="cnt" data-to="87">0</span><span class="text-gold2 text-2xl"> млрд</span></div>
+        <div class="mt-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-400">четыре мега-сделки<br><span class="text-gold2 normal-case tracking-normal">Pixar · Marvel · Lucasfilm · Fox</span></div>
+      </div>
+      <div class="bg-navy/60 p-6">
+        <div class="serif text-4xl md:text-5xl font-bold text-white"><span class="cnt" data-to="23">0</span></div>
+        <div class="mt-2 text-[10px] font-bold uppercase tracking-[.16em] text-slate-400">цитаты в разборе<br><span class="text-gold2 normal-case tracking-normal">10 принципов + 13 кейсов</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 01 BOOK ================= -->
+<section id="book" class="py-24 md:py-32 border-b border-[var(--line)]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
+    <div class="flex items-end justify-between gap-6 mb-14 rv">
+      <div>
+        <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold mb-3">01 — Мета-информация</div>
+        <h2 class="serif text-4xl md:text-6xl font-bold leading-none">Книга как артефакт</h2>
+      </div>
+      <div class="hidden md:block text-right text-xs text-slate-400 font-medium leading-relaxed">
+        Random House · сентябрь 2019<br>#1 New York Times Bestseller<br>переиздание с эпилогом — 2022
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="pcard p-7 rv">
+        <div class="w-10 h-10 rounded-lg bg-sand flex items-center justify-center mb-5">
+          <svg width="19" height="19" fill="none" stroke="#7A6A3F" stroke-width="1.7" viewBox="0 0 24 24"><path d="M12 6.25v13M12 6.25C10.83 5.48 9.25 5 7.5 5S4.17 5.48 3 6.25v13C4.17 18.48 5.75 18 7.5 18s3.33.48 4.5 1.25m0-13C13.17 5.48 14.75 5 16.5 5s3.33.48 4.5 1.25v13C19.83 18.48 18.25 18 16.5 18s-3.33.48-4.5 1.25"/></svg>
+        </div>
+        <h3 class="serif text-2xl font-bold mb-3">Жанровая природа</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">Формально — мемуары, фактически — «вылизанная» автобиография, где нарратив о лидерстве обслуживает оправдание M&amp;A-решений (Pixar, Marvel, Fox). Читать надо как <b>протокол принятия решений</b>, а не как исповедь.</p>
+      </div>
+      <div class="pcard p-7 rv">
+        <div class="w-10 h-10 rounded-lg bg-sand flex items-center justify-center mb-5">
+          <svg width="19" height="19" fill="none" stroke="#7A6A3F" stroke-width="1.7" viewBox="0 0 24 24"><path d="M9.66 18h4.68m-5.34-3v3m5.34-3v3M4 8l8-5 8 5-8 5-8-5zm0 0v6l8 5 8-5V8"/></svg>
+        </div>
+        <h3 class="serif text-2xl font-bold mb-3">Системная функция</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">Книга выполняет <b>кодификацию интуиции</b>: переводит неявное знание (эмпатия, вкус, выдержка) в явные, передаваемые принципы. Это делает управление творческим хаосом воспроизводимым — то есть масштабируемым.</p>
+      </div>
+      <div class="pcard p-7 rv">
+        <div class="w-10 h-10 rounded-lg bg-sand flex items-center justify-center mb-5">
+          <svg width="19" height="19" fill="none" stroke="#7A6A3F" stroke-width="1.7" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </div>
+        <h3 class="serif text-2xl font-bold mb-3">Ключевой паттерн</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">Смена парадигмы: от <b>защиты активов</b> (эпоха Эйснера: парки, эфирное ТВ, контроль) к <b>экосистемной экспансии</b> — покупка культур, а не библиотек прав, и монетизация их через глобальную дистрибуцию.</p>
+      </div>
+      <div class="pcard p-7 rv">
+        <div class="w-10 h-10 rounded-lg bg-sand flex items-center justify-center mb-5">
+          <svg width="19" height="19" fill="none" stroke="#7A6A3F" stroke-width="1.7" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.46 12C3.73 7.94 7.52 5 12 5c4.48 0 8.27 2.94 9.54 7-1.27 4.06-5.06 7-9.54 7-4.48 0-8.27-2.94-9.54-7z"/></svg>
+        </div>
+        <h3 class="serif text-2xl font-bold mb-3">Слепое пятно</h3>
+        <p class="text-sm text-slate-600 leading-relaxed">Автор — единственный герой своего успеха. Ошибки (цена Fox, провал стриминговой экономики, кадровые просчёты 2020) представлены как <b>внешний шум</b>, а не как следствие собственных решений. Критический фильтр обязателен.</p>
+      </div>
+    </div>
+
+    <div class="mt-12 pcard p-8 md:p-10 rv">
+      <div class="grid md:grid-cols-[1fr_auto] gap-8 items-center">
+        <div>
+          <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-gold mb-3">Оригинальное название</div>
+          <p class="serif text-2xl md:text-3xl font-bold leading-tight">The Ride of a Lifetime: Lessons Learned from 15 Years as CEO of the Walt Disney Company</p>
+          <p class="mt-4 text-sm text-slate-600 leading-relaxed max-w-3xl">Русское издание: <b>«Умение предвидеть. Чему я научился за 15 лет на посту главы The Walt Disney Company»</b>. Русские переводчики передали <span class="italic">Thoughtfulness</span> как «Проницательность», а <span class="italic">Fairness</span> — как «Честность», что слегка смещает акценты относительно оригинала: у Айгера речь о <b>вдумчивости</b> и <b>справедливости</b>. Это стоит оговорить в сообщении.</p>
+        </div>
+        <div class="grid grid-cols-3 md:grid-cols-1 gap-4 md:min-w-[190px]">
+          <div><div class="serif text-3xl font-bold">2019</div><div class="text-[10px] uppercase tracking-[.14em] text-slate-400 font-bold">год выхода</div></div>
+          <div><div class="serif text-3xl font-bold">10</div><div class="text-[10px] uppercase tracking-[.14em] text-slate-400 font-bold">принципов</div></div>
+          <div><div class="serif text-3xl font-bold">23</div><div class="text-[10px] uppercase tracking-[.14em] text-slate-400 font-bold">главы + эпилог</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 IGER ================= -->
+<section id="iger" class="py-24 md:py-32 bg-navy grain relative border-b border-black/40">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 relative">
+    <div class="mb-14 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold2 mb-3">02 — Профиль</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold text-white leading-none">Айгер: системный интегратор</h2>
+      <p class="mt-6 text-slate-300 max-w-3xl text-lg leading-relaxed font-light">Не визионер-одиночка, а <span class="text-gold2 font-semibold">дипломатический интерфейс</span> между противоречивыми подсистемами: креативный гений ↔ финансовая дисциплина, наследие ↔ инновации, студия ↔ платформа.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-[1.35fr_1fr] gap-12">
+      <!-- timeline -->
+      <div class="rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-500 mb-6">Траектория</div>
+        <div class="tl space-y-5">
+          <!-- items injected -->
+        </div>
+        <div id="tlWrap" class="tl space-y-5"></div>
+      </div>
+
+      <!-- profile -->
+      <div class="space-y-4 rv">
+        <div class="border border-white/10 rounded-xl p-6 bg-white/[.03] hover:bg-white/[.06] transition">
+          <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-gold2 mb-2">Компетенция №1</div>
+          <h4 class="serif text-2xl font-bold text-white mb-2">Управление стейкхолдерами</h4>
+          <p class="text-sm text-slate-300 leading-relaxed">Способность выстраивать доверие со сложными, токсичными или независимыми лидерами — и конвертировать личные отношения в корпоративные активы на миллиарды.</p>
+        </div>
+        <div class="border border-white/10 rounded-xl p-6 bg-white/[.03] hover:bg-white/[.06] transition">
+          <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-gold2 mb-2">Компетенция №2</div>
+          <h4 class="serif text-2xl font-bold text-white mb-2">Интеграция без ассимиляции</h4>
+          <p class="text-sm text-slate-300 leading-relaxed">Главное открытие: ценность креативной компании живёт в её культуре. Задача покупателя — защитить среду от собственного бюрократического веса.</p>
+        </div>
+        <div class="border border-white/10 rounded-xl p-6 bg-white/[.03] hover:bg-white/[.06] transition">
+          <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-gold2 mb-2">Компетенция №3</div>
+          <h4 class="serif text-2xl font-bold text-white mb-2">Когнитивная гигиена</h4>
+          <p class="text-sm text-slate-300 leading-relaxed">Отказ тратить ресурс на прошлое, гнев и удары по самолюбию. Внимание лидера — самый дефицитный актив, и Айгер управляет им так же строго, как капиталом.</p>
+        </div>
+        <div class="border border-gold2/30 rounded-xl p-6 bg-gold2/[.07]">
+          <div class="text-[10px] font-extrabold uppercase tracking-[.2em] text-gold2 mb-2">Финал</div>
+          <h4 class="serif text-2xl font-bold text-white mb-2">Передача власти — 18 марта 2026</h4>
+          <p class="text-sm text-slate-300 leading-relaxed">Совет директоров назначил преемником <b class="text-white">Джоша Д'Амаро</b> (глава Disney Experiences). Айгер остаётся старшим советником и членом совета до ухода из компании <b class="text-white">31 декабря 2026</b>. Второй заезд завершён — и это прямая иллюстрация принципа «слишком долго у руля — вредно».</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 PEOPLE ================= -->
+<section id="people" class="py-24 md:py-32 bg-sand border-b border-[var(--line)]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
+    <div class="mb-14 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold mb-3">03 — Узлы сети</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold leading-none">Ключевые лица книги</h2>
+      <p class="mt-6 text-slate-600 max-w-3xl text-lg leading-relaxed">Каждый человек в тексте Айгера — не персонаж, а <b>носитель принципа</b>. Одни задают стандарт, другие служат антипаттерном, третьи — внешними узлами, через которые система получает новую энергию.</p>
+    </div>
+    <div id="peopleGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"></div>
+  </div>
+</section>
+
+<!-- ================= 04 DISNEY ================= -->
+<section id="disney" class="py-24 md:py-32 bg-white border-b border-[var(--line)]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
+    <div class="mb-14 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold mb-3">04 — Сравнение состояний</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold leading-none">Disney: 2005 ↔ 2026</h2>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-5 mb-12">
+      <div class="pcard p-6 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-slate-400 mb-2">Выручка FY2005</div>
+        <div class="serif text-5xl font-bold">$<span class="cnt" data-to="31.3" data-dec="1">0</span><span class="text-gold text-2xl"> млрд</span></div>
+      </div>
+      <div class="pcard p-6 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-slate-400 mb-2">Выручка FY2025</div>
+        <div class="serif text-5xl font-bold text-gold">$<span class="cnt" data-to="94.4" data-dec="1">0</span><span class="text-2xl"> млрд</span></div>
+      </div>
+      <div class="pcard p-6 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-slate-400 mb-2">Капитализация, сен 2026</div>
+        <div class="serif text-5xl font-bold">$<span class="cnt" data-to="183">0</span><span class="text-gold text-2xl"> млрд</span></div>
+      </div>
+      <div class="pcard p-6 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-slate-400 mb-2">Сотрудников сейчас</div>
+        <div class="serif text-5xl font-bold"><span class="cnt" data-to="231">0</span><span class="text-gold text-2xl"> тыс</span></div>
+      </div>
+    </div>
+
+    <div class="pcard overflow-hidden rv">
+      <div class="cmp bg-ink text-white text-[10px] font-extrabold uppercase tracking-[.16em]">
+        <div class="px-5 py-3.5">Параметр</div>
+        <div class="px-5 py-3.5 border-l border-white/10 text-slate-400">На входе Айгера · 2005</div>
+        <div class="px-5 py-3.5 border-l border-white/10 text-gold2">Сегодня · 2026</div>
+      </div>
+      <div id="cmpBody"></div>
+    </div>
+
+    <div class="mt-10 grid md:grid-cols-3 gap-5">
+      <div class="pcard p-7 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-gold mb-3">Системный сдвиг №1</div>
+        <h4 class="serif text-xl font-bold mb-2">От эфира к платформе</h4>
+        <p class="text-sm text-slate-600 leading-relaxed">Линейное вещание (ABC, ESPN) уступило место DTC-модели: Disney+ запущен в ноябре 2019 и стал главным стратегическим ответом на фрагментацию внимания.</p>
+      </div>
+      <div class="pcard p-7 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-gold mb-3">Системный сдвиг №2</div>
+        <h4 class="serif text-xl font-bold mb-2">От студии к портфелю франшиз</h4>
+        <p class="text-sm text-slate-600 leading-relaxed">Marvel (2009, $4 млрд), Lucasfilm (2012, ~$4,05 млрд), 21st Century Fox (2019, $71,3 млрд) превратили Disney из производителя контента в владельца вселенных.</p>
+      </div>
+      <div class="pcard p-7 rv">
+        <div class="text-[10px] font-extrabold uppercase tracking-[.16em] text-gold mb-3">Системный сдвиг №3</div>
+        <h4 class="serif text-xl font-bold mb-2">Смена природы риска</h4>
+        <p class="text-sm text-slate-600 leading-relaxed">В 2005 главным риском было <b>устаревание контента</b> и потеря талантов. Сегодня — <b>перегрев масштаба</b>: долговая нагрузка после Fox, насыщение стриминга и зависимость от парков.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 + 06 PRINCIPLES / CASES ================= -->
+<div class="relative">
+
+<div id="stickybar">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 py-3.5 flex flex-col lg:flex-row gap-3 lg:items-center">
+    <div class="relative flex-1 min-w-0">
+      <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="text" placeholder="Поиск по интерпретациям и цитатам…  ( / )" autocomplete="off">
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <button id="fAll"  class="chip on" data-f="all">Всё</button>
+      <button id="fPr"   class="chip" data-f="p">Принципы</button>
+      <button id="fCs"   class="chip" data-f="c">Кейсы</button>
+      <button id="expAll" class="chip">Развернуть цитаты</button>
+      <button id="colAll" class="chip">Свернуть</button>
+      <span id="counter" class="text-[11px] font-bold text-slate-400 ml-1 whitespace-nowrap"></span>
+    </div>
+  </div>
+</div>
+
+<!-- 05 PRINCIPLES -->
+<section id="principles" class="py-20 md:py-28">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
+    <div class="mb-12 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold mb-3">05 — Ядро книги</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold leading-none mb-6">Десять принципов<br>настоящего руководителя</h2>
+      <div class="manuscript p-6 md:p-7 max-w-4xl">
+        <button class="copybtn" data-copy="Оглядываясь назад, я думаю о том, что я узнал за эти годы. Это можно описать в виде десяти принципов настоящего руководителя. Надеюсь, что они помогут вам так же, как помогли когда-то мне.">Копировать</button>
+        <p class="italic">Оглядываясь назад, я думаю о том, что я узнал за эти годы. Это можно описать в виде десяти принципов настоящего руководителя. Надеюсь, что они помогут вам так же, как помогли когда-то мне.</p>
+      </div>
+      <p class="mt-6 text-slate-500 text-sm max-w-3xl">Ниже — сначала <b>системная интерпретация</b> каждого принципа, затем (по кнопке) <b>дословный текст цитаты</b>. Принципы сгруппированы по функции в системе: драйверы → фильтры → клей.</p>
+    </div>
+    <div id="pList" class="grid lg:grid-cols-2 gap-5"></div>
+  </div>
+</section>
+
+<!-- 06 CASES -->
+<section id="cases" class="py-20 md:py-28 bg-white border-t border-[var(--line)]">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
+    <div class="mb-12 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold mb-3">06 — Кейсы из глав</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold leading-none mb-6">13 фрагментов,<br>из которых собраны принципы</h2>
+      <p class="text-slate-500 max-w-3xl">Каждый фрагмент — конкретная управленческая ситуация: наставник, конфликт, сделка, судебный иск, выбор проекта. Структура та же: <b>сначала интерпретация</b>, цитата — в развёртке.</p>
+    </div>
+    <div id="cList" class="space-y-5"></div>
+    <div id="emptyMsg" class="empty">Ничего не найдено. Попробуйте другой запрос или сбросьте фильтр.</div>
+  </div>
+</section>
+
+</div>
+
+<!-- ================= 07 SYNTHESIS ================= -->
+<section id="synth" class="py-24 md:py-32 bg-navy grain relative">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 relative">
+    <div class="mb-14 rv">
+      <div class="text-[11px] font-extrabold uppercase tracking-[.28em] text-gold2 mb-3">07 — Синтез</div>
+      <h2 class="serif text-4xl md:text-6xl font-bold text-white leading-none">Системная карта</h2>
+      <p class="mt-6 text-slate-300 max-w-3xl text-lg leading-relaxed font-light">Десять принципов — не список добродетелей, а <span class="text-gold2 font-semibold">трёхслойная архитектура</span>: энергия, управление сложностью и связность. Плюс сквозной контур самоограничения.</p>
+    </div>
+
+    <div class="space-y-4 mb-16">
+      <div class="border border-gold2/30 bg-gold2/[.06] rounded-xl p-7 rv">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="serif text-3xl font-bold text-gold2">I</span>
+          <h4 class="serif text-2xl font-bold text-white">Слой энергии — драйверы изменения</h4>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Оптимизм</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Смелость</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Любопытство</span>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed">Позволяют системе меняться. Без этого слоя крупная корпорация оптимизирует существующее и незаметно устаревает.</p>
+      </div>
+      <div class="border border-white/12 bg-white/[.03] rounded-xl p-7 rv">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="serif text-3xl font-bold text-gold2">II</span>
+          <h4 class="serif text-2xl font-bold text-white">Слой управления сложностью — фильтры</h4>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Сфокусированность</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Решительность</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Проницательность</span>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed">Превращают энергию в направленное движение. Ограничивают число приоритетов, останавливают сбор данных и сжимают цикл «вопрос → решение».</p>
+      </div>
+      <div class="border border-white/12 bg-white/[.03] rounded-xl p-7 rv">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="serif text-3xl font-bold text-gold2">III</span>
+          <h4 class="serif text-2xl font-bold text-white">Слой связности — клей системы</h4>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Честность</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Естественность</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Стремление к совершенству</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-white/10 text-white px-3 py-1.5 rounded-full">Добросовестность</span>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed">Удерживают систему целой при масштабировании и при поглощении чужих культур. Именно этот слой делает возможной интеграцию Pixar, Marvel и Lucasfilm без их разрушения.</p>
+      </div>
+      <div class="border border-red-400/25 bg-red-400/[.05] rounded-xl p-7 rv">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <span class="serif text-3xl font-bold text-red-300">⌀</span>
+          <h4 class="serif text-2xl font-bold text-white">Сквозной контур — самоограничение</h4>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed">То, чего в списке принципов нет, но что пронизывает всю книгу: <b class="text-white">отказ от руминации прошлого</b>, <b class="text-white">гашение гнева на неподконтрольное</b>, <b class="text-white">приоритет системной выгоды над эго</b>, <b class="text-white">запрет проецировать своё давление на команду</b>, <b class="text-white">разделение идентичности и роли</b>, <b class="text-white">готовность уйти</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-ink py-14 border-t border-white/10">
+  <div class="max-w-7xl mx-auto px-5 md:px-8 ">
+    <p class="serif italic text-2xl md:text-3xl text-slate-300  leading-snug ">«Другими словами, то, как вы делаете что-то одно, говорит о том, как вы делаете все.»</p>
+  </div>
+</footer>
+
+<div id="toast">Цитата скопирована</div>
+
+<script>
+/* ============================== DATA ============================== */
+
+const TIMELINE = [
+  {y:'1951', t:'Рождение', d:'Роберт Айгер родился в Нью-Йорке; детство в Лонг-Айленде, отец — ветеран и исполнительный директор рекламного агентства.'},
+  {y:'1973', t:'Ithaca College', d:'Диплом по телевидению и радио. Ключевой навык периода — не теория, а готовность начинать с низов.'},
+  {y:'1974', t:'ABC, студийный супервайзер', d:'$150 в неделю, работа «на побегушках» в телестудии. Именно здесь начинается школа Руни Арледжа.'},
+  {y:'1980-е', t:'Школа Руни Арледжа', d:'Олимпиады, спортивные трансляции, культура «изобретай новое или умри». Формируется принцип совершенства.'},
+  {y:'1989', t:'Президент ABC Entertainment', d:'Первая самостоятельная P&L-ответственность и первые столкновения с корпоративной бюрократией.'},
+  {y:'1994', t:'Президент и COO ABC', d:'Влияние Дэна Берка и Тома Мёрфи (Capital Cities): капитальная дисциплина и децентрализация.'},
+  {y:'1996', t:'Disney покупает Capital Cities/ABC', d:'Айгер попадает в экосистему Disney — вместе с культурой ABC, которая окажется противовесом стилю Эйснера.'},
+  {y:'2000', t:'Президент и COO The Walt Disney Company', d:'Пять лет в роли второго человека: изучение системы изнутри перед тем, как её возглавить.'},
+  {y:'2005', t:'CEO — 1 октября', d:'Назначение на фоне кампании «Save Disney» Роя Диснея и ухода Майкла Эйснера. Иск Роя и Стэнли Голда против совета директоров.'},
+  {y:'2006', t:'Pixar — $7,4 млрд', d:'Сделка со Стивом Джобсом. Модель «симбиоз, а не поглощение»: культура Pixar защищена от диснеевской бюрократии.'},
+  {y:'2009', t:'Marvel — $4 млрд', d:'Покупка библиотеки из ~5000 персонажей; ставка на франшизы вместо отдельных фильмов.'},
+  {y:'2012', t:'Lucasfilm — ~$4,05 млрд', d:'Личная договорённость с Джорджем Лукасом: межличностный капитал важнее формальных переговоров.'},
+  {y:'2017–19', t:'21st Century Fox — $71,3 млрд', d:'Крупнейшая сделка в истории медиа на тот момент; источник долговой нагрузки на годы вперёд.'},
+  {y:'2019', t:'Disney+ и выход книги', d:'Запуск стриминга 12 ноября 2019 и публикация «The Ride of a Lifetime» — книга становится бестселлером №1 NYT.'},
+  {y:'2020', t:'Передача поста Бобу Чапеку', d:'Пандемия: закрытые парки, остановленный кинопрокат. Айгер — исполнительный председатель до 2021.'},
+  {y:'2022', t:'Возвращение в кресло CEO', d:'20 ноября совет возвращает Айгера. Возвращение возможно именно потому, что уход был без борьбы за вечность.'},
+  {y:'2026', t:'Джош Д’Амаро — новый CEO', d:'18 марта 2026 передача полномочий; Айгер остаётся старшим советником и членом совета до 31 декабря 2026.'}
+];
+
+const PEOPLE = [
+  {m:'РА', n:'Руни Арледж', r:'ABC News & Sports · наставник', tag:'Источник стандарта',
+   d:'Легенда телевизионных трансляций. Дал Айгеру главный принцип — «делай то, что нужно, чтобы сделать это лучше». Девиз: «Изобретай новое или умри». Не терпел, когда его задвигали в тень — отсюда урок «мягкой автократии».', c:'gold'},
+  {m:'ДБ', n:'Дэн Берк', r:'CEO Capital Cities · капитальная дисциплина', tag:'Педагогика отказа',
+   d:'Автор записки про «масло для тромбонов». Учил передавать отказ так, чтобы сохранить в собеседнике предпринимательский дух, — в отличие от департамента стратегического планирования.', c:'gold'},
+  {m:'ТМ', n:'Том Мёрфи', r:'Председатель Capital Cities', tag:'Культура децентрализации',
+   d:'В паре с Бёрком сформировал модель бережливой, доверяющей менеджменту корпорации. Именно эту культуру Айгер принёс в Disney вместе со слиянием 1996 года.', c:'steel'},
+  {m:'МЭ', n:'Майкл Эйснер', r:'CEO Disney 1984–2005', tag:'Антипаттерн',
+   d:'Дал Disney ренессанс анимации и масштаб, но оставил в наследство культуру страха, микроменеджмент и разорванные отношения с Pixar и Роем Диснеем. Его уход открыл Айгеру путь.', c:'steel'},
+  {m:'РД', n:'Рой Э. Дисней', r:'Племянник Уолта · «Save Disney»', tag:'Проверка эго',
+   d:'Возглавил кампанию против Эйснера, затем вместе со Стэнли Голдом оспорил назначение Айгера в суде. Кейс, где Айгер сознательно отказался от личной победы ради экономии ресурсов компании.', c:'steel'},
+  {m:'СД', n:'Стив Джобс', r:'Pixar · крупнейший акционер Disney', tag:'Внешний узел доверия',
+   d:'Сделка по Pixar стала не покупкой студии, а протоколом взаимодействия, восстановившим доверие и задавшим стандарт качества для всей системы. Один из немногих, кто знал о диагнозе Джобса заранее.', c:'gold'},
+  {m:'ДЛ', n:'Джордж Лукас', r:'Lucasfilm', tag:'Сделка на личном доверии',
+   d:'Продажа Lucasfilm в 2012 году выросла из межличностных отношений, а не из тендера. Демонстрация того, что в креативных M&A личный капитал собственника — часть актива.', c:'gold'},
+  {m:'ДД', n:'Джош Д’Амаро', r:'CEO Disney с 18 марта 2026', tag:'Наследник',
+   d:'Глава Disney Experiences, выбранный советом преемником Айгера. Финальная точка книги, дописанная самой жизнью: система пережила основателя принципов.', c:'steel'}
+];
+
+const CMP = [
+  {p:'Стратегия', a:'Защита парков и эфирного ТВ; кризис анимации; открытая война с Pixar', b:'Глобальная DTC-экосистема; монетизация мега-франшиз; парки как главный генератор маржи'},
+  {p:'Выручка', a:'~$31,3 млрд (FY2005)', b:'$94,4 млрд (FY2025, +3% г/г)'},
+  {p:'Капитализация', a:'~$48–55 млрд', b:'~$183 млрд (сентябрь 2026)'},
+  {p:'Сотрудники', a:'~120 000', b:'~231 000'},
+  {p:'Дистрибуция', a:'Линейное вещание: ABC, ESPN, кабельные сети', b:'Disney+, Hulu, ESPN+ плюс кинотеатры и парки; стриминг выведен в прибыль'},
+  {p:'IP-портфель', a:'Disney Animation + конфликт с Pixar', b:'Pixar, Marvel, Lucasfilm, 20th Century, FX, Hulu'},
+  {p:'Культура', a:'Иерархическая, оборонительная, кампания «Save Disney»', b:'Децентрализованная креативность под зонтичными брендами; качество как моральный императив'},
+  {p:'Ключевой риск', a:'Устаревание контента и потеря творческих талантов', b:'Долг после Fox, фрагментация внимания, насыщение стриминга, зависимость от парков'}
+];
+
+const PRINCIPLES = [
+  { n:'01', group:'p', tag:'Драйвер состояния', title:'Оптимизм',
+    thesis:'Прагматичный энтузиазм — не эмоция, а инфраструктурное требование: система не следует за пессимистом.',
+    points:[
+      'Пессимизм — петля положительной обратной связи: паранойя → защита → отказ от риска → стагнация → усиление паранойи.',
+      'Оптимизм ≠ отрицание реальности. Это ставка на агентность: «мы способны повлиять на исход».',
+      'Лидер работает как эмоциональный резонатор: в кризис команда считывает не слова, а частоту уверенности.',
+      'В творческих индустриях оптимизм — условие психологической безопасности, без которой невозможны риск и инновации.'
+    ],
+    quote:['Оптимизм. Одним из важнейших качеств хорошего руководителя является оптимизм – прагматичный энтузиазм относительно того, чего можно достичь. Даже стоя перед трудным выбором и получив далеко не идеальные результаты, руководитель-оптимист не впадает в пессимизм. Проще говоря, пессимисты не способны мотивировать и заряжать энтузиазмом других.'] },
+
+  { n:'02', group:'p', tag:'Преодоление инерции', title:'Смелость',
+    thesis:'Страх неудачи — главный налог на креативность; смелость конвертирует неопределённость в опцион на будущее.',
+    points:[
+      'Крупная система структурно боится риска сильнее стартапа: ей есть что терять. Смелость компенсирует этот перекос.',
+      'Смелость требуется прежде всего в распределении капитала: M&A, инвестиции, зелёный свет творческому проекту.',
+      'Инновация — не оптимизация существующего, а ставка на несуществующее. Без риска она вырождается в косметический ремонт.',
+      'Практический критерий: если решение никого не пугает, оно, вероятно, уже устарело.'
+    ],
+    quote:['Смелость. Готовность принять на себя риски требует смелости, а в условиях постоянных изменений, происходящих в бизнесе, готовность к принятию рисков и открытость инновациям имеют важнейшее значение. Настоящие инновационные решения невозможны при отсутствии у людей смелости. Это касается приобретения компаний, инвестиций и распределения капитала, в особенности при принятии творческих решений. Страх потерпеть неудачу убивает креативность.'] },
+
+  { n:'03', group:'p', tag:'Фильтр сложности', title:'Сфокусированность',
+    thesis:'Стратегия должна быть сжимаемой: если приоритеты не помещаются в «пару-тройку направлений», их нет.',
+    points:[
+      'Распыление — это шум, концентрация — сигнал, который организация способна запомнить и исполнить.',
+      'Приоритеты нужно не только выбрать, но и периодически озвучивать заново: память системы коротка.',
+      'Отказ от проектов важнее запуска проектов: «масло для тромбонов» истощает ресурсы без отдачи.',
+      'Фокус — форма уважения к самому дефицитному ресурсу компании: времени внимания.'
+    ],
+    quote:['Сфокусированность. Очень важно уметь выделять время, силы и ресурсы для выработки стратегий, решения проблем и реализации проектов, имеющих первостепенное значение и ценность. Поэтому необходимо периодически четко сообщать о своих приоритетах.'] },
+
+  { n:'04', group:'p', tag:'Скорость реакции', title:'Решительность',
+    thesis:'Хроническая нерешительность дороже ошибки: она разрушает и экономику, и моральное состояние системы.',
+    points:[
+      'Решение — точка остановки бесконечного сбора данных. В медиа среда меняется быстрее, чем накапливается полная информация.',
+      'Разнообразие мнений — это вход, решимость — выход. Без выхода вход превращается в болото.',
+      'Нерешительность транслируется вниз как разрешение ни за что не отвечать.',
+      'Отделяйте демократию в обсуждении от автократии в исполнении — «мягкая автократия».'
+    ],
+    quote:['Решительность. Все решения, какими бы сложными они ни были, могут и должны приниматься своевременно. Руководителям следует поощрять разнообразие мнений, не забывая при этом о необходимости принимать и реализовывать решения. Хроническая нерешительность не только неэффективна и контрпродуктивна, но и очень разрушительна с точки зрения морального состояния.'] },
+
+  { n:'05', group:'p', tag:'Инновационный сенсор', title:'Любопытство',
+    thesis:'Любопытство — сканер внешних сигналов; без него система слепнет и начинает повторять саму себя.',
+    points:[
+      'Инновация начинается не с идеи, а с вопроса о том, чего ты не понимаешь.',
+      'Интерес к людям, местам и рынкам расширяет пространство возможных решений.',
+      'Это главный антидот против когнитивной ригидности, неизбежной при долгом пребывании у власти.',
+      'В M&A любопытство позволяет увидеть ценность чужой культуры, а не только строки P&L.'
+    ],
+    quote:['Любопытство. Сильное и неизменное любопытство позволяет находить новых людей, места и идеи, а также быть в курсе и понимать происходящее на рынке и его меняющуюся динамику. Путь к инновациям начинается с любопытства.'] },
+
+  { n:'06', group:'p', tag:'Снижение энтропии', title:'Честность',
+    thesis:'Культура страха — самая дорогая из скрытых издержек организации; справедливость обнуляет её.',
+    points:[
+      'Цепочка разрушения: жёсткость за ошибку → страх → сокрытие → лидер теряет реальную обратную связь.',
+      'Второй шанс за непреднамеренную ошибку — инвестиция в лояльность и в обучение системы.',
+      'Эмпатия и доступность — не мягкость, а пропускная способность канала коммуникации.',
+      'Порядочность и профессионализм совместимы: их сочетание создаёт преданность, которую нельзя купить зарплатой.'
+    ],
+    quote:['Честность. Сильный руководитель – воплощение справедливого и достойного отношения к людям. Эмпатия так же важна, как и доступность. Люди, совершившие непреднамеренную ошибку, заслуживают второго шанса; излишне жесткое отношение к людям порождает страх и неуверенность, которые препятствуют нормальному взаимодействию и инновациям. Для организации нет ничего хуже, чем формирование культуры страха.'] },
+
+  { n:'07', group:'p', tag:'Быстрое понимание', title:'Проницательность',
+    thesis:'Недооценённый навык: способность быстро схватывать суть даёт решению кредит доверия ещё до того, как оно себя доказало.',
+    points:[
+      'Глубина + скорость = качество суждения. Одно без другого либо медленно, либо поверхностно.',
+      'Проницательность сокращает цикл «вопрос → решение», а значит и стоимость неопределённости.',
+      'Доверие к лидеру — функция предсказуемого качества его суждений, а не его статуса.',
+      'В переговорах позволяет читать мотив, а не только заявленную позицию (случай Роя Диснея, случай Джобса).'
+    ],
+    quote:['Проницательность. Проницательность является одной из наиболее недооцененных составляющих хорошего руководителя. Это способность глубокого и быстрого понимания, поэтому озвученное мнение или принятое решение будут внушать большее доверие и, вероятнее всего, будут верными.'] },
+
+  { n:'08', group:'p', tag:'Аутентичность', title:'Естественность',
+    thesis:'Подлинный авторитет возникает из знания того, кто ты есть, а не из имитации того, кем тебя хотят видеть.',
+    points:[
+      'Первое правило — не прикидываться знатоком: фейковая экспертность разрушает доверие быстрее любой ошибки.',
+      'Вопрос «чего я не понимаю?» — легитимный инструмент лидера, а не признак слабости.',
+      'Тонкая грань: скромность относится к знанию, решимость — к действию. Их нельзя путать.',
+      'Аутентичность снижает издержки верификации: людям не нужно тратить ресурс на расшифровку ваших сигналов.'
+    ],
+    quote:['Естественность. Будьте искренними. Будьте честными. Ничего не придумывайте. Правда и естественность порождают уважение и доверие.'] },
+
+  { n:'09', group:'p', tag:'Аттрактор качества', title:'Неуклонное стремление к совершенству',
+    thesis:'Совершенство — не KPI, а среда, в которой посредственное перестаёт восприниматься как нормальное.',
+    points:[
+      'Речь не об идеале любой ценой, а о пороге приемлемости, который внутренне задаёт каждый участник.',
+      'Главная борьба — с тысячью самооправданий: «мало времени», «нет сил», «нужны неприятные переговоры».',
+      'Экстернализованный контроль дорог и медлителен; интернализованный стандарт масштабируется почти бесплатно.',
+      'Именно этот встроенный стандарт Айгер искал в Pixar, Marvel и Lucasfilm: покупал среду, а не библиотеку прав.'
+    ],
+    quote:['Неуклонное стремление к совершенству. Это не означает достижения идеала любой ценой, но это отказ принять на работу посредственность или согласиться на сносное качество исполнения. Если вы считаете, что что-то можно сделать лучше, то приложите максимум усилий, чтобы добиться этого. Если ваш бизнес связан с производством товаров, то делайте это качественно.'] },
+
+  { n:'10', group:'p', tag:'Этический фундамент', title:'Добросовестность',
+    thesis:'«Как ты делаешь одно — так ты делаешь всё»: этика не надстройка, а сам способ производства результата.',
+    points:[
+      'Качество продукта и моральные принципы сотрудников — одна переменная, а не две независимые.',
+      'Общие этические стандарты позволяют децентрализовать решения без потери когерентности системы.',
+      'В кризисных выборах репутация — актив с бесконечным сроком службы, квартальная прибыль — временная переменная.',
+      'Добросовестность — единственное, что переживает смену стратегии, рынка и руководства.'
+    ],
+    quote:['Добросовестность. Нет ничего важнее, чем качество продукции и высокие моральные принципы сотрудников организации. Успех компании зависит от установления и соблюдения общих высоких этических стандартов. Другими словами, то, как вы делаете что-то одно, говорит о том, как вы делаете все.'] }
+];
+
+const CASES = [
+  { id:'C01', group:'c', tag:'Совершенство', ctx:'Контекст: наставники ABC, школа Руни Арледжа', title:'Принцип Руни: «делай то, что нужно, чтобы сделать это лучше»',
+    thesis:'Совершенство — это не требование начальника, а настройка среды, в которой посредственность становится дискомфортной для самого исполнителя.',
+    points:[
+      'Качество здесь — эмерджентное свойство культуры, а не KPI: Руни волновал не «идеал любой ценой», а порог приемлемости.',
+      '«Слишком мало времени / нет сил / нужны непростые переговоры» — голос подсистемы, оптимизирующей локальную энергоэффективность в ущерб целому.',
+      'Переход от внешнего контроля к внутренней регуляции разгружает управленческий контур и делает систему самокорректирующейся.',
+      'Следствие для стратегии: покупать только те компании, где этот стандарт уже встроен в ДНК, а не внедрять его административно.'
+    ],
+    quote:['«Делай то, что нужно, чтобы сделать это лучше». Из всего, что дал мне Руни, данный принцип оказал наибольшее влияние на формирование моего отношения к работе. Когда я говорю об этом особом качестве руководителя, я подразумеваю постоянное стремление к достижению совершенства. На самом деле это очень широкое понятие, которому сложно дать точное определение. По сути, это некий образ мышления, а не конкретный набор правил. По крайней мере (как это понял я), дело было не в том, чтобы достичь совершенства любой ценой (Руни это совсем не волновало), а в создании определенных условий, при которых люди сами перестанут воспринимать посредственное как нормальное. Вы инстинктивно сопротивляетесь желанию сказать, что слишком мало времени, или нет сил, или для этого необходимо провести непростые переговоры, которых хочется избежать, или любому другому из тысячи способов, которыми мы можем убедить самих себя в том, что «достаточно хорошо» – это уже хорошо.'] },
+
+  { id:'C02', group:'c', tag:'Ценности и лояльность', ctx:'Контекст: культура Capital Cities / ABC, Бёрк и Мёрфи', title:'Порядочность как валюта, которой платят вместо части зарплаты',
+    thesis:'Ценности — это клей системы и реальная валюта: ими можно расплачиваться, и люди согласны их принимать.',
+    points:[
+      'Принципиальность (понимание себя + действие из собственного представления о верном) передаётся через осмос: компания перенимает ценности лидеров, а не их декларации.',
+      'Сотрудники knowingly получали меньше конкурентов и оставались — получая «дивиденды смысла». В творческих системах идентичность может быть сильнее денег.',
+      'Доверие заменяет дорогие формальные контракты и резко снижает трение внутри организации.',
+      'Этот невидимый капитал работает как буфер при смене власти: он удерживает систему от распада, пока новые процессы ещё не налажены.'
+    ],
+    quote:['Я узнал, что подлинная порядочность и профессионализм не взаимоисключающие явления. На самом деле истинная принципиальность – понимание самого себя и руководство действиями исходя из собственного четкого представления о том, что верно и неверно – мощное оружие. Они доверяли собственным инстинктам, относились к людям с уважением, и со временем компания переняла ценности, которыми они руководствовались. Многим из нас платили меньше, чем можно было бы получать у конкурентов. Мы знали об этом. Однако мы не уходили, поскольку испытывали настоящую преданность этим людям.'] },
+
+  { id:'C03', group:'c', tag:'Эпистемическая честность', ctx:'Контекст: «знай, чего ты не знаешь»', title:'Первое правило — не прикидываться знатоком',
+    thesis:'Авторитет держится на признании границ своего знания, а не на имитации всезнания.',
+    points:[
+      'В сложных адаптивных системах всезнание невозможно; фейковая экспертность — главный источник шума и катастрофических ошибок.',
+      'Скромность не пассивна: она активирует контур обучения — «задавать вопросы, на которые не знаешь ответа, и быстро усваивать нужное».',
+      'Тонкая грань: скромность не должна мешать управлять. Скромность — про знание, решимость — про действие.',
+      'Кейс Pixar: Айгер не притворялся аниматором — он создал условия, в которых эксперты чувствовали безопасность быть собой.'
+    ],
+    quote:['Первое правило – не прикидываться знатоком. Быть скромнее и не притворяться экспертом в вопросах, в которых плохо разбираешься. Вместе с тем, являясь руководителем, нельзя позволять скромности мешать процессу управления. Это очень тонкая грань, но я проповедую такой подход и по сей день. Следует задавать вопросы, на которые не знаешь ответа, не боясь признавать, что чего-то не понимаешь, и как можно быстрее усваивать то, что необходимо. Нет ничего менее вызывающего доверие, как человек, притворяющийся, будто он знает то, чего по факту не знает. Подлинный авторитет лидера возникает только тогда, когда вы знаете, кто вы есть на самом деле, а не притворяетесь кем-то другим.'] },
+
+  { id:'C04', group:'c', tag:'Дисциплина капитала', ctx:'Контекст: Дэн Берк и департамент стратегического планирования', title:'«Масло для тромбонов»: педагогика отказа',
+    thesis:'Лучший совет — тот, который сохраняет агентность: не запрет, а настройка компаса.',
+    points:[
+      'Метафора вместо приказа: Берк передал принцип, а не готовое решение — и Айгер хранит этот клочок бумаги десятилетиями.',
+      'Даже 100% доля рынка не создаёт системной ценности, если TAM измеряется литрами. Это защита от локальной оптимизации в ущерб целому.',
+      'Контраст с департаментом стратпланирования: бюрократический фильтр гасит предпринимательский дух, педагогический — сохраняет его.',
+      'Артефакт управления: личный урок превращён в институциональный стандарт оценки проектов во всей Disney.'
+    ],
+    quote:['Я считаю, что всегда найдется способ передать людям, работающим на вас, информацию, сохранив при этом элемент вашего к ним доверия, а в них – предпринимательский дух.',
+           'Именно этому я научился у Дэна Берка, и этот подход был абсолютно противоположен тому, что исповедовал департамент стратегического планирования. Точно не могу вспомнить, о чем шла речь, но во время обсуждения одной из моих очередных идей Дэн вручил мне листок бумаги, на котором было написано следующее: «Нет смысла тратить усилия на запуск бизнеса по производству масла для тромбонов. Ты, конечно, можешь стать крупнейшим в мире производителем в этой отрасли, но глобальный спрос на нее составляет всего несколько литров в год!» Так он дал мне понять, что не стоит инвестировать в проекты, которые в итоге истощат ресурсы моей компании и мои собственные без должной отдачи. Это был очень мудрый способ дать хороший совет, и я до сих пор держу этот клочок бумаги в моем столе, иногда доставая его в процессе обсуждения с руководителями Disney вопросов выбора проектов, которые следует запустить, и направлений, которым стоит уделить внимание.'] },
+
+  { id:'C05', group:'c', tag:'Ситуативное лидерство', ctx:'Контекст: Рун Арледж, ранние годы в ABC', title:'«Мягкая автократия»: демократия и диктатура как передачи одной коробки',
+    thesis:'Режим управления выбирается контекстом, а не идеологией: иногда нужно выслушать, иногда — сказать «я босс».',
+    points:[
+      'Два легитимных режима: демократичный (лучший результат + моральный дух) и авторитарный (когда уверен в решении несмотря на неприятие).',
+      'Ключевой автономный агент может саботировать решение пассивно — без энтузиазма, транслируя отношение своим людям. Поэтому силовое давление контрпродуктивно.',
+      '«Мягкая автократия» = уважение к статусу + твёрдость в цели: сохраняет лицо оппонента и неизбежность решения.',
+      'Эмпатия здесь — инструмент исполнения, а не вежливость: точная диагностика уязвимости агента («не реагировал, когда чувствовал, что его задвигают в тень»).'
+    ],
+    quote:['Совсем непросто переманить людей на свою сторону и заручиться их поддержкой. Иногда стоит выслушать их точку зрения и терпеливо ответить на вопросы. В других случаях необходимо донести до них, что вы босс и хотите, чтобы работа была выполнена.',
+           'И дело совсем не в том, что один подход правильный, а второй – нет. Просто один из них более прямолинейный и не требует объяснений. И вам решать, какой из этих двух является верным в конкретный момент: более демократичный, эффективно работающий как для достижения наилучшего результата, так и для укрепления морального духа, или авторитарный, когда вы уверены в правильности своего решения, даже столкнувшись с явным его неприятием.',
+           'В данном случае я был абсолютно уверен в своей правоте и не собирался позволять кому-либо, даже именитому Руну Арледжу, отговаривать меня. Конечно, он мог бы легко саботировать мою идею, не проявляя достаточно усилий и энтузиазма и демонстрируя свое отношение к ней своим сотрудникам. Как и многие люди, с которыми я работал или вел переговоры на протяжении многих лет, Рун не очень хорошо реагировал, когда чувствовал, что его задвигают в тень. Поэтому я прибег к своего рода «мягкой автократии», проявляя уважение и в то же время четко давая понять, что этот проект должен быть реализован, несмотря ни на что.'] },
+
+  { id:'C06', group:'c', tag:'Антихрупкость', ctx:'Контекст: кризисные периоды и давление рынка', title:'Оптимизм как механизм, а не настроение',
+    thesis:'Оптимизм — это не «всё хорошо», а вера в то, что вы и команда способны осуществить всё возможное для наилучшего результата.',
+    points:[
+      'Пессимизм → паранойя → защитная реакция → отвержение любого риска: замкнутый цикл деградации системы.',
+      'Отличие от токсичного позитива: не отрицание реальности и не «внутренняя уверенность», что всё наладится само.',
+      'Тон лидера — несущая волна, позволяющая подсистемам сохранять когерентность в шуме.',
+      'Проверено практикой: 2005 (кризис Disney), 2019 (интеграция Fox), 2020 (пандемия и закрытые парки).'
+    ],
+    quote:['оптимизм в руководителе, особенно в трудные времена, жизненно необходим. Пессимизм приводит к паранойе, которая вызывает защитную реакцию, отвергающую, в свою очередь, любой риск. Оптимизм же приводит в движение другой механизм. В тяжелые моменты люди, особенно которые следуют за вами, должны чувствовать уверенность в вашей способности сосредоточиться на том, что имеет значение, а не действовать с позиции защиты и из чувства самосохранения. Речь идет не о том, чтобы говорить, что все хорошо, когда на самом деле это не так, и не о том, чтобы выразить некоторую внутреннюю уверенность в том, что все будет хорошо. Речь идет о том, чтобы верить в то, что вы и ваши соратники сможете осуществить все возможное для получения наилучшего результата, а не транслировать чувство, что все потеряно, если что-то пойдет не так. Тон, который вы задаете, как лидер, оказывает огромное влияние на окружающих вас людей. Никто не хочет следовать за пессимистом.'] },
+
+  { id:'C07', group:'c', tag:'Когнитивная гигиена', ctx:'Контекст: первые дни в кресле CEO, наследие Эйснера', title:'Прошлое, три приоритета и удары по самолюбию',
+    thesis:'Лидер управляет не только ресурсами компании, но и собственным вниманием — самым дефицитным из них.',
+    points:[
+      '«Никаких повторов»: руминация прошлого потребляет энергию, необходимую для адаптации. План — это вектор, а не архив.',
+      '«Пара-тройка направлений»: избыток приоритетов обнуляет их значимость — их никто даже не запомнит.',
+      'Гнев и беспокойство о неподконтрольном — прямая утечка; лидер обязан быть демпфером, а не проводником стресса вниз по иерархии.',
+      'Настоящий оптимизм проверяется не аплодисментами, а публичным вызовом вашей гордости.'
+    ],
+    quote:['Я ничего не могу изменить в прошлом Disney. Мы можем говорить лишь о том, какие уроки стоит извлечь из полученного опыта, и сделать все для того, чтобы не допустить этого в будущем. Никаких повторов. Вы хотите знать, куда я собираюсь вести компанию, а не где она была. Вот мой план',
+           '...',
+           'Это должна быть всего пара-тройка направлений, на которые ты собираешься потратить много сил и средств. Из-за того что их слишком много, ты не только уменьшаешь их значимость – никто их даже не запомнит',
+           '...',
+           'важно быть упорным и настойчивым, но также необходимо воздерживаться от проявлений гнева и беспокойства по поводу того, на что вы не можете повлиять. Удары по самолюбию, какими бы сильными они ни были, не должны отнимать слишком много вашего внимания и сил. Легко быть оптимистом, когда все вокруг говорят тебе, что ты молодец. И намного труднее, но гораздо важнее – когда бросают вызов вашей гордости, еще и публично.'] },
+
+  { id:'C08', group:'c', tag:'Эго против системы', ctx:'Контекст: иск Роя Диснея и Стэнли Голда против совета директоров', title:'Пиррова победа: почему Айгер не стал воевать',
+    thesis:'Выигранное дело ≠ выигранная стратегия: личная победа может стоить компании больше, чем поражение.',
+    points:[
+      'Самолюбие — локальный оптимум, конфликтующий с глобальной целью системы.',
+      'Учёт альтернативных издержек: не только «огромные деньги», но и время внимания, отвлечённое от действительно важного.',
+      'Отказ от борьбы — не слабость, а стратегическая жадность: сохранённые ресурсы пошли на создание ценности, что в итоге легитимизировало власть сильнее судебного решения.',
+      'Прецедент, создавший капитал доверия у совета и инвесторов, — критически важный для будущих рискованных сделок.'
+    ],
+    quote:['Ситуация с Роем привлекла внимание к тому, что обычно остается в стороне, когда говорят об успехе в бизнесе: нельзя позволить своему самолюбию помешать принять наилучшее решение. Судебный иск Роя и Стэнли к совету директоров в связи с назначением меня на должность генерального директора, разумеется, задел меня, и я мог бы вступить с ними в борьбу и победить, но это стоило бы компании огромных денег и надолго отвлекло бы меня от того, что действительно имело значение.'] },
+
+  { id:'C09', group:'c', tag:'Протокол агентности', ctx:'Контекст: работа с советом директоров и командой', title:'Приходить с проблемой можно. Но с вариантами решения — обязательно',
+    thesis:'Проблема без вариантов — это делегирование тревоги, а не работа.',
+    points:[
+      'Требование опций принуждает автора пройти цикл анализа до коммуникации: качество входящего сигнала резко растёт.',
+      'Совет директоров — ресурс с высокой стоимостью времени; готовые варианты вместо сырых данных — форма уважения к нему.',
+      'Протокол кодирует ожидание автономии и превращает исполнителей в со-стратегов.',
+      'Это масштабирование микро-паттерна Дэна Берка на всю организацию: учи систему мыслить стратегически, а не тактически.'
+    ],
+    quote:['Я знал, что совет директоров потребует решений; признаться, я и сам не любил излагать проблемы, не предлагая сразу план их решения. (Это то, чему я всегда учу свою команду – можно приходить ко мне с трудностями, но надо также предлагать и возможные варианты избавления от них.)'] },
+
+  { id:'C10', group:'c', tag:'Иерархия ценностей', ctx:'Контекст: решения с прямыми финансовыми потерями', title:'«Меня абсолютно не интересовали его финансовые последствия»',
+    thesis:'Когда приоритеты заданы жёстко, трудные решения становятся лёгкими.',
+    points:[
+      'В момент кризиса финансовые метрики превращаются в шум; качество и репутация — инвариант, относительно которого считается всё остальное.',
+      'Убыток здесь — инвестиция в бренд: репутация амортизируется бесконечно, квартальная прибыль — временная переменная.',
+      'Этический компас встроен в ДНК и позволяет децентрализовать решения без постоянного обращения к CEO.',
+      'Сигнал рынку и талантам: «мы не торгуем стандартами» — это привлекает лучших и позволяет держать премиальную цену.'
+    ],
+    quote:['На самом деле это было легкое решение. Меня абсолютно не интересовали его финансовые последствия. Мне было все равно. В такие моменты не стоит думать о коммерческих потерях, а руководствоваться одним простым правилом, согласно которому нет ничего важнее качества и безукоризненной репутации ваших сотрудников и вашего продукта. Все остальное зависит от соблюдения этого принципа.'] },
+
+  { id:'C11', group:'c', tag:'Парадокс интеграции', ctx:'Контекст: M&A — Pixar, Marvel, Lucasfilm, Fox', title:'Покупатель, который разрушает то, за что заплатил',
+    thesis:'В креативных M&A главный риск — не переплата, а уничтожение того, ради чего сделка затевалась.',
+    points:[
+      'Покупают не каталог прав, а мозги и дух: разрушение автономии → демотивация талантов → обесценивание актива до нуля.',
+      'Разрушение почти всегда «ненамеренное»: навязывание своих бюджетов, KPI и отчётности ради ощущения контроля.',
+      'Рабочая стратегия — невмешательство: покупатель как тихий партнёр, дающий ресурсы и дистрибуцию, но оставляющий творческое решение.',
+      'Это объясняет, почему Джобс выбрал Disney, а не другого покупателя: ему гарантировали симбиоз, а не поглощение.'
+    ],
+    quote:['Я сказал, что часто, пусть и ненамеренно, компания-покупатель разрушает культуру купленной компании, таким образом уничтожая ее истинную ценность.'] },
+
+  { id:'C12', group:'c', tag:'Эмоциональный контур', ctx:'Контекст: работа с командой под давлением', title:'Не проецировать свои переживания на команду',
+    thesis:'Грань между «я разделю с вами тяготы» и «вы нужны мне, чтобы снять моё давление» — тонкая и необратимая.',
+    points:[
+      'Первый подход — солидарность, усиливающая сплочённость; второй — эксплуатация эмоций, где команда становится амортизатором эго лидера.',
+      'Разница — в направлении потока энергии: от лидера к системе или из системы в лидера.',
+      'Команда мгновенно считывает мотив: уязвимость, транслируемая ради получения поддержки, лишает авторитета.',
+      'Лидер обязан быть буфером внешнего давления, а не его проводником вниз — иначе блокируется способность людей рисковать.'
+    ],
+    quote:['Проецировать собственные переживания на команду контрпродуктивно. Вы можете попытаться дать людям понять, что готовы разделить с ними все тяготы рабочего процесса и всегда будете рядом, а можете показать им, что они нужны вам для того, чтобы облегчить оказываемое на вас давление. Между двумя этими подходами проходит очень тонкая грань.'] },
+
+  { id:'C13', group:'c', tag:'Антинарциссизм', ctx:'Контекст: финал книги, уход с поста', title:'Слишком долго у руля — и кто ты есть на самом деле',
+    thesis:'Помнить, кто ты есть, важнее, чем помнить, какую должность ты занимаешь.',
+    points:[
+      'Смена руководства — защита системы от энтропии: долгое правление ведёт к ригидности и слиянию личности с институтом.',
+      'Разделение идентичности и роли — предохранитель: иначе уход становится экзистенциальной катастрофой и провоцирует судорожное удержание власти.',
+      'Власть искажает обратную связь; внутренняя идентичность — единственный неискажённый датчик реальности.',
+      'Объясняет парадокс возвращения 2022 года: Айгер смог вернуться именно потому, что ранее ушёл без борьбы за вечность.'
+    ],
+    quote:['В последние годы я все больше убеждаюсь в том, что слишком долгое нахождение у руля не всегда хорошо влияет на человека, и эта мысль меня утешает. Даже если работа генерального директора эффективна и результативна, для компании важно время от времени менять руководство.',
+           '...',
+           'Думаю, в этом и заключается секрет успеха каждого руководителя: ты всегда помнишь о том, кто ты есть на самом деле, даже когда все вокруг твердят о твоей огромной власти и положении. Если ты начинаешь верить во все это слишком сильно, если ты смотришь на себя в зеркало и видишь в нем лишь человека, обладающего определенным положением, значит, ты сбился с истинного пути. Возможно, это труднее всего, но об этом всегда нужно помнить: что бы ни произошло в твоей жизни, ты – тот же человек, каким был с самого рождения.'] }
+];
+
+/* ============================== RENDER ============================== */
+
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function bulletBlock(points){
+  return `<ul class="space-y-2.5">${points.map(p=>`
+    <li class="flex gap-3 text-[13.5px] leading-relaxed text-slate-600">
+      <span class="mt-[7px] w-1.5 h-1.5 rounded-full bg-gold shrink-0"></span><span>${esc(p)}</span>
+    </li>`).join('')}</ul>`;
+}
+
+function quoteBlock(quote, copyText){
+  return `<div class="reveal"><div><div class="pt-5">
+      <div class="manuscript p-6 md:p-7 pr-16">
+        <button class="copybtn" data-copy="${esc(copyText)}">Копировать</button>
+        <div class="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#A08B4F] mb-4">Дословно из книги</div>
+        ${quote.map(p => p.trim()==='...' ? `<p class="text-center !my-3 text-[#A08B4F]">···</p>` : `<p>${esc(p)}</p>`).join('')}
+      </div>
+    </div></div></div>`;
+}
+
+/* principles */
+const pList = document.getElementById('pList');
+PRINCIPLES.forEach(p=>{
+  const copyText = p.quote.join('\n\n');
+  const el = document.createElement('article');
+  el.className = 'pcard p-6 md:p-7 rv';
+  el.dataset.group='p';
+  el.dataset.hay = (p.title+' '+p.tag+' '+p.thesis+' '+p.points.join(' ')+' '+copyText).toLowerCase();
+  el.innerHTML = `
+    <div class="ghost">${p.n}</div>
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <div>
+        <div class="text-[10px] font-extrabold uppercase tracking-[.18em] text-gold mb-1.5">${p.n} · ${esc(p.tag)}</div>
+        <h3 class="serif text-[1.75rem] md:text-[2.1rem] font-bold leading-tight">${esc(p.title)}</h3>
+      </div>
+    </div>
+    <p class="text-[15px] font-semibold text-slate-800 leading-relaxed mb-4">${esc(p.thesis)}</p>
+    ${bulletBlock(p.points)}
+    <div class="mt-5 pt-5 border-t border-[var(--line)] flex items-center justify-between gap-3">
+      <button class="qbtn"><svg class="chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span class="lbl">Показать цитату</span></button>
+      <span class="text-[10px] uppercase tracking-[.14em] font-bold text-slate-300 hidden sm:block">принцип ${p.n}</span>
+    </div>
+    ${quoteBlock(p.quote, copyText)}
+  `;
+  pList.appendChild(el);
+});
+
+/* cases */
+const cList = document.getElementById('cList');
+CASES.forEach(c=>{
+  const copyText = c.quote.join('\n\n');
+  const el = document.createElement('article');
+  el.className = 'pcard p-6 md:p-8 rv';
+  el.dataset.group='c';
+  el.dataset.hay = (c.title+' '+c.tag+' '+c.ctx+' '+c.thesis+' '+c.points.join(' ')+' '+copyText).toLowerCase();
+  el.innerHTML = `
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <span class="serif font-bold text-gold text-lg">${c.id}</span>
+      <span class="text-[10px] font-extrabold uppercase tracking-[.14em] bg-ink text-gold2 px-2.5 py-1 rounded-full">${esc(c.tag)}</span>
+      <span class="text-[11px] font-medium text-slate-400">${esc(c.ctx)}</span>
+    </div>
+    <h3 class="serif text-2xl md:text-[1.9rem] font-bold leading-tight mb-3">${esc(c.title)}</h3>
+    <p class="text-[15px] font-semibold text-slate-800 leading-relaxed mb-4">${esc(c.thesis)}</p>
+    ${bulletBlock(c.points)}
+    <div class="mt-5 pt-5 border-t border-[var(--line)]">
+      <button class="qbtn"><svg class="chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg><span class="lbl">Показать цитату</span></button>
+    </div>
+    ${quoteBlock(c.quote, copyText)}
+  `;
+  cList.appendChild(el);
+});
+
+/* timeline */
+const tlWrap = document.getElementById('tlWrap');
+tlWrap.innerHTML = TIMELINE.map(t=>`
+  <div class="row relative pl-10 pb-1 group">
+    <span class="dot"></span>
+    <div class="flex flex-wrap items-baseline gap-x-3 mb-1">
+      <span class="serif text-xl font-bold text-gold2">${t.y}</span>
+      <span class="text-white font-bold text-sm">${esc(t.t)}</span>
+    </div>
+    <p class="text-[13px] text-slate-400 leading-relaxed">${esc(t.d)}</p>
+  </div>`).join('');
+document.querySelector('#iger .tl').remove();
+
+/* people */
+const peopleGrid = document.getElementById('peopleGrid');
+peopleGrid.innerHTML = PEOPLE.map((p,i)=>`
+  <div class="pcard p-6 rv" style="transition-delay:${i*40}ms">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="w-11 h-11 rounded-xl ${p.c==='gold'?'bg-gold text-ink':'bg-ink text-gold2'} flex items-center justify-center serif font-bold text-lg">${p.m}</span>
+      <div>
+        <div class="font-extrabold text-[15px] leading-tight">${esc(p.n)}</div>
+        <div class="text-[11px] text-slate-500">${esc(p.r)}</div>
+      </div>
+    </div>
+    <div class="inline-block text-[9.5px] font-extrabold uppercase tracking-[.14em] bg-sand text-[#7A6A3F] px-2.5 py-1 rounded-full mb-3">${esc(p.tag)}</div>
+    <p class="text-[13px] text-slate-600 leading-relaxed">${esc(p.d)}</p>
+  </div>`).join('');
+
+/* comparison */
+document.getElementById('cmpBody').innerHTML = CMP.map(r=>`
+  <div class="row cmp">
+    <div class="cell font-bold text-[13px] bg-sand/40">${esc(r.p)}</div>
+    <div class="cell text-[13px] text-slate-500 leading-relaxed border-l border-[var(--line)]">${esc(r.a)}</div>
+    <div class="cell text-[13px] text-slate-800 leading-relaxed border-l border-[var(--line)] bg-[#FFFCF4]">${esc(r.b)}</div>
+  </div>`).join('');
+
+/* ============================== INTERACTION ============================== */
+
+/* expand / collapse */
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.qbtn');
+  if(btn){
+    const card = btn.closest('.pcard');
+    const open = card.classList.toggle('open');
+    btn.querySelector('.lbl').textContent = open ? 'Скрыть цитату' : 'Показать цитату';
+    return;
+  }
+  const cp = e.target.closest('.copybtn');
+  if(cp){
+    e.stopPropagation();
+    const txt = cp.getAttribute('data-copy');
+    navigator.clipboard?.writeText(txt).then(showToast).catch(()=>{
+      const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); ta.remove(); showToast();
+    });
+  }
+});
+
+function showToast(){
+  const t = document.getElementById('toast');
+  t.classList.add('on'); clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('on'), 1800);
+}
+
+/* toolbar */
+const cards = ()=>document.querySelectorAll('#pList .pcard, #cList .pcard');
+let filter='all', query='';
+
+function apply(){
+  let shown=0;
+  cards().forEach(c=>{
+    const okGroup = filter==='all' || c.dataset.group===filter;
+    const okQuery = !query || c.dataset.hay.includes(query);
+    const ok = okGroup && okQuery;
+    c.classList.toggle('hide', !ok);
+    if(ok) shown++;
+  });
+  document.getElementById('principles').style.display = (filter==='c') ? 'none' : '';
+  document.getElementById('counter').textContent = shown + ' из ' + cards().length;
+  document.getElementById('emptyMsg').classList.toggle('on', shown===0);
+}
+
+document.querySelectorAll('.chip[data-f]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip[data-f]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); filter=b.dataset.f; apply();
+  });
+});
+
+const qInput = document.getElementById('q');
+qInput.addEventListener('input', ()=>{ query = qInput.value.trim().toLowerCase(); apply(); });
+
+document.getElementById('expAll').addEventListener('click', ()=>{
+  cards().forEach(c=>{ if(!c.classList.contains('hide')){ c.classList.add('open'); c.querySelector('.lbl').textContent='Скрыть цитату'; } });
+});
+document.getElementById('colAll').addEventListener('click', ()=>{
+  cards().forEach(c=>{ c.classList.remove('open'); c.querySelector('.lbl').textContent='Показать цитату'; });
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='/' && document.activeElement!==qInput){ e.preventDefault(); qInput.focus(); qInput.scrollIntoView({block:'center',behavior:'smooth'}); }
+  if(e.key==='Escape' && document.activeElement===qInput){ qInput.value=''; query=''; apply(); qInput.blur(); }
+});
+
+/* scroll progress */
+const bar = document.getElementById('bar');
+window.addEventListener('scroll', ()=>{
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (h>0 ? (window.scrollY/h)*100 : 0) + '%';
+}, {passive:true});
+
+/* mobile menu */
+const mm = document.getElementById('mobileMenu');
+document.getElementById('navToggle').addEventListener('click', ()=>mm.classList.toggle('hidden'));
+mm.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>mm.classList.add('hidden')));
+
+/* nav highlight */
+const sections = ['book','iger','people','disney','principles','cases','synth'];
+const navLinks = [...document.querySelectorAll('#nav a.nl')];
+const navObs = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      navLinks.forEach(l=>l.classList.toggle('on', l.getAttribute('href')==='#'+en.target.id));
+    }
+  });
+},{rootMargin:'-45% 0px -50% 0px'});
+sections.forEach(id=>{ const el=document.getElementById(id); if(el) navObs.observe(el); });
+
+/* reveal + counters */
+const rvObs = new IntersectionObserver(entries=>{
+  entries.forEach((en,i)=>{
+    if(en.isIntersecting){
+      en.target.style.transitionDelay = (i%6)*60 + 'ms';
+      en.target.classList.add('in');
+      rvObs.unobserve(en.target);
+    }
+  });
+},{threshold:.08, rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));
+
+const cntObs = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(!en.isIntersecting) return;
+    const el = en.target, to = parseFloat(el.dataset.to), dec = parseInt(el.dataset.dec||'0',10);
+    const dur = 1300, t0 = performance.now();
+    const step = now=>{
+      const p = Math.min((now-t0)/dur,1);
+      const e = 1-Math.pow(1-p,3);
+      el.textContent = (to*e).toFixed(dec).replace('.',',');
+      if(p<1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    cntObs.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('.cnt').forEach(el=>cntObs.observe(el));
+
+apply();
+</script>
+</body>
+</html>
