@@ -239,6 +239,16 @@
       "questionCount": 10,
       "created": "2026-09",
       "order": 24
+    },
+    {
+      "id": "llm-agent-review",
+      "title": "LLM-агенты для code review",
+      "description": "Event-driven и graph-based оркестрация, графовая и векторная базы, железо и практичный выбор фреймворка",
+      "icon": "🕸️",
+      "time": "~3 мин",
+      "questionCount": 9,
+      "created": "2026-10",
+      "order": 25
     }
   ]
 }
