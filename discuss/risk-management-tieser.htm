@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тень Стратегии: Архитектура Риска | Каплан & Майкс</title>
+<style>
+/* =========================================
+   DESIGN SYSTEM & TOKENS
+   ========================================= */
+:root {
+  /* Palette: Deep Space & Editorial Gold */
+  --bg-void: #07090c;
+  --bg-surface: #0d1117;
+  --bg-elevated: #151b25;
+  --bg-glass: rgba(21, 27, 37, 0.75);
+  
+  --ink-primary: #e6e1d6;
+  --ink-secondary: #9ba4b5;
+  --ink-muted: #5c667a;
+  
+  --accent-gold: #d4af37;
+  --accent-gold-dim: rgba(212, 175, 55, 0.15);
+  
+  /* Categories */
+  --cat-1: #ff6b6b; /* Preventable: Entropy / Danger */
+  --cat-2: #4dabf7; /* Strategic: Navigation / Depth */
+  --cat-3: #9775fa; /* External: Chaos / Void */
+  
+  /* Verdicts */
+  --v-ok: #51cf66;
+  --v-warn: #fcc419;
+  --v-bad: #ff8787;
+  --v-neg: #868e96;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Charter', 'Bitstream Charter', 'Sitka Text', Cambria, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* Spacing & Layout */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+  --space-xl: 8rem;
+  
+  --max-width: 1200px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+}
+
+/* =========================================
+   RESET & BASE
+   ========================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  background: var(--bg-void);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Subtle Noise Texture Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.5;
+}
+
+::selection { background: var(--accent-gold); color: var(--bg-void); }
+
+/* =========================================
+   TYPOGRAPHY
+   ========================================= */
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
+h1 { font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 800; }
+h2 { font-size: clamp(1.8rem, 4vw, 3rem); margin-bottom: var(--space-md); }
+h3 { font-size: 1.5rem; color: var(--ink-primary); margin-bottom: var(--space-sm); }
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.kicker::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--accent-gold);
+}
+
+.lead {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--ink-secondary);
+  max-width: 65ch;
+  line-height: 1.5;
+}
+
+.quote {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--ink-primary);
+  border-left: 2px solid var(--accent-gold);
+  padding-left: var(--space-md);
+  margin: var(--space-md) 0;
+  position: relative;
+}
+.quote::before {
+  content: '“';
+  font-size: 4rem;
+  color: var(--accent-gold-dim);
+  position: absolute;
+  top: -1.5rem;
+  left: -0.5rem;
+  font-family: var(--font-serif);
+  line-height: 1;
+}
+.quote cite {
+  display: block;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: var(--space-xs);
+  letter-spacing: 0.05em;
+}
+
+/* =========================================
+   LAYOUT & COMPONENTS
+   ========================================= */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+section {
+  padding: var(--space-xl) 0;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.grid { display: grid; gap: var(--space-md); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+
+.card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+}
+.card:hover {
+  border-color: rgba(255,255,255,0.15);
+  transform: translateY(-4px);
+  background: var(--bg-elevated);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+}
+.badge-1 { color: var(--cat-1); background: rgba(255,107,107,0.1); }
+.badge-2 { color: var(--cat-2); background: rgba(77,171,247,0.1); }
+.badge-3 { color: var(--cat-3); background: rgba(151,117,250,0.1); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-primary);
+  background: transparent;
+  border: 1px solid var(--ink-muted);
+  padding: 0.75rem 1.5rem;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+.btn-primary {
+  background: var(--accent-gold);
+  color: var(--bg-void);
+  border-color: var(--accent-gold);
+}
+.btn-primary:hover {
+  background: #e5c04b;
+  color: var(--bg-void);
+}
+
+/* =========================================
+   HERO & ONTOLOGY
+   ========================================= */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  position: relative;
+}
+
+#hero h1 {
+  background: linear-gradient(135deg, var(--ink-primary) 0%, var(--ink-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--space-sm);
+}
+#hero .subtitle {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--ink-muted);
+  max-width: 600px;
+  margin-bottom: var(--space-lg);
+}
+
+.ontology-node {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: var(--space-lg) auto;
+}
+
+.core-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--bg-elevated), var(--bg-void));
+  border: 2px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+}
+.core-btn:hover {
+  box-shadow: 0 0 60px rgba(212, 175, 55, 0.4), inset 0 0 30px rgba(212, 175, 55, 0.2);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+.core-btn.active {
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0.5;
+  border-color: var(--ink-muted);
+  color: var(--ink-muted);
+  box-shadow: none;
+}
+
+.satellite {
+  position: absolute;
+  width: 120px;
+  padding: 1rem;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.satellite h4 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+.satellite p { font-size: 0.7rem; color: var(--ink-muted); font-family: var(--font-mono); }
+
+.satellite.s1 { top: -20px; left: 50%; transform: translate(-50%, -50%) scale(0.5); border-color: var(--cat-1); }
+.satellite.s1 h4 { color: var(--cat-1); }
+.satellite.s2 { top: 50%; right: -40px; transform: translate(50%, -50%) scale(0.5); border-color: var(--cat-2); }
+.satellite.s2 h4 { color: var(--cat-2); }
+.satellite.s3 { bottom: -20px; left: 50%; transform: translate(-50%, 50%) scale(0.5); border-color: var(--cat-3); }
+.satellite.s3 h4 { color: var(--cat-3); }
+
+.ontology-node.exploded .satellite.s1 { opacity: 1; transform: translate(-50%, -120%) scale(1); }
+.ontology-node.exploded .satellite.s2 { opacity: 1; transform: translate(120%, -50%) scale(1); }
+.ontology-node.exploded .satellite.s3 { opacity: 1; transform: translate(-50%, 120%) scale(1); }
+
+/* SVG Connections */
+.onto-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.onto-svg line {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.2s;
+}
+.ontology-node.exploded .onto-svg line { opacity: 0.5; }
+
+/* =========================================
+   REGISTRY (CHIPS)
+   ========================================= */
+.registry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: var(--space-md);
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 99px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+.chip:hover { opacity: 1; border-color: rgba(255,255,255,0.2); }
+.chip.lit { opacity: 1; border-color: var(--accent-gold); background: var(--accent-gold-dim); }
+.chip .dots { display: flex; gap: 3px; }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* =========================================
+   BIAS GLITCH EFFECT
+   ========================================= */
+.bias-card {
+  position: relative;
+  overflow: hidden;
+}
+.bias-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,107,107,0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+.bias-card:hover::after { transform: translateX(100%); }
+
+/* =========================================
+   STRATEGY & ARTIFACTS
+   ========================================= */
+.artifact {
+  background: #1a1c20;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.artifact::before {
+  content: 'CONFIDENTIAL // INTERNAL USE ONLY';
+  position: absolute;
+  top: 10px; right: 15px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--cat-1);
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.matrix-5x5 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  max-width: 200px;
+  margin: var(--space-sm) 0;
+}
+.matrix-5x5 .cell {
+  aspect-ratio: 1;
+  background: rgba(255,255,255,0.03);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content:  font-size: 0.7rem;
+  color: var(--ink-muted);
+}
+.matrix-5x5 .cell.active { background: var(--accent-gold); color: var(--bg-void); font-weight: 700; }
+.matrix-5x5 .cell.header { background: transparent; font-size: 0.6rem; }
+
+/* =========================================
+   VERDICT STAMPS
+   ========================================= */
+.verdict {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border: 1px dashed var(--ink-muted);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+.stamp {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border: 3px solid currentColor;
+  border-radius: 4px;
+  transform: rotate(4deg);
+  opacity: 0.85;
+  background: var(--bg-void);
+}
+.stamp.ok { color: var(--v-ok); }
+.stamp.warn { color: var(--v-warn); }
+.stamp.bad { color: var(--v-bad); }
+.stamp.neg { color: var(--v-neg); }
+
+/* =========================================
+   EXTERNAL RISKS: FLIP & MAP
+   ========================================= */
+.flip-container {
+  perspective: 1500px;
+  height: 400px;
+  margin: var(--space-lg) 0;
+}
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.flip-container.flipped .flip-inner { transform: rotateY(180deg); }
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.flip-back { transform: rotateY(180deg); }
+
+.map-wrapper {
+  position: relative;
+  padding: var(--space-lg) 0;
+}
+.map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.map-svg path {
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 8 8;
+  stroke-dashoffset: 100;
+  animation: dash 20s linear infinite;
+}
+@keyframes dash { to { stroke-dashoffset: 0; } }
+
+.map-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  position: relative;
+  z-index: 1;
+}
+.map-node {
+  padding: var(--space-sm);
+  border-left: 3px solid var(--ink-muted);
+  background: var(--bg-surface);
+}
+.map-node h4 { font-size: 1rem; margin-bottom: 0.25rem; }
+.map-node p { font-size: 0.85rem; color: var(--ink-secondary); }
+
+/* =========================================
+   THE DIVE (L2 MODAL)
+   ========================================= */
+#dive-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 9, 12, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#dive-overlay.open { opacity: 1; pointer-events: all; }
+
+#dive-panel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-height: 90vh;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--accent-gold);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: 1001;
+  transform: translateY(100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  padding: var(--space-lg) var(--space-md);
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+}
+#dive-overlay.open #dive-panel { transform: translateY(0); }
+
+.dive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: var(--space-sm);
+}
+.dive-close {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-muted);
+  background: transparent;
+  color: var(--ink-primary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.dive-close:hover { border-color: var(--cat-1); color: var(--cat-1); }
+
+.dive-section { margin-bottom: var(--space-md); }
+.dive-section h4 {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent-gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+}
+
+.timeline {
+  position: relative;
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--ink-muted);
+}
+.timeline-item { margin-bottom: var(--space-sm); position: relative; }
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-md) - 4px);
+  top: 6px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+}
+.timeline-item .year {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+@media (max-width: 768px) {
+  .map-grid { grid-template-columns: 1fr; gap: var(--space-md); }
+  .map-svg { display: none; }
+  .ontology-node { width: 250px; height: 250px; }
+  .core-btn { width: 100px; height: 100px; font-size: 0.7rem; }
+  .satellite { width: 90px; padding: 0.5rem; }
+  .satellite h4 { font-size: 0.7rem; }
+  .satellite p { display: none; }
+  .flip-container { height: 500px; }
+}
+
+/* =========================================
+   REVEAL ANIMATIONS
+   ========================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================
+     HERO & ONTOLOGY
+     ========================================= -->
+<section id="hero">
+  <div class="kicker">HBR · 2012 · Каплан & Майкс</div>
+  <h1>Тень Стратегии</h1>
+  <p class="subtitle">Управление рисками — это не комплаенс. Это рентген, выявляющий реальную стратегию компании через профиль её уязвимостей.</p>
+  
+  <div class="ontology-node" id="ontology">
+    <svg class="onto-svg" viewBox="0 0 300 300">
+      <line x1="150" y1="150" x2="150" y2="40" />
+      <line x1="150" y1="150" x2="260" y2="150" />
+      <line x1="150" y1="150" x2="150" y2="260" />
+    </svg>
+    <button class="core-btn" id="coreBtn">РАСКРЫТЬ<br>СИСТЕМУ</button>
+    <div class="satellite s1" data-dive="cat-1">
+      <h4>I. Энтропия</h4>
+      <p>Предотвратимые</p>
+    </div>
+    <div class="satellite s2" data-dive="cat-2">
+      <h4>II. Ставка</h4>
+      <p>Стратегические</p>
+    </div>
+    <div class="satellite s3" data-dive="cat-3">
+      <h4>III. Хаос</h4>
+      <p>Внешние</p>
+    </div>
+  </div>
+  
+  <div class="container" style="text-align: left; margin-top: var(--space-xl);">
+    <h3 class="reveal">Авторы: Эволюция идеи</h3>
+    <div class="grid grid-2 reveal">
+      <div class="card">
+        <span class="badge badge-2">2012 → 2016</span>
+        <h4 style="margin-top: 0.5rem;">Роберт Каплан</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">От создателя Balanced Scorecard к концепции «Раскрывающей руки». Риск-менеджмент не тормозит инновации, а показывает, где компания врет сама себе.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-3">2012 → 2026</span>
+        <h4 style="margin-top: 0.5rem;">Анетт Майкс</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">От «калькулятивн�еестр объектов</div>
+    <h2 class="reveal">Действующие лица</h2>
+    <p class="lead reveal">Девять компаний-архетипов. Их статус «эталонности» будет проверен временем и кризисами 2012–2026 годов.</p>
+    <div class="registry reveal" id="chipRegistry"></div>
+  </div>
+</section>
+
+<!-- =========================================
+     CATEGORY 1: PREVENTABLE
+     ========================================= -->
+<section id="cat-1-section">
+  <div class="container">
+    <div class="kicker">Категория I · Внутренняя энтропия</div>
+    <h2 class="reveal">Предотвратимые риски: Апофатическая этика</h2>
+    <p class="lead reveal">Здесь не работают инновации. Здесь работает отрицание. Девять из десяти заповедей сформулированы негативно. Границы очерчивают тьму, чтобы внутри осталось пространство для стратегии.</p>
+    
+    <div class="grid grid-3 reveal" style="margin-top: var(--space-lg);">
+      <div class="card">
+        <h4>Миссия</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Путеводная звезда. Чьи интересы приоритетны, когда прибыль конфликтует с безопасностью?</p>
+      </div>
+      <div class="card">
+        <h4>Ценности</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Ориентиры взаимодействия. Защищают репутацию, когда никто не видит.</p>
+      </div>
+      <div class="card">
+        <h4>Границы</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Кодексы поведения. Конфликт интересов, взяточничество, инсайд, дискриминация.</p>
+      </div>
+    </div>
+
+    <div class="quote reveal">
+      У компаний должна быть «зона терпимости» к недостаткам, устранение которых обойдется слишком дорого. Но в целом такие риски нужно устранять, поскольку они не дают стратегических преимуществ.
+      <cite>Закон убывающей отдачи контроля</cite>
+    </div>
+
+    <div class="verdict reveal">
+      <div class="stamp bad">Опровергнута</div>
+      <h4>Johnson & Johnson · 2012–2026</h4>
+      <p style="color: var(--ink-secondary);">В 2012 J&J была эталоном миссии (Кредо). К 2026 — $5.5 млрд урегулирования по тальку и $5 млрд по опиоидам. Ценности без жесткого контура контроля вырождаются в ритуальный артефакт.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     COGNITIVE BIASES
+     ========================================= -->
+<section id="biases">
+  <div class="container">
+    <div class="kicker">Когнитивная архитектура</div>
+    <h2 class="reveal">Враг внутри процессора</h2>
+    <p class="lead reveal">Категории II и III требуют диалога. Но мозг саботирует диалог. Риск-менеджментбрасывает эта концентрация. Нельзя генерировать избыточную доходность, не поглощая неопределенность.</p>
+
+    <div class="grid grid-3 reveal" style="margin-top: var(--space-lg);">
+      <div class="card">
+        <span class="badge badge-2">Независимые эксперты</span>
+        <h4 style="margin-top: 0.5rem;">NASA JPL</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Культура интеллектуальной конфронтации. Комитет имеет бюджетные полномочия (резервы до 75%). Конфликт институционализирован.</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-2">Фасилитаторы</span>
+        <h4 style="margin-top: 0.5rem;">Hydro One</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Стабильная среда. Риск становится фильтром для аллокации капитала. Бюджет формируется «от риска», а не «от амбиций».</p>
+      </div>
+      <div class="card">
+        <span class="badge badge-2">Внутренние эксперты</span>
+        <h4 style="margin-top: 0.5rem;">JP Morgan</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Высокая волатильность. Риск-менеджер как зеркало, а не тормоз. Опасность: функциональная ловушка (становятся «своими»).</p>
+      </div>
+    </div>
+
+    <h3 class="reveal" style="margin-top: var(--space-xl);">Артефакт: Карточка рискового события (VW do Brasil)</h3>
+    <div class="artifact reveal">
+      <div class="grid grid-2">
+        <div>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); margin-bottom: 0.5rem;">СТРАТЕГИЧЕСКАЯ ЦЕЛЬ</p>
+          <p>Гарантировать надежность цепочки поставок</p>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); margin: 1rem 0 0.5rem;">РИСК</p>
+          <p>Сбой поставок</p>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); margin: 1rem 0 0.5rem;">ПОСЛЕДСТВИЯ</p>
+          <p style="font-size: 0.9rem; color: var(--ink-secondary);">Задержки, экстренная логистика, потеря производительности</p>
+        </div>
+        <div>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); margin-bottom: 0.5rem;">МАТРИЦА ВЕРОЯТНОСТЬ / ЗНАЧИМОСТЬ</p>
+          <div class="matrix-5x5">
+            <div class="cell header"></div><div class="cell header">1</div><div class="cell header">2</div><div class="cell header">3</div><div class="cell header">4</div><div class="cell header">5</div>
+            <div class="cell header">5</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell header">4</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell active">X</div><div class="cell"></div>
+            <div class="cell header">3</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class"verdict reveal">
+      <div class="stamp bad">Опровергнута</div>
+      <h4>Volkswagen · Dieselgate (2015)</h4>
+      <p style="color: var(--ink-secondary);">Образцовые карточки и стратегические карты не увидели намеренного мошенничества. Инструменты Категории II бессильны, когда токсична корпоративная культура (Категория I).</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     FUNCTIONAL TRAP & SCALE
+     ========================================= -->
+<section id="trap">
+  <div class="container">
+    <div class="kicker">Организационная архитектура</div>
+    <h2 class="reveal">Функциональная ловушка и Масштаб</h2>
+    
+    <div class="grid grid-2 reveal" style="margin-top: var(--space-lg);">
+      <div class="card">
+        <h4>Ловушка Silos</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Нарезка рисков по департаментам (IT, HR, Кредит) создает иллюзию управляемости, но убивает способность видеть системные корреляции. Риск живет в стратегии, а не в оргструктуре.</p>
+      </div>
+      <div class="card">
+        <h4>Масштаб ≠ Размер</h4>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">Hydro One (гигант) — компактная группа фасилитаторов. JPL (юннит) — плотная встроенная экспертиза. Масштаб функции определяется скоростью, с которой реальность опровергает стратегию.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     CATEGORY 3: EXTERNAL
+     ========================================= -->
+<section id="cat-3-section">
+  <div class="container">
+    <div class="kicker">Категория III · Антихрупкость</div>
+    <h2 class="reveal">Внешние риски: Управление последствиями</h2>
+    <p class="lead reveal">В формуле $Risk = P \times I$ для внешних рисков вероятность ($P$) задана стихией или врагом. Наша агентность живет исключительно в переменной последствий ($I$).</p>
+
+    <div class="flip-container reveal" id="flipBox">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <h3 style="color: var(--cat-3);">Источники угроз (Ось времени)</h3>
+          <div class="card" style="border-left: 3px solid var(--cat-1);">
+            <h4>Катастрофы [H+0]</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Предсказуемы, сроки неизвестны. Землетрясения, крах пузырей. Последствия немедленны.</p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--cat-2);">
+            <h4>Конкуренты [1–3 года]</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Прорывные технологии, агрессивные ходы. Угроза морального устаревания.</p>
+          </div>
+          <div class="card" sss="card" style="border-left: 3px solid var(--cat-2);">
+            <h4>War-gaming (Децентрация эго)</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Ролевые тренинги. Вход в голову врага. Преодоление когнитивного нарциссизма руководства.</p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--cat-3);">
+            <h4>Сценарии Shell (Множественность)</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Будущее не одно. 4 фактора → 16 сценариев. Линейная экстраполяция убивает.</p>
+          </div>
+          <button class="btn" id="flipBackBtn" style="margin-top: auto; align-self: flex-start;">← Вернуть источники</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="reveal">Три паттерна митигации ($I$)</h3>
+    <div class="grid grid-3 reveal">
+      <div class="card">
+        <h4>1. Трансфер</h4>
+        <p style="font-size: 0.9rem; color: var(--ink-secondary);">Страхование и хеджирование. Коммодитизация риска. (Авиаперевозчики и деривативы на топливо).</p>
+      </div>
+      <div class="card">
+        <h4>2. Преинвестиция</h4>
+        <p style="font-size: 0.9rem; color: var(--ink-secondary);">Инжиниринг устойчивости. Платим CAPEX сегодня, чтобы избежать OPEX завтра. (Сейсмостойкое строительство).</p>
+      </div>
+      <div class="card">
+        <h4>3. Кооперация</h4>
+        <p style="font-size: 0.9rem; color: var(--ink-secondary);">Взаимный бэкап ортогональных рисков. Университеты Сев. Каролины (ураганы) и Калифорнии (землетрясения).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     FINALE
+     ========================================= -->
+<section id="finale">
+  <div class="container" style="text-align: center;">
+    <div class="kicker" style="justify-content: center;">Экзистенциальный вывод</div>
+    <h2 class="reveal">Тест чистого горизонта</h2>
+    
+    <div class="quote reveal" style="text-align: left; max-width: 800px; margin: var(--space-xl) auto; border-left: none; padding-left: 0; text-align: center;">
+      «Хотя я и занимаю эту должность [CRO], но главный специалист по управлению рисками компании – генеральный директор Джейми Даймон».
+      <cite>БАРРИ ЗУБРОУ · JP MORGAN CHASE</cite>
+    </div>
+
+    <p class="lead reveal" style="margin: 0 auto var(--space-lg); text-align: center;">
+      Способность компании противостоять штормам зависит от того, насколько серьезно лидеры воспринимают риск-менеджмент в то время, когда светит солнце.
+    </p>
+
+    <div class="verdict reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
+      <div class="stamp warn">Частично</div>
+      <h4>Goldman Sachs · 1MDB Scandal</h4>
+      <p style="color: var(--ink-secondary);">Пережив внешний шок 20lose" id="dive-close">✕</button>
+    </div>
+    <div id="dive-content"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================
+   DATA REPOSITORY
+   ========================================= */
+const DATA = {
+  companies: [
+    { id: 'bp', name: 'BP', industry: 'Нефть и газ', cats: [1,2], verdict: 'neg', verdictText: 'Негативный пример', desc: 'Правила Категории I (крышечки для кофе) против хаоса Категории II (глубоководное бурение).' },
+    { id: 'jnj', name: 'Johnson & Johnson', industry: 'Фарма', cats: [1], verdict: 'bad', verdictText: 'Опровергнута', desc: 'Кредо не спасло от опиоидного и талькового кризисов.' },
+    { id: 'jpl', name: 'NASA JPL', industry: 'Космос R&D', cats: [2], verdict: 'warn', verdictText: 'Частично', desc: 'Эталон конфронтации, но бессилен перед бюджетными сокращениями (Кат. III).' },
+    { id: 'hydro', name: 'Hydro One', industry: 'Электросети', cats: [2], verdict: 'ok', verdictText: 'Подтверждена', desc: '14 лет устойчивой работы модели фасилитаторов.' },
+    { id: 'jpm', name: 'JP Morgan', industry: 'Финансы', cats: [2], verdict: 'warn', verdictText: 'Частично', desc: 'Выжил в 2008, но провалил London Whale (2012) из-за функциональной ловушки.' },
+    { id: 'infosys', name: 'Infosys', industry: 'IT-услуги', cats: [2,3], verdict: 'warn', verdictText: 'Частично', desc: 'BSC увидел риски целей, но не технологическую дефляцию ИИ.' },
+    { id: 'vw', name: 'Volkswagen', industry: 'Автопром', cats: [2], verdict: 'bad', verdictText: 'Опровергнута', desc: 'Dieselgate: карточки событий не видят намеренного мошенничества.' },
+    { id: 'goldman', name: 'Goldman Sachs', industry: 'Инвестбанк', cats: [2], verdict: 'bad', verdictText: 'Опровергнута', desc: '1MDB: элитная риск-культура капитулировала перед голодом сделки.' },
+    { id: 'shell', name: 'Shell', industry: 'Нефть и газ', cats: [3], verdict: 'ok', verdictText: 'Подтверждена', desc: '60 лет непрерывного сценарного планирования.' }
+  ],
+  biases: [
+    { name: 'Иллюзия контроля', desc: 'Переоценка способности влиять на случайность.', antidote: 'Стресс-тесты' },
+    { name: 'Самонадеянность', desc: 'Недооценка «хвостов» распределения последствий.', antidote: 'Резервы JPL 50–75%' },
+    { name: 'Эвристика доступности', desc: 'Опасная линейная экстраполяция прошлого.', antidote: 'Сценарии Shell' },
+    { name: 'Предвзятость подтверждения', desc: 'Подавление негативных сигналов.', antidote: 'Адвокат дьявола' },
+    { name: 'Эскалация приверженности', desc: 'Нерациональное вливание ресурсов в провальный курс.', antidote: 'Стоп-критерии' },
+    { name: 'Групповое мышление', desc: 'иск как фильтр аллокации капитала.</li><li><b>Внутренние эксперты (JPM):</b> Риск-менеджер как зеркало.</li></ul><h4>Философия</h4><p>Риск — это тень стратегии. Невозможно генерировать избыточную доходность, не поглощая неопределенность.</p>` },
+    'cat-3': { title: 'Категория III: Внешние', kicker: 'Хаос и Антихрупкость', body: `<p>События за пределами контроля компании. Вероятность ($P$) задана стихией, наша агентность — в последствиях ($I$).</p><h4>Инструменты</h4><ul><li><b>Стресс-тесты:</b> Буферизация против шоков (H+0).</li><li><b>War-gaming:</b> Децентрация эго против конкурентов (1-3 года).</li><li><b>Сценарии:</b> Множественность будущих против дрейфа (5-10 лет).</li></ul><h4>Философия</h4><p>Мы не можем остановить ветер. Но мы можем настроить паруса, укрепить корпус и изучить тактику врага.</p>` }
+  }
+};
+
+/* =========================================
+   INITIALIZATION & RENDERING
+   ========================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  
+  // 1. Render Registry Chips
+  const registry = document.getElementById('chipRegistry');
+  DATA.companies.forEach(c => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.innerHTML = `
+      <span class="dots">${c.cats.map(cat => `<span class="dot" style="background: var(--cat-${cat})"></span>`).join('')}</span>
+      <span>${c.name}</span>
+    `;
+    chip.addEventListener('click', () => openDive('company', c));
+    registry.appendChild(chip);
+  });
+
+  // 2. Render Biases
+  const biasGrid = document.getElementById('biasGrid');
+  DATA.biases.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'card bias-card';
+    card.innerHTML = `
+      <h4>${b.name}</h4>
+      <p style="color: var(--ink-secondary); font-size: 0.9rem; margin-bottom: 1rem;">${b.desc}</p>
+      <span class="badge badge-1">Антидот: ${b.antidote}</span>
+    `;
+    biasGrid.appendChild(card);
+  });
+
+  // 3. Ontology Explosion
+  const coreBtn = document.getElementById('coreBtn');
+  const ontology = document.getElementById('ontology');
+  coreBtn.addEventListener('click', () => {
+    ontology.classList.toggle('exploded');
+    coreBtn.classList.toggle('active');
+    coreBtn.textContent = ontology.classList.contains('exploded') ? 'СВЕРНУТЬ' : 'РАСКРЫТЬ\nСИСТЕМУ';
+  });
+
+  // 4. Satellites Dive
+  document.querySelectorAll('.satellite').forEach(sat => {
+    sat.addEventListener('click', () => {
+      const id = sat.dataset.dive;
+      openDive('category', DATA.diveContent[id]);
+    });
+  });
+
+  // 5. Flip Card
+  const flipBox = document.getElementById('flipBox');
+  document.getElementById('flipBtn').addEventListener('click', () => flipBox.classList.add('flipped'));
+  document.getElementById('flipBackBtn').addEventListener('click', () => flipBox.classList.remove('flipped'));
+
+  // 6. Reveal on Scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // LById('dive-close');
+
+  window.openDive = function(type, data) {
+    document.getElementById('dive-kicker').textContent = type === 'company' ? `Досье · ${data.industry}` : 'Концепция';
+    document.getElementById('dive-title').textContent = type === 'company' ? data.name : data.title;
+    
+    let content = '';
+    if (type === 'company') {
+      content = `
+        <div class="dive-section">
+          <h4>Вердикт истории (2012–2026)</h4>
+          <div class="verdict" style="margin-top: 0.5rem;">
+            <div class="stamp ${data.verdict}">${data.verdictText}</div>
+            <p style="color: var(--ink-secondary); padding-right: 80px;">${data.desc}</p>
+          </div>
+        </div>
+        <div class="dive-section">
+          <h4>Системный урок</h4>
+          <p style="color: var(--ink-secondary);">Компании, представленные как эталоны, не смогли избежать провалов, потому что инструменты не заменяют корпоративную культуру, а стратегические карты не выявляют этические риски.</p>
+        </div>
+      `;
+    } else {
+      content = `<div class="dive-section">${data.body}</div>`;
+    }
+    
+    document.getElementById('dive-content').innerHTML = content;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDive = function() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  closeBtn.addEventListener('click', closeDive);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeDive();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeDive();
+  });
+
+  // Helper to light chips
+  function lightChips(cats) {
+    document.querySelectorAll('.chip').forEach(chip => {
+      const chipCats = Array.from(chip.querySelectorAll('.dot')).map((d, i) => {
+        // simple hack to get cat index from color
+        const color = getComputedStyle(d).backgroundColor;
+        if (color.includes('255, 107, 107')) return 1;
+        if (color.includes('77, 171, 247')) return 2;
+        if (color.includes('151, 117, 250')) return 3;
+        return 0;
+      });
+      if (chipCats.some(c => cats.includes(c))) {
+        chip.classList.add('lit');
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
