@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление рисками: новая система — интерактивный конспект</title>
+<style>
+:root{
+  --bg:#0e1116; --bg2:#151a21; --bg3:#1b2129; --ink:#e9e4d8; --mut:#98a2ad; --line:#2a313c;
+  --c1:#e07a5f; --c2:#64a8dc; --c3:#a583e8; --gold:#d4a95c;
+  --ok:#7fb069; --warn:#d4a95c; --bad:#e05252; --neg:#8a8f98;
+  --serif:Georgia,"Times New Roman",serif; --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:16px;
+  background-color:#080b10;
+  background-image:
+    radial-gradient(ellipse 120% 75% at 50% -15%, rgba(212,169,92,.32), transparent 58%),
+    radial-gradient(ellipse 95% 60% at 100% 100%, rgba(100,168,220,.24), transparent 52%),
+    radial-gradient(ellipse 80% 55% at -5% 105%, rgba(224,122,95,.20), transparent 50%);
+  background-attachment:fixed;
+}
+main{transition:filter .5s ease,transform .5s ease}
+body.diving main{filter:blur(4px) brightness(.7);transform:scale(.994)}
+::selection{background:var(--gold);color:#111}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:var(--c2)}
+
+/* ---------- service layers ---------- */
+#prg{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gold);z-index:60}
+#nav{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:9px}
+#nav button{width:9px;height:9px;border-radius:50%;background:var(--line);transition:.3s;padding:0}
+#nav button:hover{background:var(--mut)}
+#nav button.on{background:var(--gold);box-shadow:0 0 0 4px rgba(212,169,92,.18)}
+@media(max-width:760px){#nav{display:none}}
+
+/* ---------- sections ---------- */
+.sec{max-width:1080px;margin:0 auto;padding:110px 26px 40px}
+.sec:first-child{padding-top:80px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+h2{font-size:clamp(24px,3.4vw,38px);line-height:1.2;margin:10px 0 6px;font-weight:650}
+h2 .no{font-family:var(--mono);color:var(--mut);font-weight:400;margin-right:14px;font-size:.72em}
+.rule{height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:18px 0 30px}
+h3{font-size:19px;margin:34px 0 12px;color:var(--ink)}
+h4{font-size:16px;margin:0 0 8px}
+p{margin:0 0 12px}
+.lead{color:var(--mut);font-size:17px;max-width:70ch}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.rv.in{opacity:1;transform:none}
+.q{font-family:var(--serif);font-size:1.14rem;line-height:1.62;border-left:3px solid var(--gold);
+  padding:8px 4px 8px 20px;margin:20px 0;color:#f2ecdc;background:linear-gradient(90deg,rgba(212,169,92,.07),transparent 70%)}
+.q small{display:block;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px;letter-spacing:.06em}
+.note{font-family:var(--mono);font-size:12.5px;color:var(--mut);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin:14px 0}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.06em;border-radius:6px;padding:3px 8px;border:1px solid var(--line);color:var(--mut)}
+.tag.t1{color:var(--c1);border-color:var(--c1)} .tag.t2{color:var(--c2);border-color:var(--c2)} .tag.t3{color:var(--c3);border-color:var(--c3)}
+
+/* ---------- cards / grids ---------- */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.cd{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 20px 16px;position:relative;transition:border-color .3s,transform .3s}
+.cd:hover{border-color:#3b4552;transform:translateY(-2px)}
+.cd .cat{position:absolute;top:14px;right:14px;display:flex;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.d1{background:var(--c1)} .d2{background:var(--c2)} .d3{background:var(--c3)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 16px;
+  font-family:var(--mono);font-size:12.5px;letter-spacing:.05em;color:var(--ink);transition:.25s;background:var(--bg3)}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.gold{border-color:var(--gold);color:var(--gold)}
+.linkbtn{font-family:var(--mono);font-size:12.5px;color:var(--c2);border-bottom:1px dashed var(--c2);padding:0 0 1px}
+.linkbtn:hover{color:var(--gold);border-color:var(--gold)}
+
+/* ---------- ontology (s0) ---------- */
+#onto{position:relative;height:380px;margin:26px 0 8px;border:1px solid var(--line);border-radius:18px;
+  background:radial-gradient(ellipse at 50% 45%,#1a212b 0%,var(--bg) 70%);overflow:hidden}
+#onto svg{position:absolute;inset:0;width:100%;height:100%}
+#onto path{stroke:var(--mut);stroke-width:1;fill:none;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1s ease .2s}
+#onto.exploded path{stroke-dashoffset:0}
+.onode{position:absolute;transform:translate(-50%,-50%) scale(.2);opacity:0;transition:transform .6s cubic-bezier(.2,.9,.3,1.2),opacity .4s;
+  background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;font-size:14px}
+.onode b{display:block;font-size:15px}
+.onode small{color:var(--mut);font-family:var(--mono);font-size:11px}
+#onto.exploded .onode{transform:translate(-50%,-50%) scale(1);opacity:1}
+#ontoCore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+  background:var(--gold);color:#14100a;border-radius:999px;padding:14px 26px;font-weight:700;letter-spacing:.02em;
+  box-shadow:0 0 0 0 rgba(212,169,92,.4);transition:.5s}
+#onto.exploded #ontoCore{background:var(--bg3);color:var(--mut);padding:9px 18px;font-weight:500;font-size:13px;box-shadow:none}
+.crack{position:absolute;left:63%;top:63%;transform:translate(-50%,-50%) scale(.2);opacity:0;transition:.6s .5s;
+  border:1px dashed var(--bad);color:var(--bad);border-radius:10px;padding:7px 12px;font-family:var(--mono);font-size:11.5px;background:rgba(224,82,82,.06)}
+#onto.exploded .crack{transform:translate(-50%,-50%) scale(1);opacity:1}
+.crack:hover{background:rgba(224,82,82,.16)}
+.authrow{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0}
+.achip{border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:13.5px;color:var(--mut);background:var(--bg2);transition:.3s;text-align:left}
+.achip b{color:var(--ink);display:block;font-size:14.5px}
+.achip:hover{border-color:var(--gold)}
+.cd .sub{font-family:var(--mono);font-size:11px;color:var(--mut);margin:0 0 8px;letter-spacing:.02em}
+
+/* ---------- registry chips ---------- */
+#chips{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+.chip{display:flex;align-items:center;gap:10px;border:1px dashed var(--line);border-radius:999px;padding:9px 16px;
+  opacity:.55;transition:.45s;background:transparent;text-align:left}
+.chip .nm{font-size:14.5px}
+.chip .ind{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.chip .dots{display:flex;gap:4px}
+.chip.lit{opacity:1;border-style:solid;background:var(--bg2)}
+.chip.lit .nm{color:var(--gold)}
+.chip:hover{opacity:1;transform:translateY(-1px)}
+
+/* ---------- matrix table ---------- */
+table.mx{width:100%;border-collapse:collapse;font-size:14.5px;margin:10px 0 6px}
+table.mx th{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);
+  text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+table.mx td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.mx tbody tr{cursor:pointer;transition:background .25s}
+table.mx tbody tr:hover{background:var(--bg2)}
+table.mx td:first-child{font-weight:650;white-space:nowrap}
+table.mx td:first-child .dot{margin-right:7px}
+
+/* ---------- tree ---------- */
+details.tree{border:1px solid var(--line);border-radius:12px;background:var(--bg2);margin:14px 0;overflow:hidden}
+details.tree summary{cursor:pointer;padding:14px 18px;font-family:var(--mono);font-size:13px;letter-spacing:.05em;color:var(--gold);list-style:none}
+details.tree summary::-webkit-details-marker{display:none}
+details.tree summary::before{content:"▸ ";transition:.2s;display:inline-block}
+details.tree[open] summary::before{transform:rotate(90deg)}
+details.tree .body{padding:4px 22px 18px;font-family:var(--mono);font-size:13px}
+details.tree ul{list-style:none;border-left:1px solid var(--line);margin-left:8px;padding-left:20px}
+details.tree li{margin:9px 0;position:relative}
+details.tree li::before{content:"";position:absolute;left:-20px;top:.85em;width:14px;height:1px;background:var(--line)}
+details.tree li b{color:var(--c1)}
+details.tree li span{display:block;color:var(--mut);font-size:12px}
+
+/* ---------- flip ---------- */
+.flip{perspective:1600px;margin:26px 0}
+.flip-inner{display:grid;transform-style:preserve-3d;transition:transform 1.1s cubic-bezier(.4,.1,.2,1)}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--line);
+  border-radius:18px;background:var(--bg2);padding:26px;display:flex;flex-direction:column;gap:14px}
+.face.back{transform:rotateY(180deg)}
+.face .fh{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase}
+.srccard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg3);display:flex;gap:14px;align-items:flex-start}
+.srccard .hz{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;white-space:nowrap;border:1px solid}
+.hz.h0{color:var(--bad);border-color:var(--bad)} .hz.h1{color:var(--warn);border-color:var(--warn)} .hz.h2{color:var(--c3);border-color:var(--c3)}
+
+/* ---------- mapping ---------- */
+#mapWrap{position:relative;margin:24px 0;padding:10px 0}
+#mapWrap svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#mapWrap path{fill:none;stroke-width:1.6;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 1.1s ease}
+#mapWrap.drawn path{stroke-dashoffset:0}
+.mapcol{display:grid;grid-template-columns:1fr 1fr;gap:60px;position:relative;z-index:1}
+.mapnode{border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:13px 16px;margin:14px 0;font-size:14.5px}
+.mapnode b{display:block}
+.mapnode small{color:var(--mut);font-family:var(--mono);font-size:11px}
+@media(max-width:700px){.mapcol{grid-template-columns:1fr;gap:10px}#mapWrap svg{display:none}}
+
+/* ---------- VW artifacts ---------- */
+.paper{border:1px solid var(--line);border-radius:14px;background:var(--bg2);padding:22px;margin:18px 0;
+  background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:100% 30px}
+.paper .ph{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.frow{display:grid;gap:14px;margin-bottom:14px}
+.frow:last-child{margin-bottom:0}
+.frow.top{grid-template-columns:repeat(4,minmax(0,1fr))}
+.frow.bot{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){.frow.top,.frow.bot{grid-template-columns:1fr}}
+.fld{border-left:2px solid var(--line);padding-left:12px}
+.fld .lb{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--mut);text-transform:uppercase;margin-bottom:6px}
+.fld ul{list-style:none;font-size:13.5px}
+.fld li{margin:5px 0}
+.m5{display:grid;grid-template-columns:22px repeat(5,1fr);gap:3px;max-width:250px;margin-top:4px;align-items:center}
+.m5 i{aspect-ratio:1;border-radius:3px;background:#232a34;display:block}
+.m5 i.hi{background:#39424f}
+.m5 i.x{background:var(--gold);position:relative;animation:pulse 2.4s infinite}
+.m5 i.x::after{content:"X";position:absolute;inset:0;display:grid;place-items:center;color:#14100a;font-weight:800;font-family:var(--mono);font-size:13px}
+.m5 s{text-decoration:none;font-family:var(--mono);font-size:10px;color:var(--mut);display:grid;place-items:center}
+.m5 .ax{opacity:.7}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,169,92,.45)}50%{box-shadow:0 0 0 7px rgba(212,169,92,0)}}
+table.rep{width:100%;border-collapse:collapse;font-size:14px}
+table.rep th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--mut);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+table.rep td{padding:10px;border-bottom:1px solid var(--line)}
+table.rep tr:nth-child(odd) td{background:rgba(255,255,255,.018)}
+.tr{font-family:var(--mono);font-weight:700}
+.tr.up{color:var(--bad)} .tr.dn{color:var(--ok)} .tr.fl{color:var(--mut)}
+
+/* ---------- silos ---------- */
+#silosBox{position:relative;min-height:220px;margin:18px 0}
+.smode{transition:opacity .6s,transform .6s;position:absolute;inset:0}
+.smode.hide{opacity:0;transform:translateY(14px);pointer-events:none}
+.silorow{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.silo{border:1px solid var(--line);border-radius:8px;background:var(--bg3);
+  padding:14px 8px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink);min-height:64px;
+  display:flex;align-items:center;justify-content:center;line-height:1.35}
+.siloarrow{text-align:center;color:var(--bad);font-family:var(--mono);font-size:12px;margin-top:12px}
+.integ{border:1px solid var(--c2);border-radius:12px;padding:14px 18px;margin:10px 0;background:rgba(100,168,220,.06)}
+.integ b{color:var(--c2);font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+
+/* ---------- verdicts ---------- */
+.vd{border:1px solid var(--line);border-left:4px solid var(--neg);border-radius:12px;background:var(--bg2);padding:16px 18px;margin:12px 0}
+.vd.ok{border-left-color:var(--ok)} .vd.warn{border-left-color:var(--warn)} .vd.bad{border-left-color:var(--bad)}
+.vd .vh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.vd .vh b{font-size:15.5px}
+.badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:3px 9px;border:1px solid}
+.badge.ok{color:var(--ok);border-color:var(--ok)} .badge.warn{color:var(--warn);border-color:var(--warn)}
+.badge.bad{color:var(--bad);border-color:var(--bad)} .badge.neg{color:var(--neg);border-color:var(--neg)}
+.vd ul{margin:6px 0 6px 18px;font-size:13.5px;color:var(--mut)}
+.vd ul b{color:var(--ink)}
+
+/* ---------- dive overlay ---------- */
+#dive{position:fixed;inset:0;z-index:50;display:none}
+#dive.open{display:block}
+#diveBd{position:absolute;inset:0;background:rgba(5,7,10,.62);backdrop-filter:blur(5px)}
+#divePn{position:absolute;left:50%;top:5vh;transform:translateX(-50%);width:min(880px,94vw);max-height:90vh;overflow:auto;
+  background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:30px 32px 34px;
+  animation:pop .5s cubic-bezier(.2,.9,.25,1);scrollbar-width:thin}
+@keyframes pop{from{transform:translateX(-50%) scale(.7);opacity:0}}
+#divePn .dx{position:sticky;top:0;float:right;background:var(--bg3);border:1px solid var(--line);border-radius:999px;
+  width:36px;height:36px;font-size:16px;color:var(--mut);z-index:2}
+#divePn .dx:hover{color:var(--bad);border-color:var(--bad)}
+#divePn h3{margin-top:6px}
+#divePn .meta{font-family:var(--mono);font-size:12px;color:var(--mut);margin:4px 0 14px}
+.blk{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+.blk .bt{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.evlist{list-style:none;margin:4px 0}
+.evlist li{margin:8px 0;padding-left:74px;position:relative;font-size:14px;color:var(--mut)}
+.evlist li b.y{position:absolute;left:0;top:1px;font-family:var(--mono);font-size:12px;color:var(--gold);width:64px}
+.evlist li em{color:var(--ink);font-style:normal}
+
+/* ---------- finale ---------- */
+.bigq{font-family:var(--serif);font-size:clamp(21px,3vw,32px);line-height:1.45;text-align:center;max-width:22ch;
+  margin:60px auto;color:#f2ecdc}
+.bigq .au{display:block;font-family:var(--mono);font-size:12px;color:var(--mut);margin-top:18px;letter-spacing:.1em}
+footer{border-top:1px solid var(--line);margin-top:60px;padding:26px;text-align:center;color:var(--mut);font-family:var(--mono);font-size:12px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div id="prg"></div>
+<nav id="nav" aria-label="Разделы"></nav>
+
+<main id="spine">
+
+<!-- ================= 00 ================= -->
+<section class="sec" id="s0" data-title="Онтология риска">
+  <div class="kicker">HBR · июнь 2012 · Роберт Каплан, Анетт Майкс</div>
+  <h2><span class="no">00</span>Онтология риска</h2>
+  <div class="rule"></div>
+  <p class="lead rv">Управление рисками — не комплаенс и не страхование. Это три разных онтологии, требующие трёх разных языков. Нажмите на ядро, чтобы система раскрылась.</p>
+
+  <div id="onto" class="rv">
+    <svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">
+      <path pathLength="1" d="M50,30 L20,13" vector-effect="non-scaling-stroke"></path>
+      <path pathLength="1" d="M50,30 L80,13" vector-effect="non-scaling-stroke"></path>
+      <path pathLength="1" d="M50,30 L50,50" vector-effect="non-scaling-stroke"></path>
+    </svg>
+    <button id="ontoCore">УПРАВЛЕНИЕ РИСКАМИ</button>
+    <button class="onode" style="left:20%;top:22%" data-dive="cat/1"><b style="color:var(--c1)">I · Предотвратимые</b><small>внутренние · энтропия · правила</small></button>
+    <button class="onode" style="left:80%;top:22%" data-dive="cat/2"><b style="color:var(--c2)">II · Стратегические</b><small>добровольные · ставка · диалог</small></button>
+    <button class="onode" style="left:50%;top:84%" data-dive="cat/3"><b style="color:var(--c3)">III · Внешние</b><small>экзогенные · хаос · сценарии</small></button>
+    <button class="crack" data-dive="company/bp">⚠ Deepwater Horizon, 2010: правила против хаоса</button>
+  </div>
+  <p class="note rv">Трещина BP — точка, где инструмент Категории I был приложен к риску Категории II. Кофейные крышечки не держат давление пяти километров глубины.</p>
+
+  <h3 class="rv">Авторы: статус на момент публикации</h3>
+  <div class="authrow rv">
+    <button class="achip" data-dive="author/kaplan"><b>Роберт Каплан</b>Professor of Leadership Development, HBS · соавтор Balanced Scorecard и ABC</button>
+    <button class="achip" data-dive="author/mikes"><b>Анетт Майкс</b>Professor, HBS · культуры измерения риска и «boundary-work» риск-менеджеров</button>
+  </div>
+
+  <h3 class="rv">Эволюция идеи: общая линия и расхождение</h3>
+  <div class="grid g3 rv">
+    <div class="cd"><span class="tag">2012</span><h4>Тезис</h4><p class="sub">HBS · «Managing Risks: A New Framework»</p><p>Риск — не комплаенс. Три категории требуют трёх процессных языков: правила, диалог, сценарии.</p></div>
+    <div class="cd"><span class="tag">2016</span><h4>Синтез · «Раскрывающая рука»</h4><p class="sub">«The Revealing Hand»</p><p>Риск-менеджмент — рентген <i>реальной</i> стратегии компании, а не тормоз инноваций. Профиль риска выдаёт то, что фирма делает, а не то, что декларирует.</p></div>
+    <div class="cd"><span class="tag">2026</span><h4>Расхождение</h4><p class="sub">Каплан → Emeritus HBS · VBHC · Майкс → Oxford Saïd</p><p>Каплан уносит метрики в социальные системы (ценностное здравоохранение). Майкс уносит риск в этику и цивилизационные угрозы: «Values at Risk».</p></div>
+  </div>
+</section>
+
+<!-- ================= 01 ================= -->
+<section class="sec" id="s1" data-title="Действующие лица">
+  <div class="kicker">Реестр</div>
+  <h2><span class="no">01</span>Действующие лица статьи</h2>
+  <div class="rule"></div>
+  <p class="lead rv">Девять компаний-архетипов. Сейчас чипы «спят»: имя, категория, отрасль. Они зажгутся по мере того, как мы спустимся к их кейсам и вердиктам истории.</p>
+  <div id="chips" class="rv"></div>
+  <p class="note rv">Легенда: <span class="dot d1"></span> предотвратимые · <span class="dot d2"></span> стратегические · <span class="dot d3"></span> внешние. Клик по чипу — открыть досье компании.</p>
+</section>
+
+<!-- ================= 02 ================= -->
+<section class="sec" id="s2" data-title="Три категории">
+  <div class="kicker">Классификация · Категория I</div>
+  <h2><span class="no">02</span>Три категории и предотвратимые риски</h2>
+  <div class="rule"></div>
+  <table class="mx rv">
+    <thead><tr><th>Категория</th><th>Природа и источник</th><th>Цель</th><th>Инструменты</th></tr></thead>
+    <tbody>
+      <tr data-goto="prev"><td><span class="dot d1"></span>I · Предотвратимые</td><td>Внутренние: незаконные, неэтичные, ошибочные действия людей и сбои процессов. Стратегической ценности не несут.</td><td>Устранение и избегание. Есть «зона терпимости» к мелочам, устранение которых дороже ущерба.</td><td>Правила и границы: миссия, ценности, кодексы, разделение полномочий, внутренний аудит.</td></tr>
+      <tr data-goto="s4"><td><span class="dot d2"></span>II · Стратегические</td><td>Добровольная ставка ради сверхприбыли: кредит, R&D, глубоководное бурение. По сути не нежелательны.</td><td>Не мешать ставке, а позволить брать <i>больше</i> риска, чем конкурент, — под контролем.</td><td>Диалог и дебаты внутри стратегического планирования: независимые эксперты, фасилитаторы, внутренние эксперты.</td></tr>
+      <tr data-goto="s7"><td><span class="dot d3"></span>III · Внешние</td><td>Экзогенные: стихия, геополитика, макроэкономика, прорывные технологии конкурентов. Вне сферы контроля.</td><td>Выявление и смягчение последствий: вероятность неподвластна, удар — нет.</td><td>Стресс-тесты, сценарное планирование, ролевые тренинги; страхование, преинвестиции, кооперация.</td></tr>
+    </tbody>
+  </table>
+  <p class="note rv">Строка — это дверь: клик уводит в соответствующий раздел.</p>
+
+  <div id="prev" class="rv">
+    <h3>Категория I: первая линия защиты</h3>
+    <blockquote class="q">Компания не в силах предвидеть каждую ситуацию, в которой у сотрудника может возникнуть конфликт интересов. Таким образом, первая линия защиты от предотвратимых рисков состоит в четком разъяснении целей и ценностей компании.</blockquote>
+    <div class="grid g3">
+      <div class="cd"><h4>Миссия</h4><p>Путеводная звезда: чьи интересы приоритетны в любой ситуации.</p>
+        <blockquote class="q" style="font-size:1rem">Наша основная ответственность – перед врачами, медсестрами и пациентами, перед матерями и отцами, а также перед всеми остальными, кто пользуется нашими продуктами.<small>Кредо Johnson &amp; Johnson, пункт 1</small></blockquote></div>
+      <div class="cd"><h4>Ценности</h4><p>Система ориентиров для взаимодействия с клиентами, поставщиками, коллегами, сообществами и акционерами: сводит на нет угрозу репутации и активам.</p></div>
+      <div class="cd"><h4>Границы</h4><p>Культура разъясняет, чего делать <i>нельзя</i>. Отрицательная форма — язык запрета: девять из десяти заповедей и девять из первых десяти поправок к Конституции США сформулированы отрицательно.</p></div>
+    </div>
+    <details class="tree">
+      <summary>ДЕРЕВО ГРАНИЦ: корпоративные кодексы делового поведения</summary>
+      <div class="body"><ul>
+        <li><b>Конфликт интересов</b><span>подмена лояльности: личная выгода выше интереса фирмы</span></li>
+        <li><b>Недобросовестная конкуренция</b><span>нарушение правил рынка: сговоры, демпинг, монополистические практики</span></li>
+        <li><b>Разглашение коммерческой тайны и конфиденциальной информации</b><span>утечка интеллектуального капитала, инсайд</span></li>
+        <li><b>Взяточничество</b><span>коррупционный обмен: чиновники, партнёры, клиенты</span></li>
+        <li><b>Дискриминация</b><span>системное неравенство: пол, раса, возраст, религия</span></li>
+        <li><b>Сексуальные домогательства</b><span>нарушение физической и психологической безопасности личности</span></li>
+      </ul></div>
+    </details>
+    <details class="tree">
+      <summary>КОНТУР КОНТРОЛЯ: почему кодексов мало</summary>
+      <div class="body"><ul>
+        <li><b>Пример топ-менеджеров</b><span>слова не расходятся с делами — иначе кодекс становится ритуальным артефактом</span></li>
+        <li><b>Разделение полномочий</b><span>ни один человек не замыкает на себе критический процесс</span></li>
+        <li><b>Процесс информирования о нарушениях</b><span>whistleblowing: уменьшить проступки и свести на нет соблазн</span></li>
+        <li><b>Независимый внутренний аудит</b><span>постоянная проверка соблюдения: удерживает и выявляет</span></li>
+      </ul></div>
+    </details>
+    <blockquote class="q">Безусловно, у компаний должна быть «зона терпимости» к недостаткам или ошибкам, которые не приведут к серьезному ущербу или полное устранение которых обойдется слишком дорого. Но в целом такие риски нужно устранять, поскольку они не дают каких-либо стратегических преимуществ.<small>Закон убывающей отдачи контроля: стерильность, купленная ценой стратегии, — это тоже катастрофа</small></blockquote>
+  </div>
+
+  <h3 class="rv">Валидация гипотезы · компании Категории I</h3>
+  <div id="v-s2"></div>
+</section>
+
+<!-- ================= 03 ================= -->
+<section class="sec" id="s3" data-title="Когнитивные искажения">
+  <div class="kicker">Почему так трудно говорить о рисках</div>
+  <h2><span class="no">03</span>Когнитивные искажения</h2>
+  <div class="rule"></div>
+  <p class="lead rv">Категории II и III требуют диалога. Но мозг саботирует диалог шестью способами. Каждый компенсирован в статье конкретным процессным антидотом — и каждый укоренён в классике поведенческой экономики.</p>
+  <div class="grid g2 rv" id="biasGrid"></div>
+
+  <blockquote class="q rv">Вместо того чтобы снижать риск, фирмы фактически сами нормализуют отклонения, поскольку они игнорируют незначительные сбои и дефекты и воспринимают сигналы о надвигающейся опасности как ложные.</blockquote>
+
+  <div class="cd rv" style="border-color:var(--bad)">
+    <h4 style="color:var(--bad)">Парадокс правил в зоне инноваций</h4>
+    <blockquote class="q">Разрешающие и запрещающие правила здесь не помогут. Фактически они производят противоположный эффект: в команде поощряется стереотипность мышления, которое подавляет критику и препятствует обсуждению.</blockquote>
+    <blockquote class="q" style="border-color:var(--c2)">…самым сложным оказалось научить проектные группы думать об уязвимых местах в их превосходных конструкторских решениях и заранее это обсуждать.<small>Джентри Ли, главный системный инженер JPL</small></blockquote>
+    <p>Правила ускоряют рутину; стратегический риск требует обсуждения, а не чеклиста.</p>
+  </div>
+
+  <h3 class="rv">Порталы в соседние сборники HBR</h3>
+  <div class="grid g2 rv">
+    <div class="cd"><span class="tag">HBR 10 · Методы принятия решений</span><h4>Канеман · Клейн</h4>
+      <p>Две системы мышления: быстрые эвристики порождают искажения 1–4; распознáнная экспертиза Клейна объясняет, почему элита JPL не видела собственных слепых зон. Спор Канемана и Клейна — теоретический фундамент этого раздела.</p></div>
+    <div class="cd"><span class="tag">HBR 10 · Стратегия</span><h4>Каплан · Нортон · Balanced Scorecard</h4>
+      <p>Ранний Каплан: BSC как система стратегического управления, а не панель KPI. Отсюда прямая нить к Infosys: риск привязывается к целям оценочной ведомости. <button class="linkbtn" data-goto="s4">перейти к кейсу Infosys →</button></p></div>
+  </div>
+</section>
+
+<!-- ================= 04 ================= -->
+<section class="sec" id="s4" data-title="Стратегические риски">
+  <div class="kicker">Категория II · диалог</div>
+  <h2><span class="no">04</span>Стратегические риски: три модели диалога</h2>
+  <div class="rule"></div>
+  <blockquote class="q rv">Наш вывод о том, что универсального рецепта не существует, противоречит убеждениям законодательных органов и профессиональных ассоциаций, которые стремятся стандартизировать управление рисками.</blockquote>
+  <div class="grid g3 rv" id="modelGrid"></div>
+
+  <h3 class="rv">Интеграция через Balanced Scorecard · Infosys</h3>
+  <div class="cd rv">
+    <div class="cat"><span class="dot d2"></span><span class="dot d3"></span></div>
+    <p>Цель в BSC: «усиление связей с клиентами». Метрики: число глобальных клиентов со счетами свыше $50 млн и рост доходов от крупных клиентов. Рассмотрев цели и показатели <i>в совокупности</i>, руководство увидело новый фактор риска — <b>дефолт клиента</b>: мелкий клиент безопасен, клиент на $50 млн — экзистенциален. По каждому крупному клиенту отслеживается риск неуплаты; при росте — ускорение сбора дебиторки или поэтапные платежи.</p>
+    <p>Двойная структура контроля: центральная группа выявляет общие стратегические риски и пишет план; функциональные группы в юнитах реализуют его и эскалируют лишь исключения (менеджер хочет длинную отсрочку клиенту с высоким кредитным риском → дело уходит в центр).</p>
+    <button class="btn" data-dive="company/infosys">открыть досье Infosys ↓</button>
+  </div>
+
+  <h3 class="rv">Артефакты VW do Brasil: карточка события и отчёт о рисках</h3>
+  <div class="paper rv">
+    <div class="ph">Карточка рискового события · VW do Brasil</div>
+    <div class="frow top">
+      <div class="fld"><div class="lb">Стратегическая цель</div><ul><li>Гарантировать надёжность цепочки поставок и обеспечить её конкурентоспособность</li></ul></div>
+      <div class="fld"><div class="lb">Риск</div><ul><li>Сбой поставок</li></ul></div>
+      <div class="fld"><div class="lb">Последствия</div><ul><li>Задержки</li><li>Экстренная перевозка грузов</li><li>Ненадлежащее качество</li><li>Потеря производительности</li></ul></div>
+      <div class="fld"><div class="lb">Показатели риска</div><ul><li>Отчёт о наличии дефицита снабжения</li><li>Задержки в доставке</li><li>Брак</li><li>Неполные партии комплектующих</li></ul></div>
+    </div>
+    <div class="frow bot">
+      <div class="fld"><div class="lb">Вероятность ↑ / значимость →</div>
+        <div class="m5" aria-label="Матрица 5x5, отметка X на пересечении вероятности 3 и значимости 4">
+          <s>5</s><i></i><i></i><i class="hi"></i><i class="hi"></i><i class="hi"></i>
+          <s>4</s><i></i><i></i><i class="hi"></i><i class="hi"></i><i class="hi"></i>
+          <s>3</s><i></i><i></i><i class="hi"></i><i class="x"></i><i class="hi"></i>
+          <s>2</s><i></i><i></i><i></i><i></i><i></i>
+          <s>1</s><i></i><i></i><i></i><i></i><i></i>
+          <s></s><s class="ax">1</s><s class="ax">2</s><s class="ax">3</s><s class="ax">4</s><s class="ax">5</s>
+        </div>
+      </div>
+      <div class="fld"><div class="lb">Меры контроля</div><ul><li>Ежедневные встречи участников цепочки с отделами логистики, закупок и контроля качества</li><li>Мониторинг оборудования поставщика для выявления износа</li><li>Снижение рисков: модернизация оборудования поставщика</li><li>Снижение рисков: контакт с ключевым руководителем отдела снабжения каждого основного поставщика</li></ul></div>
+      <div class="fld"><div class="lb">Ответственный руководитель</div><ul><li>О. Мануэль, директор по логистике и производству</li></ul></div>
+    </div>
+  </div>
+  <div class="paper rv">
+    <div class="ph">Отчёт о рисках · выдержка · структура по стратегическим целям</div>
+    <table class="rep">
+      <thead><tr><th>Стратегическая цель</th><th>Оцениваемые риски</th><th>Критические</th><th>Тенденция</th></tr></thead>
+      <tbody>
+        <tr><td>Увеличить долю рынка</td><td>4</td><td>1</td><td class="tr fl">↔</td></tr>
+        <tr><td>Оправдать ожидания клиентов</td><td>11</td><td>4</td><td class="tr up">↑</td></tr>
+        <tr><td>Улучшить имидж компании</td><td>13</td><td>1</td><td class="tr fl">↔</td></tr>
+        <tr><td>Развить дилерскую сеть</td><td>4</td><td>2</td><td class="tr fl">↔</td></tr>
+        <tr><td>Обеспечить клиентоориентированный инновационный менеджмент</td><td>5</td><td>2</td><td class="tr dn">↓</td></tr>
+        <tr><td>Достичь эффективности управления при запуске новинок</td><td>1</td><td>0</td><td class="tr fl">↔</td></tr>
+        <tr><td>Повысить эффективность технологических процессов</td><td>4</td><td>1</td><td class="tr fl">↔</td></tr>
+        <tr><td>Создать и обеспечить надёжную стратегию увеличения объёмов производства</td><td>2</td><td>1</td><td class="tr dn">↓</td></tr>
+        <tr><td>Гарантировать надёжность цепочки поставок и обеспечить её конкурентоспособность</td><td>9</td><td>3</td><td class="tr fl">↔</td></tr>
+        <tr><td>Разработать привлекательный и инновационный ассортимент</td><td>4</td><td>2</td><td class="tr dn">↓</td></tr>
+      </tbody>
+    </table>
+    <p class="note">↑ — риск растёт (требует вмешательства), ↓ — меры работают, ↔ — стагнация. «Оправдать ожидания клиентов»: 11 рисков, 4 критических, но соотношение улучшилось к прошлому кварталу.</p>
+    <button class="btn" data-dive="company/vw">открыть досье Volkswagen ↓</button>
+  </div>
+
+  <h3 class="rv">Валидация гипотезы · компании Категории II</h3>
+  <div id="v-s4"></div>
+</section>
+
+<!-- ================= 05 ================= -->
+<section class="sec" id="s5" data-title="Функциональная ловушка">
+  <div class="kicker">Вторая ловушка · организационная</div>
+  <h2><span class="no">05</span>Функциональная ловушка: изоляция против стратегии</h2>
+  <div class="rule"></div>
+  <blockquote class="q rv">Банки часто по отдельности управляют тем, что они называют «кредитным риском», «рыночным риском» и «операционным риском». Другие компании выделяют «риск бренда», «риск репутации», «риск цепочки поставок», «риск человеческих ресурсов», «риск IT» и «финансовый риск».</blockquote>
+  <p class="rv">Жёсткое организационное разделение распыляет информацию и ответственность и мешает обсуждению того, как риски <i>взаимодействуют</i>: череду небольших событий, усиливающих друг друга непредсказуемо, не видит ни одно подразделение.</p>
+  <button class="btn gold rv" id="silosBtn">изолированные подразделения ⇄ единый процесс</button>
+  <div id="silosBox" class="rv">
+    <div class="smode" id="modeSilo">
+      <div class="silorow">
+        <div class="silo">кредитный</div><div class="silo">рыночный</div><div class="silo">операционный</div>
+        <div class="silo">IT</div><div class="silo">HR</div><div class="silo">бренд / репутация</div>
+      </div>
+      <div class="siloarrow">▼ информация и ответственность распылены по изолированным подразделениям ▼ корреляции невидимы ▼</div>
+    </div>
+    <div class="smode hide" id="modeInteg">
+      <div class="integ"><b>Слой 1 · Стратегические цели (BSC / стратегическая карта)</b><p style="margin:6px 0 0">Infosys: «риски для стратегических целей, утвержденных в нашей корпоративной оценочной ведомости». VW: карта целей как точка старта обсуждения.</p></div>
+      <div class="integ"><b>Слой 2 · Единый интеграционный процесс обсуждения</b><p style="margin:6px 0 0">Противоположные точки зрения + поиск точек соприкосновения. Дискуссия о рисках — неотъемлемая часть стратегического планирования.</p></div>
+      <div class="integ"><b>Слой 3 · Общее видение: карта рисков, планы, ответственные, капитал</b><p style="margin:6px 0 0">Hydro One: бюджет и аллокация капитала с учётом выявленных рисков.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 ================= -->
+<section class="sec" id="s6" data-title="Масштаб функции">
+  <div class="kicker">Контингентность архитектуры</div>
+  <h2><span class="no">06</span>Размер отдела ≠ размер компании</h2>
+  <div class="rule"></div>
+  <blockquote class="q rv">Эти примеры показывают, что размер и задачи отдела по управлению рисками не зависят от величины организации.</blockquote>
+  <div class="grid g3 rv">
+    <div class="cd"><span class="tag">крупная · стабильная среда</span><h4>Hydro One</h4><p>Относительно <b>небольшая</b> централизованная группа: выявляет риски, информирует организацию, консультирует руководство о распределении ресурсов с учётом рисков. Риск накапливается медленно — достаточно компактной центральной группы.</p><button class="linkbtn" data-dive="company/hydro">досье ↓</button></div>
+    <div class="cd"><span class="tag">небольшие юниты · высокая сложность/волатильность</span><h4>JPL · JP Morgan Private Bank</h4><p>Для <b>каждого проекта</b> — «надзорный» комитет или собственные эксперты: экспертиза конкретной сферы для оценки рисков бизнес-решений. Риск локален и быстр — нужна экспертиза внутри каждого проекта/сделки.</p><button class="linkbtn" data-dive="company/jpl">досье JPL ↓</button> · <button class="linkbtn" data-dive="company/jpm">досье JPM ↓</button></div>
+    <div class="cd"><span class="tag">крупная · широкий охват</span><h4>Infosys</h4><p><b>Гибрид:</b> сильный централизованный отдел + риск-менеджеры в бизнес-подразделениях, оценивающие коммерческие решения и обменивающиеся информацией с центральной группой. Нужны и центр, и риск-менеджеры в подразделениях.</p><button class="linkbtn" data-dive="company/infosys">досье ↓</button></div>
+  </div>
+  <p class="note rv">Масштаб риск-функции определяется не выручкой, а скоростью, с которой реальность способна опровергнуть вашу стратегию.</p>
+</section>
+
+<!-- ================= 07 ================= -->
+<section class="sec" id="s7" data-title="Внешние риски">
+  <div class="kicker">Категория III · управление неуправляемым</div>
+  <h2><span class="no">07</span>Внешние риски: источники и время</h2>
+  <div class="rule"></div>
+  <blockquote class="q rv">Внешние риски в значительной степени неподконтрольны компании, поэтому следует сосредоточиться на их выявлении, оценке их потенциального воздействия и разработке мер по смягчению последствий, если события будут развиваться по нежелательному сценарию.</blockquote>
+
+  <h3 class="rv">Когда внешний риск становится стратегическим</h3>
+  <div class="cd rv">
+    <div class="cat"><span class="dot d3"></span><span class="dot d2"></span></div>
+    <p>После кризиса Infosys обнаружила риск для цели «развитие глобальной рабочей силы»: в странах ОЭСР рос протекционизм, грозящий ограничениями рабочих виз. Технически внешний, он был принят как <b>стратегический</b>: создана карта событий с новым показателем — число и процент сотрудников с двойным гражданством или действующим разрешением на работу вне Индии. Начни оно падать — глобальная стратегия под угрозой. Ответ: новая политика рекрутинга и удержания.</p>
+    <p class="note">Внешний риск становится стратегическим, когда компания меняет политику в ответ — рекрутинг, показатели, бюджет.</p>
+  </div>
+
+  <h3 class="rv">Три источника</h3>
+  <div class="flip rv" id="extFlip">
+    <div class="flip-inner">
+      <div class="face front">
+        <div class="fh">Источники внешних рисков · ось времени</div>
+        <div class="srccard"><span class="hz h0">H+0 · немедленно</span><div><b>Природные и экономические катастрофы</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">В целом предсказуемы, сроки неизвестны: когда-нибудь в Калифорнии случится сильное землетрясение. Сигналы слабые. Вулкан в Исландии-2010, неделя закрытого неба Европы; пузыри и кризисы; Япония-2011: последствия внезапны и незамедлительны.</p></div></div>
+        <div class="srccard"><span class="hz h1">1–3 года</span><div><b>Конкурентные риски</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">Прорывные технологии (интернет, смартфоны, штрихкоды) и неожиданные ходы игроков: вход Amazon в розничную книжную торговлю, Apple — в мобильные телефоны и бытовую электронику.</p></div></div>
+        <div class="srccard"><span class="hz h2">5–10+ лет</span><div><b>Геополитические и экологические изменения</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">Смена политических курсов, перевороты, революции, войны; глобальное потепление; истощение жизненно важных ресурсов, таких как пресная вода.</p></div></div>
+      </div>
+      <div class="face back">
+        <div class="fh">Аналитические подходы</div>
+        <div class="srccard"><span class="hz h2">5–10+ лет</span><div><b>Сценарное планирование</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">Shell Oil, 1960-е. 4 наиболее влиятельных фактора → max/min → 16 сценариев → половина неправдоподобных отбрасывается → стратегия тестируется на оставшихся.</p><button class="linkbtn" data-dive="tool/scen">механика ↓</button></div></div>
+        <div class="srccard"><span class="hz h1">1–3 года</span><div><b>Ролевые тренинги (war-gaming)</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">3–4 команды разрабатывают вероятные краткосрочные стратегии конкурентов; затем встречаются, чтобы выяснить, как конкуренты могут атаковать стратегию их компании.</p><button class="linkbtn" data-dive="tool/war">механика ↓</button></div></div>
+        <div class="srccard"><span class="hz h0">H+0 · немедленно</span><div><b>Стресс-тесты побочного риска</b><p style="margin:4px 0 0;font-size:14px;color:var(--mut)">1–2 параметра и их основные изменения с весомыми и незамедлительными последствиями: троекратный рост цен на нефть, скачки ставок и курсов, дефолт крупного учреждения или суверена.</p><button class="linkbtn" data-dive="tool/stress">механика ↓</button></div></div>
+      </div>
+    </div>
+  </div>
+  <button class="btn gold rv" id="flipBtn">источники ⇄ подходы</button>
+</section>
+
+<!-- ================= 08/09 ================= -->
+<section class="sec" id="s9" data-title="Соотнесение и war-gaming">
+  <div class="kicker">Второй динамический слой</div>
+  <h2><span class="no">08–09</span>Соотнесение: источник ↔ подход</h2>
+  <div class="rule"></div>
+  <p class="lead rv">Линии рисуются сами: время удара диктует инструмент. Пересечения — не ошибка вёрстки, а напоминание, что порядок подходов не совпадает с порядком угроз.</p>
+  <div id="mapWrap" class="rv">
+    <svg id="mapSvg" aria-hidden="true"></svg>
+    <div class="mapcol">
+      <div>
+        <div class="mapnode" id="L-cat"><b style="color:var(--bad)">Катастрофы</b><small>последствия немедленны · сроки неизвестны</small></div>
+        <div class="mapnode" id="L-geo"><b style="color:var(--c3)">Геополитика и экология</b><small>долгосрочные последствия · 5–10+ лет</small></div>
+        <div class="mapnode" id="L-comp"><b style="color:var(--warn)">Конкуренты и технологии</b><small>среднесрочные последствия · 1–3 года</small></div>
+      </div>
+      <div>
+        <div class="mapnode" id="R-scen"><b>Сценарное планирование</b><small>Shell · множественность будущих</small></div>
+        <div class="mapnode" id="R-war"><b>Ролевые тренинги</b><small>вход в голову противника</small></div>
+        <div class="mapnode" id="R-stress"><b>Стресс-тесты побочного риска</b><small>проверка корпуса на разрыв</small></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="rv">Ролевые тренинги (war-gaming)</h3>
+  <div class="cd rv" style="border-color:var(--warn)">
+    <blockquote class="q">Компания назначает три или четыре команды для разработки вероятных краткосрочных стратегий или действий, которые могут предпринять существующие или потенциальные конкуренты в течение ближайшей пары лет – более короткий временнóй интервал, чем при анализе сценариев. Затем команды встречаются, чтобы выяснить, как конкуренты могут атаковать стратегию их компании. Этот процесс помогает преодолеть предвзятость руководителей, которые игнорируют доказательства, противоречащие их нынешним убеждениям.</blockquote>
+    <p>Децентрация эго: доказательства против ваших убеждений генерируют ваши же коллеги, играющие роль врага. Игнорировать их становится неприлично.</p>
+    <button class="btn" data-dive="tool/war">4 шага механики + кейсы ↓</button>
+    <button class="btn" data-dive="company/shell">Shell: отец сценариев ↓</button>
+  </div>
+</section>
+
+<!-- ================= 10 ================= -->
+<section class="sec" id="s10" data-title="Что делать с выявленным">
+  <div class="kicker">Категория III · управление последствиями</div>
+  <h2><span class="no">10</span>Что делать с выявленным: три паттерна митигации</h2>
+  <div class="rule"></div>
+  <blockquote class="q rv">Организации никак не могут повлиять на вероятность возникновения рисков, выявленных с помощью стресс-теста побочного риска, или сценарного планирования, или анализа действий конкурентов. Но менеджеры могут предпринять конкретные шаги, чтобы смягчить последствия рисковых событий.</blockquote>
+  <p class="rv">В формуле риска вероятность задана стихией, геополитикой или врагом. Наша агентность живёт в переменной «последствия».</p>
+  <div class="grid g3 rv">
+    <div class="cd"><span class="tag t3">трансфер</span><h4>Страхование и хеджирование</h4><p>Риск недобросовестности при непредвиденных событиях не возникает — значит удар можно передать третьей стороне.</p><blockquote class="q" style="font-size:.98rem">…как это делают авиаперевозчики, когда защищают себя от резкого повышения цен на топливо с использованием финансовых деривативов.</blockquote></div>
+    <div class="cd"><span class="tag t3">преинвестиция</span><h4>Инвестировать сейчас</h4><p>Купить право на выживание: доплатить сегодня, чтобы не обанкротиться завтра. Атака на предвзятость настоящего.</p><blockquote class="q" style="font-size:.98rem">…производитель, располагающий оборудованием в сейсмически активных регионах, может увеличить стоимость строительства, чтобы защитить критически важные объекты от сильных землетрясений.</blockquote></div>
+    <div class="cd"><span class="tag t3">кооперация</span><h4>Взаимный бэкап несвязанных рисков</h4><p>Независимые угрозы: совместный резерв снижает общий удар.</p><blockquote class="q" style="font-size:.98rem">…центры сбора данных Университета Северной Каролины потенциально могут пострадать от ураганов, в то время как аналогичные центры университетов на разломе Сан-Андреас в Калифорнии уязвимы для землетрясений… два университета снижают свои риски, делая каждый вечер бэкап систем друг друга.</blockquote></div>
+  </div>
+  <h3 class="rv">Валидация гипотезы · компании Категории III</h3>
+  <div id="v-s10"></div>
+</section>
+
+<!-- ================= 11 ================= -->
+<section class="sec" id="s11" data-title="Трудности управления">
+  <div class="kicker">Финал · роль топов</div>
+  <h2><span class="no">11</span>Трудности управления: риск против культуры</h2>
+  <div class="rule"></div>
+  <div class="grid g3 rv">
+    <div class="cd"><h4>Барьер 1 · фокус на негативе</h4><p>Управление рисками фокусируется на угрозах и неудачах, а не на возможностях. Это идёт вразрез с корпоративной культурой «нет ничего невозможного» — постулатом, который лидеры поддерживают при реализации стратегии.</p></div>
+    <div class="cd"><h4>Барьер 2 · временнáя слепота</h4><p>Многие лидеры склонны недооценивать будущее: они неохотно тратят сейчас время и деньги на то, чтобы потом избежать неопределенной проблемы, которая может стать преградой.</p></div>
+    <div class="cd"><h4>Барьер 3 · парадокс концентрации</h4><p>Снижение риска предполагает распределение ресурсов и диверсификацию, тогда как успешная стратегия требует существенной концентрации. Менеджерам культурно чужды процессы, выявляющие риски для сформулированных ими стратегий.</p></div>
+  </div>
+  <blockquote class="q rv">По этим причинам большинству компаний необходимо отдельное подразделение для управления стратегическими и внешними рисками. Его размер будет варьироваться от компании к компании, но в любом случае группа должна отчитываться непосредственно перед топ-менеджерами.</blockquote>
+  <blockquote class="q rv">Это именно то, что отличало банки, потерпевшие крах во время финансового кризиса, от тех, которые выжили в нем. Первые низвели управление рисками до функции отдела по обеспечению нормативно-правового соответствия… Напротив, Goldman Sachs и JP Morgan Chase – две фирмы, которые успешно пережили финансовый кризис, – имели как сильные внутренние подразделения по управлению рисками, так и команды руководителей, которые понимали и контролировали множество корпоративных рисков.</blockquote>
+  <div class="bigq rv">«Хотя я и занимаю эту должность, но главный специалист по управлению рискам компании – генеральный директор Джейми Даймон».<span class="au">БАРРИ ЗУБРОУ · CRO, JP MORGAN CHASE</span></div>
+  <blockquote class="q rv">Способность компании противостоять штормам во многом зависит от того, насколько серьезно лидеры воспринимают свою функцию управления рисками в то время, когда светит солнце и горизонт чист.<small>Тест чистого горизонта: зрелость измеряется инвестицией в риск-менеджмент в момент максимального успеха</small></blockquote>
+  <h3 class="rv">Валидация гипотезы · выжившие и павшие</h3>
+  <div id="v-s11"></div>
+  <div class="bigq rv" style="margin-top:80px">Управление рисками – занятие не интуитивное; оно нуждается в отказе от многих индивидуальных и организационных предубеждений.<span class="au">КАПЛАН · МАЙКС · HBR · 2012</span></div>
+</section>
+
+<footer>Интерактивный опорный конспект по статье Р. Каплана и А. Майкс «Управление рисками: новая система» (HBR, июнь 2012) · сборник «HBR 10 лучших статей. Управление рисками»</footer>
+</main>
+
+<div id="dive" role="dialog" aria-modal="true">
+  <div id="diveBd"></div>
+  <div id="divePn"></div>
+</div>
+
+<script>
+/* ============ ДАННЫЕ ============ */
+const CAT={1:{n:"Предотвратимые",c:"var(--c1)"},2:{n:"Стратегические",c:"var(--c2)"},3:{n:"Внешние",c:"var(--c3)"}};
+const CO={
+bp:{nm:"BP",ind:"нефть и газ · Великобритания",cats:[1,2],sec:"s2",
+ role:{1:"негативный пример: правила Категории I против риска Категории II",2:"стратегическая ставка: глубоководное бурение в Мексиканском заливе"},
+ case12:`<p>В 2007 Тони Хейворд обещал сделать безопасность приоритетом и ввёл правила: закрывать кофейные чашки крышечками при ходьбе, не писать сообщений за рулём. В 2010 на его глазах взорвалась Deepwater Horizon.</p><blockquote class="q">…ошибки руководства, которые парализовали «способность ответственных лиц выявлять риски, надлежащим образом оценивать их, информировать о них и устранять».<small>Комиссия по расследованию</small></blockquote><blockquote class="q">BP серьезно рисковала, решив бурить в Мексиканском заливе скважину глубиной несколько километров, – но она надеялась хорошо заработать на добытых нефти и газе.</blockquote>`,
+ traj:[["2010","катастрофа: 11 погибших, крупнейший морской разлив в истории США"],
+ ["2010–12","иски на ~$40 млрд к подрядчикам (Halliburton, Cameron, Transocean); создание отдельного дивизиона безопасности и операционных рисков"],
+ ["2012","статья HBR фиксирует BP как хрестоматийный провал подмены онтологии риска бюрократией"],
+ ["2020-е","разворот стратегии к энергопереходу; сокращение добычных амбиций"],
+ ["2025","в отчёте безопасности — 5 тяжёлых транспортных инцидентов: энтропия Категории I никуда не делась"]],
+ now:`Компания выжила и осталась мейджором, но Deepwater Horizon навсегда остался учебным примером: правила не масштабируются на хаос. Репутационный шрам не закрыт и через 15 лет.`,
+ vb:"neg",vt:"Негативный пример самой статьи: инструмент Категории I (правила) был приложен к риску Категории II (стратегическая ставка). Система не увидела собственного слепого пятна.",
+ ls:"Правила не масштабируются на хаос."},
+jnj:{nm:"Johnson & Johnson",ind:"фарма и потребтовары · США",cats:[1],sec:"s2",
+ role:{1:"эталон миссии: кредо как первая линия защиты"},
+ case12:`<p>Первый пункт кредо J&J приводится в статье как образец миссии, разъясняющей, чьи интересы приоритетны в любой ситуации.</p><blockquote class="q">Наша основная ответственность – перед врачами, медсестрами и пациентами, перед матерями и отцами, а также перед всеми остальными, кто пользуется нашими продуктами.</blockquote>`,
+ traj:[["1943","создание кредо; 1982 — кризис тайленола как триумф ценностей"],
+ ["2012","статья cites J&J как эталон миссии"],
+ ["2019–21","опиоидный кризис: до $5 млрд в национальном урегулировании на $26 млрд"],
+ ["2021–25","три попытки «техасского двухшага»: банкротство дочерней Red River Talc для изоляции тальковых исков; суды отклоняют"],
+ ["27.07.2026","мировое соглашение $5,5 млрд по ~70 000 исков о тальке"]],
+ now:`Финансово устойчива (долг снижен), но 15 лет litigation-марафона показали: кредо без контура контроля — декорация. Предотвратимый (продуктовый и этический) риск игнорировался десятилетиями под давлением прибыли.`,
+ vb:"bad",vt:"Гипотеза об эталонности опровергнута по Категории I: миссия не предотвратила систематическое игнорирование долгосрочных рисков продукта.",
+ ls:"Ценности — это архитектура, а не алиби."},
+jpl:{nm:"NASA JPL",ind:"космические R&D · США (FFRDC NASA)",cats:[2],sec:"s4",
+ role:{2:"модель независимых экспертов: комитет по рассмотрению рисков"},
+ case12:`<p>Комитет независимых технических экспертов критикует решения инженеров-конструкторов; заседания проходят в «культуре интеллектуальной конфронтации».</p><blockquote class="q">Мы рвем друг друга на части, бросаемся камнями и жестко критикуем все, что происходит в компании.<small>Крис Левицки, член совета</small></blockquote><p>Комитет имеет бюджетные полномочия: резерв 10–20% на усовершенствование концепции и 50–75% на «совершенно новое, что и на Земле-то неизвестно как будет работать». Проекты откладывались или отменялись, если резервов не хватало.</p>`,
+ traj:[["2012","статья cites JPL как эталон Категории II"],
+ ["01.2024","первая волна сокращений"],
+ ["10.2025","−550 человек (~11% штата); моральный дух «упал»"],
+ ["2026","бюджетное предложение: −24% NASA; конгресс отклонил резкие сокращения deep space — осторожное облегчение после 4 волн и 1500+ потерянных мест"]],
+ now:`Внутренняя модель конфронтации жива, но сама организация стала жертвой Категории III: политико-бюджетный цикл неподконтролен даже образцовому процессу.`,
+ vb:"warn",vt:"Частично: эталон по стратегическим рискам, но бессилен перед внешними — никакой внутренний процесс не страхует от ассигнований.",
+ ls:"Культура сомнения спасает проект, но не бюджет."},
+hydro:{nm:"Hydro One",ind:"электропередача · Канада (Онтарио)",cats:[2],sec:"s4",
+ role:{2:"модель фасилитаторов: семинары рисков и аллокация капитала"},
+ case12:`<p>Директор по рискам Джон Фрейзер при поддержке CEO проводит десятки семинаров в год: сотрудники всех уровней выявляют и ранжируют риски стратегических целей, анонимное голосование по шкале 1–5 (последствия, вероятность, контроль), карта рисков, планы и ответственные.</p><p>Капитал и бюджет распределяются с учётом рисков: сотни миллионов долларов направляются в проекты, где риски снижаются эффективно; менеджер защищает заявку перед коллегами и руководством.</p>`,
+ traj:[["2012","статья cites Hydro One как действующую модель"],
+ ["2021","публикация Фрейзера: ERM Hydro One признан одним из самых успешных внедрений в Канаде"],
+ ["2023","пятилетний инвестплан 2023–2027: надёжность, обновление инфраструктуры"],
+ ["10.2026","новый пятилетний план подан в Ontario Energy Board"]],
+ now:`Действует, ERM встроен в инвестиционный цикл и регуляторную отчётность. Крупных провалов риск-менеджмента за 14 лет не зафиксировано.`,
+ vb:"ok",vt:"Подтверждена: 14 лет спустя модель фасилитаторов работает и определяет аллокацию капитала.",
+ ls:"В стабильной среде достаточно компактной центральной группы."},
+jpm:{nm:"JP Morgan (Private Bank / Chase)",ind:"финансовые услуги · США",cats:[2],sec:"s4",
+ role:{2:"модель внутренних экспертов (Private Bank, с 2007); выживший в 2008"},
+ case12:`<p>В каждом отделе — собственные риск-специалисты с двойным подчинением: руководителю отдела и центральному независимому подразделению. Постоянный вопрос «А что, если?..»; оценка влияния сделок на риск всего портфеля в нормальных и экстремальных режимах, когда корреляции растут.</p><blockquote class="q">Например, портфельный менеджер приходит ко мне с тремя сделками, и моделирование показывает, что все три принадлежат к одному и тому же типу риска… В девяти случаях из десяти менеджер сам скажет: «Нет, это не то, чего я хочу». Тогда мы садимся и реструктурируем сделку.<small>Григорий Жикарев, менеджер по рискам JP Morgan</small></blockquote>`,
+ traj:[["2007","переход Private Bank на модель внутренних экспертов"],
+ ["2008","выжил в кризисе: сильные риск-подразделения и вовлечённый топ"],
+ ["05.2012","London Whale: убыток $6+ млрд; ошибка Excel в VaR (сумма вместо среднего); риск-менеджеры не эскалировали сигналы"],
+ ["2013","штрафы регуляторов ~$1 млрд, включая $300 млн OCC за провал риск-менеджмента; бонус Даймона урезан с $23 до $11,5 млн"],
+ ["2014–26","система усилена; риск-аналитика экспортируется клиентам как сервис"]],
+ now:`Крупнейший банк США; провал 2012 года стал учебником функциональной ловушки и провала эскалации, но не экзистенциальным событием.`,
+ vb:"warn",vt:"Частично: модель сработала в 2008 и дала сбой в 2012 («свои» риск-менеджеры, неэскалированные сигналы); банк выжил и учился.",
+ ls:"Встроенный риск-менеджер — зеркало, пока не стал соучастником."},
+infosys:{nm:"Infosys",ind:"IT-услуги · Индия",cats:[2,3],sec:"s4",
+ role:{2:"интеграция рисков через Balanced Scorecard",3:"внешний риск (визовый протекционизм), принятый как стратегический"},
+ case12:`<blockquote class="q">Мы спрашивали себя о том, на каких рисках нужно сфокусироваться… и постепенно сосредоточились на рисках для стратегических целей, утвержденных в нашей корпоративной оценочной ведомости.<small>М. Ранганатх, директор по рискам</small></blockquote><p>Цель «усиление связей с клиентами» + метрики ($50 млн+, рост доходов) → обнаружен риск дефолта крупного клиента; мониторинг кредитной неуплаты, ускорение сбора дебиторки, поэтапные платежи. Двойная структура: центр + функциональные риск-группы в юнитах.</p>`,
+ traj:[["2012","статья cites Infosys как кейс BSC-интеграции"],
+ ["2013–19","визовые и налоговые урегулирования в США: внешний риск протекционизма материализуется"],
+ ["2020-е","рост на цифровых трансформациях"],
+ ["07.2026","даунгрейды JPMorgan и HSBC: слабый спрос, ценовая дефляция от ИИ, расторжение крупного контракта в Energy & Utilities"],
+ ["07.2026","обновлённая политика ERM; интегрированный годовой отчёт 2025–26"]],
+ now:`Устойчива, но рост замедлился. BSC увидела риски, вписанные в цели (дефолт клиента, визы), но не увидела новый класс риска — технологическую дефляцию ИИ.`,
+ vb:"warn",vt:"Частично: инструмент сработал для декларированных целей; новая угроза пришла из-за границы оценочной ведомости.",
+ ls:"Оценочная ведомость видит лишь то, что в неё вписано."},
+vw:{nm:"Volkswagen do Brasil",ind:"автопром · Бразилия / Германия",cats:[2],sec:"s4",
+ role:{2:"стратегическая карта, карточки рисковых событий, отчёт о рисках"},
+ case12:`<p>Подразделение по рискам берёт стратегическую карту как точку старта: для каждой цели выявляются события-препятствия; на каждое — карточка события (воздействие на операции, вероятность, показатели, меры смягчения, ответственный); затем экспертное заключение высшему руководству в отчёте о рисках.</p>`,
+ traj:[["2012","статья cites VW do Brasil как носителя образцового процесса"],
+ ["09.2015","Dieselgate: defeat devices, ~11 млн машин, $30+ млрд штрафов и выкупов; отставка CEO"],
+ ["2016–20-е","глобальные судебные процессы, перестройка governance"],
+ ["02.2026","обвинительное заключение против Volkswagen AG: серьёзный обман клиентов и экологических органов"]],
+ now:`Карточки и карты существовали до скандала и не увидели намеренного мошенничества: предотвратимый риск Категории I уничтожил стратегическую репутацию Категории II.`,
+ vb:"bad",vt:"Опровергнута: образцовый процесс на бумаге не предотвратил этическую катастрофу. Риск-менеджмент без культуры — канцелярщина.",
+ ls:"Карточка видит событие, но не намерение."},
+goldman:{nm:"Goldman Sachs",ind:"инвестиционный банк · США",cats:[2],sec:"s11",
+ role:{2:"выживший в 2008: сильные риск-подразделения и понимающий топ"},
+ case12:`<p>В финале статьи Goldman Sachs и JP Morgan Chase названы фирмами, пережившими кризис благодаря сильным внутренним подразделениям по управлению рисками и командам руководителей, которые понимали и контролировали множество корпоративных рисков.</p>`,
+ traj:[["2008","выжил в кризисе"],
+ ["2012–13","три размещения облигаций 1MDB на $6,5 млрд — «ничто иное как мошеннический обман»"],
+ ["2020","урегулирование ~$2,9–3 млрд (DOJ/SEC/регуляторы); штраф ФРС $154 млн за провал надзора, контроля и риск-менеджмента по 1MDB"],
+ ["2023","приговор экс-банкиру Роджеру Нгу; всего разворовано $2,7+ млрд"],
+ ["2025–26","$500 млн — мировое по коллективному иску акционеров о 1MDB"]],
+ now:`Действует и прибылен, но 1MDB показал: элитная риск-культура капитулирует перед голодом сделки, когда комплаенс низведён до формы.`,
+ vb:"bad",vt:"Опровергнута: пережив внешний шок 2008, банк провалил предотвратимый риск — мошенничество у всех на глазах.",
+ ls:"Риск-культура — не наследие, а ежедневная практика."},
+shell:{nm:"Shell Oil",ind:"нефть и газ · Великобритания / Нидерланды",cats:[3],sec:"s10",
+ role:{3:"пионер сценарного планирования (1960-е)"},
+ case12:`<p>Анализ сценариев, разработанный в Shell Oil в 1960-х: специалисты изучают политические, экономические, технологические, социальные, нормативно-правовые и экологические факторы, выбирают ~4 наиболее влиятельных; max/min на 5–10 лет дают 16 сценариев, половина отбрасывается как неправдоподобные; стратегия тестируется на оставшихся.</p>`,
+ traj:[["1960-е","рождение метода; готовность к нефтяному шоку 1973"],
+ ["2012","40 лет непрерывной практики сценариев"],
+ ["2021–23","сценарии энергоперехода (Sky, Lens) под давлением климатической повестки"],
+ ["2026","Energy Security Scenarios: Archipelagos, Surge, Horizon — три пути перехода в «эпоху безопасности»"],
+ ["02.2026","критика (А. Берман): Shell «называет риски и обнуляет их в дисконте» — разрыв между сценариями и аллокацией капитала"]],
+ now:`Инструмент жив и обновляется шестое десятилетие; открытый вопрос — связка сценариев с реальными инвестиционными решениями.`,
+ vb:"ok",vt:"Подтверждена с оговоркой: преемственность инструмента образцовая, но сценарии не гарантируют ничего, если капитал идёт в противоположную сторону.",
+ ls:"Сценарий — линза, а не автопилот."}
+};
+const AU={
+kaplan:{nm:"Роберт Каплан",s12:"Marvin Bower Professor of Leadership Development, Harvard Business School",
+ known:"Соавтор Balanced Scorecard и Activity-Based Costing; стратегические карты: метрики как мост между стратегией и операцией.",
+ drift:[["2012","HBR: риск как контингентный каркас — три категории, три процессных языка"],
+ ["2013","working paper «Towards a Contingency Theory of ERM» (с Майкс): 250+ интервью с риск-офицерами"],
+ ["2016","«Risk Management — the Revealing Hand»: риск-менеджмент не тормоз инноваций, а рентген реальной стратегии"],
+ ["2020-е","Value-Based Health Care с Майклом Портером: метрики стоимости перенесены в социальные системы"],
+ ["2026","Senior Fellow и Professor Emeritus HBS; продолжает исследования ERM вместе с Анетт Майкс и Dutch Leonard"]],
+ shift:"От «риск как щит для стратегии» → «риск как раскрытие стратегии» → «риск как мера системной ценности»."},
+mikes:{nm:"Анетт Майкс",s12:"Professor, Harvard Business School",
+ known:"«From Counting Risk to Making Risk Count» (2011): boundary-work — как риск-менеджеры завоёвывают право голоса между числами и смыслами.",
+ drift:[["2011","boundary-work: риск-менеджер как граничный работник между калькуляцией и организацией"],
+ ["2012","HBR: контингентная модель трёх категорий"],
+ ["2013–14","контингентная теория ERM; переход в HEC Lausanne"],
+ ["2016","«Revealing Hand»; затем разрыв географий"],
+ ["2019","переход в Оксфорд: Saïd Business School, Fellow Hertford College"],
+ ["2026","Associate Professor of Accounting; конвенор Oxford Ministry for the Future; этический поворот: «Values at Risk», антропогенные катастрофы"]],
+ shift:"От «как считают риск» → «как заставить риск считаться» → «какие ценности мы предаём, когда не считаем»."}
+};
+const BIAS=[
+ {n:"Иллюзия контроля",e:"Люди переоценивают свою способность влиять на события, которые на самом деле в значительной степени определяются случайностью.",l:"Необоснованная вера в собственные рычаги; слепота к регрессии и шуму.",a:"Стресс-тесты и сценарии: расчёт вариантов, где ваша воля не значит ничего."},
+ {n:"Самонадеянность",e:"Мы слишком самонадеянны, когда дело касается точности наших прогнозов и оценок рисков, и не в полной мере представляем себе возможные последствия.",l:"Недооценка «хвостов» распределения последствий.",a:"Резервы JPL 50–75%; взгляд снаружи и премортем (Канеман)."},
+ {n:"Эвристика доступности",e:"Мы привязываем наши оценки к легкодоступным доказательствам, несмотря на то что линейно экстраполировать события прошлого на крайне неопределенное и переменчивое будущее довольно опасно.",l:"Стресс-тесты 2007–08 от стабильных цен на жильё: якорь стал ловушкой.",a:"Сценарное планирование: крайние значения факторов вместо свежих средних."},
+ {n:"Предвзятость подтверждения",e:"…побуждает нас отдавать предпочтение информации (как правило, позитивной), поддерживающей нашу точку зрения, и подавлять информацию (чаще всего негативную), которая ей противоречит.",l:"Сигналы надвигающейся опасности воспринимаются как ложные.",a:"«Адвокаты дьявола» (JPL), «А что, если?..» (JP Morgan), war-gaming."},
+ {n:"Эскалация приверженности",e:"Когда события не соответствуют нашим ожиданиям, мы склонны придерживаться выбранного курса, нерационально вкладывая в него еще больше ресурсов, выбрасывая деньги на ветер.",l:"Нормализация отклонений; деньги на ветер.",a:"Стоп-критерии до старта; независимая переоценка решений."},
+ {n:"Групповое мышление",e:"…после того как какие-то решения или действия получают поддержку большинства, остальные несогласные придерживают при себе свои возражения (хотя и обоснованные) и подчиняются.",l:"Иллюзия единодушия; усиливается властным или самоуверенным лидером.",a:"Анонимное голосование (Hydro One); культура интеллектуальной конфронтации (JPL)."}
+];
+const MODELS=[
+ {id:"ind",t:"Независимые эксперты",co:"jpl",env:"Технологические инновации: долгосрочные, сложные, дорогие проекты; риски диктуются законами природы и мало меняются со временем.",mech:"Комитет по рассмотрению рисков: внешние эксперты критикуют решения конструкторов, переоценивают риски в течение цикла; заседания 1–2 раза в год, глава комитета и руководитель проекта — ежеквартально. Бюджетные полномочия: резервы 10–20% / 50–75%.",flaw:"Дорого; требует элитарной экспертизы; работает только при устойчивом профиле рисков."},
+ {id:"fac",t:"Фасилитаторы",co:"hydro",env:"Стабильная технологическая и рыночная среда, предсказуемый спрос; риски проистекают из разрозненных производственных решений и накапливаются незаметно.",mech:"Небольшая централизованная команда, к которой стекается информация от операционных менеджеров; семинары, анонимное голосование 1–5, карта рисков, планы и ответственные; капитал и бюджет распределяются с учётом рисков.",flaw:"Медленная реакция; пригодна только для низкочастотной среды."},
+ {id:"int",t:"Внутренние эксперты",co:"jpm",env:"Финансовые услуги: волатильность рынков; одна сделка или движение рынка резко меняет характер риска.",mech:"Собственные риск-специалисты в отделах с двойным подчинением; работают бок о бок с линейными менеджерами; стресс-оценка корреляций в экстремальных режимах.",flaw:"Функциональная ловушка: входя в ближайшее окружение руководителей подразделений, риск-менеджеры становятся «своими» — помогают заключать сделки, вместо того чтобы подвергать их сомнению."}
+];
+const TOOLS={
+stress:{t:"Стресс-тесты побочного риска",h:"последствия немедленны",mech:"Компания берёт один-два параметра и рассматривает их основные изменения, последствия которых весомы и незамедлительны, хотя точные сроки события непрогнозируемы.",trap:"Выгоды зависят от предположений, которые сами могут быть предвзятыми: в 2007–08 худший сценарий банков предполагал, что цены на жильё в США выровняются и останутся стабильными. Очень немногим пришло в голову проверить, что произойдёт при резком падении.",case:"Финансовые фирмы: троекратное повышение цен на нефть, значительные колебания обменных и процентных ставок, дефолт крупного учреждения либо суверенной страны.",cos:["jpm","goldman"]},
+scen:{t:"Сценарное планирование",h:"горизонт 5–10 лет",mech:"Политические, экономические, технологические, социальные, нормативно-правовые и экологические факторы → выбор ~4 наиболее влиятельных → max/min на 5–10 лет → 16 сценариев → около половины неправдоподобны и отбрасываются → стратегия тестируется на оставшихся; при оптимистичном основании стратегию меняют или готовят планы переключения по первым сигналам.",trap:"Ломает линейную экстраполяцию: будущее множественно по построению.",case:"Shell Oil, 1960-е; некоторые компании докладывают результаты сценариев консультативным органам.",cos:["shell"]},
+war:{t:"Ролевые тренинги (war-gaming)",h:"горизонт 1–2 года",mech:"Шаг 1: назначаются 3–4 команды. Шаг 2: каждая разрабатывает вероятные краткосрочные стратегии или действия существующих или потенциальных конкурентов на ближайшую пару лет. Шаг 3: команды встречаются, чтобы выяснить, как конкуренты могут атаковать стратегию их компании. Шаг 4: выявленные уязвимости закрываются контрмерами до удара.",trap:"Помогает преодолеть предвзятость руководителей, которые игнорируют доказательства, противоречащие их нынешним убеждениям, и наглядно демонстрирует возможные действия конкурентов по разрушению стратегии.",case:"Прорывные технологии: интернет, смартфоны, штрихкоды. Ходы игроков: вход Amazon на рынок розничной книжной торговли, Apple — в индустрию мобильных телефонов и бытовой электроники.",cos:["shell"]}
+};
+/* ============ ДВИЖОК ============ */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const lit=new Set();
+/* nav */
+const secs=$$(".sec");
+secs.forEach(s=>{const b=document.createElement("button");b.title=s.dataset.title;b.setAttribute("aria-label",s.dataset.title);
+ b.onclick=()=>s.scrollIntoView({behavior:"smooth"});b.dataset.for=s.id;$("#nav").appendChild(b);});
+/* registry chips */
+Object.entries(CO).forEach(([id,c])=>{
+ const b=document.createElement("button");b.className="chip";b.dataset.co=id;
+ b.innerHTML=`<span class="dots">${c.cats.map(k=>`<span class="dot d${k}"></span>`).join("")}</span><span class="nm">${c.nm}</span><span class="ind">${c.ind}</span>`;
+ b.onclick=e=>openDive("company",id,e);$("#chips").appendChild(b);});
+/* biases */
+$("#biasGrid").innerHTML=BIAS.map((b,i)=>`<div class="cd"><span class="tag">искажение ${i+1}</span><h4>${b.n}</h4>
+ <blockquote class="q" style="font-size:.98rem">${b.e}</blockquote>
+ <p style="font-size:14px;color:var(--mut)"><b style="color:var(--bad)">К чему приводит:</b> ${b.l}</p>
+ <p style="font-size:14px"><b style="color:var(--ok)">Антидот:</b> ${b.a}</p></div>`).join("");
+/* models */
+$("#modelGrid").innerHTML=MODELS.map(m=>{const c=CO[m.co];return `<div class="cd"><div class="cat"><span class="dot d2"></span></div>
+ <h4>${m.t}</h4><p style="font-size:13.5px;color:var(--mut)">${m.env}</p>
+ <p style="font-size:14px">${m.mech}</p>
+ <p style="font-size:13px;color:var(--bad)">Изъян: ${m.flaw}</p>
+ <button class="btn" data-dive="company/${m.co}">кейс: ${c.nm} ↓</button></div>`;}).join("");
+/* verdicts */
+function verdicts(box,ids){$(box).innerHTML=ids.map(id=>{const c=CO[id];
+ return `<div class="vd ${c.vb}"><div class="vh"><button class="linkbtn" data-dive="company/${id}">${c.nm} ↓</button>
+ <span class="badge ${c.vb}">${{ok:"гипотеза подтверждена",warn:"частично",bad:"опровергнута",neg:"негативный пример"}[c.vb]}</span></div>
+ <ul>${c.traj.slice(1).map(t=>`<li><b>${t[0]}</b> — ${t[1]}</li>`).join("")}</ul>
+ <p style="font-size:14px">${c.vt}</p><p class="note" style="margin:6px 0 0">Урок: ${c.ls}</p></div>`;}).join("");}
+verdicts("#v-s2",["bp","jnj"]);verdicts("#v-s4",["jpl","hydro","jpm","infosys","vw"]);
+verdicts("#v-s10",["infosys","shell"]);verdicts("#v-s11",["goldman","jpm"]);
+/* observers */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");
+ const id=e.target.id;if(id&&CO&&Object.values(CO).some(c=>c.sec===id)){Object.entries(CO).forEach(([k,c])=>{if(c.sec===id)light(k);});}
+ if(id==="s9")drawMap();
+ io.unobserve(e.target);}}),{threshold:.18});
+$$(".rv, .sec").forEach(el=>io.observe(el));
+function light(id){if(lit.has(id))return;lit.add(id);const ch=$(`.chip[data-co="${id}"]`);if(ch)ch.classList.add("lit");}
+/* scroll progress + active nav */
+addEventListener("scroll",()=>{const h=document.documentElement;$("#prg").style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+"%";
+ let cur=secs[0].id;secs.forEach(s=>{if(s.getBoundingClientRect().top<innerHeight*.4)cur=s.id;});
+ $$("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.for===cur));},{passive:true});
+/* ontology */
+$("#ontoCore").onclick=()=>{$("#onto").classList.toggle("exploded");};
+/* flip & silos */
+$("#flipBtn").onclick=()=>{$("#extFlip").classList.toggle("flipped");};
+$("#silosBtn").onclick=()=>{const a=$("#modeSilo"),b=$("#modeInteg");a.classList.toggle("hide");b.classList.toggle("hide");};
+/* mapping lines */
+function drawMap(){const w=$("#mapWrap");if(!w)return;const svg=$("#mapSvg");const wr=w.getBoundingClientRect();
+ svg.setAttribute("viewBox",`0 0 ${wr.width} ${wr.height}`);svg.innerHTML="";
+ const pairs=[["L-cat","R-stress","var(--bad)"],["L-geo","R-scen","var(--c3)"],["L-comp","R-war","var(--warn)"]];
+ pairs.forEach((p,i)=>{const a=document.getElementById(p[0]).getBoundingClientRect(),b=document.getElementById(p[1]).getBoundingClientRect();
+  const x1=a.right-wr.left,y1=a.top+a.height/2-wr.top,x2=b.left-wr.left,y2=b.top+b.height/2-wr.top;
+  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d",`M${x1},${y1} C${x1+60},${y1} ${x2-60},${y2} ${x2},${y2}`);
+  path.setAttribute("stroke",p[2]);path.setAttribute("pathLength","1");path.style.transitionDelay=(i*.25)+"s";
+  svg.appendChild(path);});
+ requestAnimationFrame(()=>w.classList.add("drawn"));}
+addEventListener("resize",()=>{if($("#mapWrap").classList.contains("drawn")){$("#mapWrap").classList.remove("drawn");drawMap();}});
+/* delegation */
+document.addEventListener("click",e=>{
+ const d=e.target.closest("[data-dive]");if(d){const[t,id]=d.dataset.dive.split("/");openDive(t,id,e);return;}
+ const g=e.target.closest("[data-goto]");if(g){const t=document.getElementById(g.dataset.goto);if(t)t.scrollIntoView({behavior:"smooth",block:"start"});return;}
+});
+/* ============ DIVE ============ */
+let lastFocus=null;
+function openDive(type,id,ev){
+ const pn=$("#divePn");let h="";
+ if(type==="company"){const c=CO[id];
+  h=`<h3>${c.nm}</h3><div class="meta">${c.ind} · категории: ${c.cats.map(k=>CAT[k].n).join(" + ")}</div>
+  <div class="blk"><div class="bt">Роль в статье · 2012</div>${Object.entries(c.role).map(([k,v])=>`<p><span class="tag t${k}">${CAT[k].n}</span> ${v}</p>`).join("")}${c.case12}</div>
+  <div class="blk"><div class="bt">Траектория 2012 → 2026</div><ul class="evlist">${c.traj.map(t=>`<li><b class="y">${t[0]}</b><em>${t[1]}</em></li>`).join("")}</ul></div>
+  <div class="blk"><div class="bt">Состояние на 2026</div><p>${c.now}</p></div>
+  <div class="blk"><div class="bt">Вердикт гипотезе об эталонности</div><div class="vd ${c.vb}" style="margin:0"><div class="vh"><span class="badge ${c.vb}">${{ok:"подтверждена",warn:"частично",bad:"опровергнута",neg:"негативный пример"}[c.vb]}</span></div><p style="font-size:14px">${c.vt}</p><p class="note" style="margin:8px 0 0">Урок: ${c.ls}</p></div></div>`;}
+ else if(type==="author"){const a=AU[id];
+  h=`<h3>${a.nm}</h3><div class="meta">статус на 2012: ${a.s12}</div>
+  <div class="blk"><div class="bt">Известность</div><p>${a.known}</p></div>
+  <div class="blk"><div class="bt">Дрейф статусов и позиций</div><ul class="evlist">${a.drift.map(t=>`<li><b class="y">${t[0]}</b><em>${t[1]}</em></li>`).join("")}</ul></div>
+  <div class="blk"><div class="bt">Сдвиг позиции по теме</div><blockquote class="q">${a.shift}</blockquote></div>`;}
+ else if(type==="tool"){const t=TOOLS[id];
+  h=`<h3>${t.t}</h3><div class="meta">горизонт: ${t.h}</div>
+  <div class="blk"><div class="bt">Механика</div><p>${t.mech}</p></div>
+  <div class="blk"><div class="bt">Когнитивная ловушка, которую ломает</div><blockquote class="q">${t.trap}</blockquote></div>
+  <div class="blk"><div class="bt">Кейсы</div><p>${t.case}</p>${t.cos.map(cid=>`<button class="btn" style="margin:4px 6px 0 0" data-dive="company/${cid}">${CO[cid].nm} ↓</button>`).join("")}</div>`;}
+ else if(type==="cat"){const map={1:{t:"Категория I · Предотвратимые",b:"Внутренние риски: несанкционированные, незаконные, неэтичные, неправильные или неуместные действия сотрудников и менеджеров, сбои повседневных процессов. Можно контролировать — необходимо устранять или избегать.",m:"Активная профилактика на основе правил: миссия, ценности, границы, разделение полномочий, информирование о нарушениях, независимый внутренний аудит. Есть «зона терпимости» к мелочам, устранение которых дороже ущерба.",g:"s2"},
+ 2:{t:"Категория II · Стратегические",b:"Компания добровольно принимает риск ради улучшения стратегических результатов: кредит, R&D, глубоководное бурение. По сути не нежелательны: стратегия высокой прибыли предполагает значительный риск.",m:"Модель без правил: система, снижающая вероятность и сдерживающая последствия; позволяет идти на более высокий риск ради большей прибыли, чем конкуренты. Три структуры: независимые эксперты, фасилитаторы, внутренние эксперты. Всё — внутри стратегического планирования.",g:"s4"},
+ 3:{t:"Категория III · Внешние",b:"События за пределами компании, вне сферы её влияния и контроля: стихийные бедствия, политические и крупные макроэкономические сдвиги, прорывные технологии и ходы конкурентов.",m:"Предотвратить нельзя: выявление (через оценку событий прошлого), оценка воздействия, смягчение последствий. Инструменты по скорости удара: стресс-тесты, сценарии, ролевые тренинги; затем страхование, преинвестиции, кооперация.",g:"s7"}};
+  const c=map[id];h=`<h3>${c.t}</h3><div class="blk"><div class="bt">Природа</div><p>${c.b}</p></div><div class="blk"><div class="bt">Механика управления</div><p>${c.m}</p></div><div class="blk"><button class="btn gold" data-goto="${c.g}" onclick="closeDive()">к разделу →</button></div>`;}
+ pn.innerHTML=`<button class="dx" aria-label="Закрыть" onclick="closeDive()">✕</button>`+h;
+ $("#dive").classList.add("open");document.body.classList.add("diving");
+ if(ev){pn.style.transformOrigin=`${ev.clientX}px ${ev.clientY}px`;}
+ lastFocus=document.activeElement;pn.scrollTop=0;pn.querySelector(".dx").focus();
+ history.pushState({dive:1},"");}
+function closeDive(){$("#dive").classList.remove("open");document.body.classList.remove("diving");
+ if(lastFocus)lastFocus.focus();}
+window.closeDive=closeDive;
+$("#diveBd").onclick=closeDive;
+addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#dive").classList.contains("open"))closeDive();});
+addEventListener("popstate",()=>{if($("#dive").classList.contains("open"))closeDive();});
+</script>
+</body>
+</html>
