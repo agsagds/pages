@@ -265,7 +265,7 @@ section {
   position: relative;
   width: 300px;
   height: 300px;
-  margin: var(--space-lg) auto;
+  margin: var(--space-xl) auto;
 }
 
 .core-btn {
@@ -429,7 +429,9 @@ section {
   border-radius: 2px;
   display: flex;
   align-items: center;
-  justify-content:  font-size: 0.7rem;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
   color: var(--ink-muted);
 }
 .matrix-5x5 .cell.active { background: var(--accent-gold); color: var(--bg-void); font-weight: 700; }
@@ -471,21 +473,17 @@ section {
    ========================================= */
 .flip-container {
   perspective: 1500px;
-  height: 400px;
   margin: var(--space-lg) 0;
 }
 .flip-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  display: grid;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   transform-style: preserve-3d;
 }
 .flip-container.flipped .flip-inner { transform: rotateY(180deg); }
 
 .flip-face {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   background: var(--bg-surface);
@@ -496,6 +494,7 @@ section {
   flex-direction: column;
   gap: var(--space-sm);
 }
+.flip-face .card { flex-shrink: 0; }
 .flip-back { transform: rotateY(180deg); }
 
 .map-wrapper {
@@ -628,7 +627,6 @@ section {
   .satellite { width: 90px; padding: 0.5rem; }
   .satellite h4 { font-size: 0.7rem; }
   .satellite p { display: none; }
-  .flip-container { height: 500px; }
 }
 
 /* =========================================
@@ -676,7 +674,7 @@ section {
     </div>
   </div>
   
-  <div class="container" style="text-align: left; margin-top: var(--space-xl);">
+  <div class="container" style="text-align: left; margin-top: var(--space-lg); width: min(1200px, 100%);">
     <h3 class="reveal">Авторы: Эволюция идеи</h3>
     <div class="grid grid-2 reveal">
       <div class="card">
@@ -687,7 +685,18 @@ section {
       <div class="card">
         <span class="badge badge-3">2012 → 2026</span>
         <h4 style="margin-top: 0.5rem;">Анетт Майкс</h4>
-        <p style="color: var(--ink-secondary); font-size: 0.9rem;">От «калькулятивн�еестр объектов</div>
+        <p style="color: var(--ink-secondary); font-size: 0.9rem;">От «калькулятивных культур» к этическому повороту в Оксфорде. Главный вопрос сместился с «как посчитать VaR?» на «какие ценности мы предаём?».</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     REGISTRY
+     ========================================= -->
+<section id="registry">
+  <div class="container">
+    <div class="kicker">Реестр объектов</div>
     <h2 class="reveal">Действующие лица</h2>
     <p class="lead reveal">Девять компаний-архетипов. Их статус «эталонности» будет проверен временем и кризисами 2012–2026 годов.</p>
     <div class="registry reveal" id="chipRegistry"></div>
@@ -738,7 +747,25 @@ section {
   <div class="container">
     <div class="kicker">Когнитивная архитектура</div>
     <h2 class="reveal">Враг внутри процессора</h2>
-    <p class="lead reveal">Категории II и III требуют диалога. Но мозг саботирует диалог. Риск-менеджментбрасывает эта концентрация. Нельзя генерировать избыточную доходность, не поглощая неопределенность.</p>
+    <p class="lead reveal">Категории II и III требуют диалога. Но мозг саботирует диалог. Риск-менеджмент терпит неудачу не из-за плохих процессов, а из-за того, что эти процессы идут вразрез с эволюционной прошивкой.</p>
+    
+    <div class="grid grid-2 reveal" style="margin-top: var(--space-lg);" id="biasGrid"></div>
+
+    <div class="quote reveal">
+      Разрешающие и запрещающие правила здесь не помогут. Фактически они производят противоположный эффект: в команде поощряется стереотипность мышления, которое подавляет критику.
+      <cite>Парадокс JPL: Правила защищают от известных ошибок прошлого, но делают слепым к неизвестным угрозам будущего.</cite>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     CATEGORY 2: STRATEGIC
+     ========================================= -->
+<section id="cat-2-section">
+  <div class="container">
+    <div class="kicker">Категория II · Навигация</div>
+    <h2 class="reveal">Стратегические риски: Тень концентрации</h2>
+    <p class="lead reveal">Стратегия требует концентрации ресурсов. Риск — это тень, которую отбрасывает эта концентрация. Нельзя генерировать избыточную доходность, не поглощая неопределенность.</p>
 
     <div class="grid grid-3 reveal" style="margin-top: var(--space-lg);">
       <div class="card">
@@ -775,7 +802,17 @@ section {
             <div class="cell header"></div><div class="cell header">1</div><div class="cell header">2</div><div class="cell header">3</div><div class="cell header">4</div><div class="cell header">5</div>
             <div class="cell header">5</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
             <div class="cell header">4</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell active">X</div><div class="cell"></div>
-            <div class="cell header">3</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class"verdict reveal">
+            <div class="cell header">3</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell header">2</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell header">1</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          </div>
+          <p style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); margin: 1rem 0 0.5rem;">ОТВЕТСТВЕННЫЙ</p>
+          <p>О. Мануэль, директор по логистике</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict reveal">
       <div class="stamp bad">Опровергнута</div>
       <h4>Volkswagen · Dieselgate (2015)</h4>
       <p style="color: var(--ink-secondary);">Образцовые карточки и стратегические карты не увидели намеренного мошенничества. Инструменты Категории II бессильны, когда токсична корпоративная культура (Категория I).</p>
@@ -811,7 +848,7 @@ section {
   <div class="container">
     <div class="kicker">Категория III · Антихрупкость</div>
     <h2 class="reveal">Внешние риски: Управление последствиями</h2>
-    <p class="lead reveal">В формуле $Risk = P \times I$ для внешних рисков вероятность ($P$) задана стихией или врагом. Наша агентность живет исключительно в переменной последствий ($I$).</p>
+    <p class="lead reveal">В формуле Risk = P × I для внешних рисков вероятность (P) задана стихией или врагом. Наша агентность живёт исключительно в переменной последствий (I).</p>
 
     <div class="flip-container reveal" id="flipBox">
       <div class="flip-inner">
@@ -825,7 +862,19 @@ section {
             <h4>Конкуренты [1–3 года]</h4>
             <p style="font-size: 0.9rem; color: var(--ink-secondary);">Прорывные технологии, агрессивные ходы. Угроза морального устаревания.</p>
           </div>
-          <div class="card" sss="card" style="border-left: 3px solid var(--cat-2);">
+          <div class="card" style="border-left: 3px solid var(--cat-3);">
+            <h4>Геополитика / Экология [5–10 лет]</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Медленный дрейф, смена парадигм, истощение ресурсов.</p>
+          </div>
+          <button class="btn btn-primary" id="flipBtn" style="margin-top: auto; align-self: flex-start;">Перевернуть: Аналитические подходы →</button>
+        </div>
+        <div class="flip-face flip-back">
+          <h3 style="color: var(--accent-gold);">Инструменты навигации</h3>
+          <div class="card" style="border-left: 3px solid var(--cat-1);">
+            <h4>Стресс-тесты (Буферизация)</h4>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">Проверка корпуса на разрыв. Создание резервов ликвидности. Провал 2008: тестировали стабильность, а не крах.</p>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--cat-2);">
             <h4>War-gaming (Децентрация эго)</h4>
             <p style="font-size: 0.9rem; color: var(--ink-secondary);">Ролевые тренинги. Вход в голову врага. Преодоление когнитивного нарциссизма руководства.</p>
           </div>
@@ -838,7 +887,7 @@ section {
       </div>
     </div>
 
-    <h3 class="reveal">Три паттерна митигации ($I$)</h3>
+    <h3 class="reveal">Три паттерна митигации (I)</h3>
     <div class="grid grid-3 reveal">
       <div class="card">
         <h4>1. Трансфер</h4>
@@ -876,7 +925,26 @@ section {
     <div class="verdict reveal" style="max-width: 800px; margin: 0 auto; text-align: left;">
       <div class="stamp warn">Частично</div>
       <h4>Goldman Sachs · 1MDB Scandal</h4>
-      <p style="color: var(--ink-secondary);">Пережив внешний шок 20lose" id="dive-close">✕</button>
+      <p style="color: var(--ink-secondary);">Пережив внешний шок 2008 года благодаря сильной культуре, банк провалил предотвратимый риск (мошенничество) в 2012-2015. Элитная риск-культура капитулирует перед голодом сделки.</p>
+    </div>
+
+    <div class="quote reveal" style="margin-top: var(--space-xl); border-left: none; padding: 0; text-align: center; font-size: 1.5rem;">
+      Управление рисками – это не попытка укротить стихию. Это искусство проектирования последствий.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================
+     DIVE OVERLAY
+     ========================================= -->
+<div id="dive-overlay">
+  <div id="dive-panel">
+    <div class="dive-header">
+      <div>
+        <div class="kicker" id="dive-kicker">Досье объекта</div>
+        <h2 id="dive-title">Название</h2>
+      </div>
+      <button class="dive-close" id="dive-close">✕</button>
     </div>
     <div id="dive-content"></div>
   </div>
@@ -904,8 +972,12 @@ const DATA = {
     { name: 'Эвристика доступности', desc: 'Опасная линейная экстраполяция прошлого.', antidote: 'Сценарии Shell' },
     { name: 'Предвзятость подтверждения', desc: 'Подавление негативных сигналов.', antidote: 'Адвокат дьявола' },
     { name: 'Эскалация приверженности', desc: 'Нерациональное вливание ресурсов в провальный курс.', antidote: 'Стоп-критерии' },
-    { name: 'Групповое мышление', desc: 'иск как фильтр аллокации капитала.</li><li><b>Внутренние эксперты (JPM):</b> Риск-менеджер как зеркало.</li></ul><h4>Философия</h4><p>Риск — это тень стратегии. Невозможно генерировать избыточную доходность, не поглощая неопределенность.</p>` },
-    'cat-3': { title: 'Категория III: Внешние', kicker: 'Хаос и Антихрупкость', body: `<p>События за пределами контроля компании. Вероятность ($P$) задана стихией, наша агентность — в последствиях ($I$).</p><h4>Инструменты</h4><ul><li><b>Стресс-тесты:</b> Буферизация против шоков (H+0).</li><li><b>War-gaming:</b> Децентрация эго против конкурентов (1-3 года).</li><li><b>Сценарии:</b> Множественность будущих против дрейфа (5-10 лет).</li></ul><h4>Философия</h4><p>Мы не можем остановить ветер. Но мы можем настроить паруса, укрепить корпус и изучить тактику врага.</p>` }
+    { name: 'Групповое мышление', desc: 'Иллюзия единодушия под властным лидером.', antidote: 'Анонимное голосование' }
+  ],
+  diveContent: {
+    'cat-1': { title: 'Категория I: Предотвратимые', kicker: 'Внутренняя энтропия', body: `<p>Риски, возникающие внутри организации. Их можно контролировать и необходимо устранять.</p><h4>Инструменты</h4><ul><li>Миссия и Ценности (позитивная регуляция)</li><li>Границы и Кодексы (негативная регуляция / апофатика)</li><li>Разделение полномочий и Whistleblowing</li></ul><h4>Философия</h4><p>Правила защищают от известных ошибок прошлого. Но они же делают организацию слепой к неизвестным угрозам будущего, если применяются к Категории II.</p>` },
+    'cat-2': { title: 'Категория II: Стратегические', kicker: 'Навигация и Ставка', body: `<p>Компания добровольно принимает риск ради сверхприбыли. По сути не нежелательны.</p><h4>Модели</h4><ul><li><b>Независимые эксперты (JPL):</b> Культура интеллектуальной конфронтации.</li><li><b>Фасилитаторы (Hydro One):</b> Риск как фильтр аллокации капитала.</li><li><b>Внутренние эксперты (JPM):</b> Риск-менеджер как зеркало.</li></ul><h4>Философия</h4><p>Риск — это тень стратегии. Невозможно генерировать избыточную доходность, не поглощая неопределенность.</p>` },
+    'cat-3': { title: 'Категория III: Внешние', kicker: 'Хаос и Антихрупкость', body: `<p>События за пределами контроля компании. Вероятность (P) задана стихией, наша агентность — в последствиях (I).</p><h4>Инструменты</h4><ul><li><b>Стресс-тесты:</b> Буферизация против шоков (H+0).</li><li><b>War-gaming:</b> Децентрация эго против конкурентов (1-3 года).</li><li><b>Сценарии:</b> Множественность будущих против дрейфа (5-10 лет).</li></ul><h4>Философия</h4><p>Мы не можем остановить ветер. Но мы можем настроить паруса, укрепить корпус и изучить тактику врага.</p>` }
   }
 };
 
@@ -946,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
   coreBtn.addEventListener('click', () => {
     ontology.classList.toggle('exploded');
     coreBtn.classList.toggle('active');
-    coreBtn.textContent = ontology.classList.contains('exploded') ? 'СВЕРНУТЬ' : 'РАСКРЫТЬ\nСИСТЕМУ';
+    coreBtn.innerHTML = ontology.classList.contains('exploded') ? 'СВЕРНУТЬ' : 'РАСКРЫТЬ<br>СИСТЕМУ';
   });
 
   // 4. Satellites Dive
@@ -967,7 +1039,20 @@ document.addEventListener('DOMContentLoaded', () => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        // LById('dive-close');
+        // Light up chips if company section is visible
+        if (entry.target.id === 'cat-1-section') lightChips([1]);
+        if (entry.target.id === 'cat-2-section') lightChips([2]);
+        if (entry.target.id === 'cat-3-section') lightChips([3]);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal, #cat-1-section, #cat-2-section, #cat-3-section').forEach(el => observer.observe(el));
+
+  // 7. Dive Logic
+  const overlay = document.getElementById('dive-overlay');
+  const panel = document.getElementById('dive-panel');
+  const closeBtn = document.getElementById('dive-close');
 
   window.openDive = function(type, data) {
     document.getElementById('dive-kicker').textContent = type === 'company' ? `Досье · ${data.industry}` : 'Концепция';
