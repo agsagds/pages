@@ -249,6 +249,16 @@
       "questionCount": 9,
       "created": "2026-10",
       "order": 25
+    },
+    {
+      "id": "ctr-svd-catboost",
+      "title": "AI/ML: CTR, SVD и CatBoost",
+      "description": "Прогноз CTR в аукционах, разреженность, one-hot и target encoding, SVD-факторизация и CatBoost",
+      "icon": "📉",
+      "time": "~5 мин",
+      "questionCount": 18,
+      "created": "2026-11",
+      "order": 26
     }
   ]
 }
