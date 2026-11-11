@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Игра на понижение · Карта акторов и рисков</title>
+<meta name="description" content="Интерактивная иллюстрация к докладу: акторы кризиса 2008 года, их риски по Каплану–Майкс и модели TTR/REI.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/600.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5/index.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+--ink:#06090F;--ink2:#0A0F18;--surf:#101825;--line:rgba(236,230,219,.10);--line2:rgba(236,230,219,.18);
+--text:#ECE6DB;--muted:#93A2B8;--dim:#65758E;
+--gold:#FFC24B;--mint:#5FE3A1;--rose:#FF5D8F;--coral:#FF8A5B;--peri:#8AB4FF;--cyan:#35D0FF;--violet:#C084FC;
+--danger:#FF4D5E;--warn:#FFB020;--ok:#4ADE80;--info:#60A5FA;
+--topH:96px;--r:14px;--ease:cubic-bezier(.2,.8,.2,1)}
+html{scroll-behavior:smooth}
+body{margin:0;padding-top:var(--topH);background:var(--ink);color:var(--text);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Oswald','Inter',sans-serif;font-weight:600;letter-spacing:.4px;margin:0}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none;padding:0}
+::selection{background:rgba(255,194,75,.3)}
+*{scrollbar-width:thin;scrollbar-color:rgba(255,194,75,.45) rgba(255,255,255,.04)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:8px}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(255,194,75,.55),rgba(255,93,143,.5));border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--gold),var(--rose));background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+radial-gradient(42% 36% at 16% 12%,rgba(255,194,75,.14),transparent 70%),
+radial-gradient(36% 34% at 84% 10%,rgba(255,93,143,.10),transparent 68%),
+radial-gradient(40% 40% at 70% 88%,rgba(53,208,255,.08),transparent 70%),
+linear-gradient(#06090F,#0A0F18)}
+.top{position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(6,9,15,.94);border-bottom:1px solid var(--line)}
+.top__row{display:flex;align-items:center;gap:16px;padding:11px 22px;max-width:1560px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand svg{flex:none}
+.brand__t{font-family:'Oswald',sans-serif;font-weight:600;font-size:16px;letter-spacing:1.4px;text-transform:uppercase;white-space:nowrap}
+.brand__s{font-size:10.5px;color:var(--dim);letter-spacing:.7px;text-transform:uppercase;white-space:nowrap}
+.top__sp{flex:1}
+.prog{display:flex;align-items:center;gap:9px}
+.prog__bar{width:88px;height:5px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.prog__bar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--mint),var(--gold));transition:width .5s var(--ease)}
+.prog__n{font-size:11.5px;color:var(--muted);letter-spacing:.5px}
+.tbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--line2);border-radius:10px;font-size:12.5px;color:var(--text);background:rgba(255,255,255,.03);transition:.22s var(--ease);white-space:nowrap}
+.tbtn:hover{border-color:var(--gold);color:var(--gold);background:rgba(255,194,75,.1);transform:translateY(-1px)}
+.tbtn--go{background:linear-gradient(120deg,rgba(255,194,75,.2),rgba(255,93,143,.16));border-color:rgba(255,194,75,.4)}
+.icobtn{width:32px;height:32px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:.2s}
+.icobtn:hover{color:var(--gold);border-color:var(--gold)}
+.ticker{border-top:1px solid var(--line);background:rgba(10,15,24,.7);overflow:hidden;height:31px;display:flex;align-items:center;position:relative}
+.ticker::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,var(--ink),transparent 6%,transparent 94%,var(--ink))}
+.tick__track{display:flex;gap:34px;white-space:nowrap;animation:tick 90s linear infinite;padding-left:22px;will-change:transform}
+.ticker:hover .tick__track{animation-play-state:paused}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick__i{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--dim);letter-spacing:.4px;display:inline-flex;gap:8px;align-items:center}
+.tick__i b{font-weight:500;color:var(--muted)}
+.dn{color:var(--danger)}.up{color:var(--mint)}.fl{color:var(--gold)}
+.wrap{max-width:1560px;margin:0 auto;padding:0 22px}
+section{scroll-margin-top:calc(var(--topH) + 18px)}
+.hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.85fr);gap:26px;align-items:end;padding:30px 0 22px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.hero h1{font-size:clamp(30px,4.6vw,52px);line-height:.98;text-transform:uppercase;background:linear-gradient(100deg,#FFF3DC 8%,var(--gold) 42%,var(--coral) 68%,var(--rose) 96%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);max-width:64ch;margin:12px 0 0;font-size:14.5px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.lg{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line);border-radius:99px;font-size:11.5px;color:var(--muted);transition:.2s var(--ease);background:rgba(255,255,255,.02)}
+.lg:hover,.lg.on{color:var(--text);border-color:currentColor;transform:translateY(-1px)}
+.lg i{width:8px;height:8px;border-radius:50%;box-shadow:0 0 9px currentColor}
+.lg[data-cat="1"] i{background:var(--warn);color:var(--warn)}
+.lg[data-cat="2"] i{background:var(--cyan);color:var(--cyan)}
+.lg[data-cat="3"] i{background:var(--violet);color:var(--violet)}
+.howto{border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;background:linear-gradient(150deg,rgba(22,32,47,.85),rgba(10,15,24,.7))}
+.howto h4{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.howto ol{margin:0;padding:0;list-style:none;display:grid;gap:9px}
+.howto li{display:flex;gap:10px;font-size:12.8px;color:var(--muted);align-items:flex-start}
+.howto b{font-family:'IBM Plex Mono',monospace;color:var(--gold);font-size:11px;border:1px solid rgba(255,194,75,.35);border-radius:6px;padding:1px 6px;flex:none;margin-top:1px}
+.pipe{border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(160deg,rgba(16,24,37,.9),rgba(8,12,20,.75));padding:14px 16px 12px;margin-bottom:18px;position:relative;overflow:hidden}
+.pipe__hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.pipe__hd h3{font-size:13px;letter-spacing:1.7px;text-transform:uppercase}
+.pipe__hd span{font-size:11.5px;color:var(--dim)}
+.sw{display:inline-flex;align-items:center;gap:9px;margin-left:auto;font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:5px 12px 5px 8px;transition:.2s}
+.sw i{width:28px;height:15px;border-radius:99px;background:rgba(255,255,255,.1);position:relative;transition:.25s var(--ease)}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--muted);transition:.25s var(--ease)}
+.sw.on{color:var(--danger);border-color:rgba(255,77,94,.5)}
+.sw.on i{background:rgba(255,77,94,.3)}
+.sw.on i::after{left:15px;background:var(--danger);box-shadow:0 0 8px var(--danger)}
+.flow{display:flex;align-items:stretch;overflow-x:auto;padding-bottom:8px}
+.st{flex:1 0 138px;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:rgba(255,255,255,.025);text-align:left;transition:.25s var(--ease);position:relative}
+.st:hover{border-color:var(--gold);background:rgba(255,194,75,.08);transform:translateY(-2px)}
+.st.on{border-color:var(--gold);background:rgba(255,194,75,.13);box-shadow:0 0 0 1px rgba(255,194,75,.25),0 8px 24px -12px var(--gold)}
+.st__n{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:1px}
+.st__t{display:block;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.5px;margin:2px 0 1px;text-transform:uppercase}
+.st__s{display:block;font-size:10.5px;color:var(--dim);line-height:1.3}
+.st__c{position:absolute;top:8px;right:9px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);background:rgba(255,255,255,.07);border-radius:5px;padding:1px 5px}
+.lnk{flex:0 0 26px;position:relative;align-self:center;height:2px;background:linear-gradient(90deg,rgba(255,194,75,.15),rgba(255,194,75,.4));margin:0 2px;border-radius:2px}
+.lnk::after{content:"";position:absolute;top:-2px;left:10px;width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.7}
+.pipe.rev .lnk{background:linear-gradient(270deg,rgba(255,77,94,.15),rgba(255,77,94,.45))}
+.pipe.rev .lnk::after{background:var(--danger)}
+.pipe.rev .st{border-color:rgba(255,77,94,.28)}
+.offc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.offc>span{font-size:11px;color:var(--dim);align-self:center;margin-right:2px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:11px 13px;border:1px solid var(--line);border-radius:var(--r);background:rgba(10,15,24,.97);margin-bottom:16px;position:sticky;top:calc(var(--topH) + 8px);z-index:40}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:10px;padding:7px 11px;background:rgba(255,255,255,.03);min-width:200px;flex:1 1 200px;max-width:300px}
+.search input{border:none;background:none;outline:none;width:100%;font-size:13px}
+.search input::placeholder{color:var(--dim)}
+.search svg{flex:none;color:var(--dim)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 11px;border:1px solid var(--line);border-radius:99px;font-size:11.5px;color:var(--muted);transition:.2s var(--ease);white-space:nowrap}
+.chip:hover{color:var(--text);border-color:var(--line2);background:rgba(255,255,255,.05)}
+.chip.on{color:var(--ink);font-weight:600;border-color:transparent;background:var(--cc,var(--gold));box-shadow:0 4px 16px -6px var(--cc,var(--gold))}
+.chip[data-layer="short"]{--cc:var(--mint)}.chip[data-layer="chain"]{--cc:var(--gold)}.chip[data-layer="cover"]{--cc:var(--rose)}
+.chip[data-layer="people"]{--cc:var(--coral)}.chip[data-layer="state"]{--cc:var(--peri)}
+.sel{border:1px solid var(--line2);border-radius:10px;padding:7px 30px 7px 11px;background:rgba(255,255,255,.03);font-size:12px;outline:none;appearance:none;
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%2393A2B8' stroke-width='1.6'%3E%3Cpath d='M2 4.5 6 8.5 10 4.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.sel option{background:#101825;color:var(--text)}
+.tgl{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:99px;font-size:11.5px;color:var(--muted);transition:.2s}
+.tgl.on{color:var(--gold);border-color:rgba(255,194,75,.5);background:rgba(255,194,75,.1)}
+.tgl i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.5}
+.tgl.on i{opacity:1;box-shadow:0 0 8px currentColor}
+.bar__end{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cnt{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--dim);white-space:nowrap}
+.active-f{display:inline-flex;align-items:center;gap:6px;padding:5px 8px 5px 11px;border-radius:99px;font-size:11.5px;background:rgba(255,194,75,.14);border:1px solid rgba(255,194,75,.4);color:var(--gold)}
+.active-f button{color:inherit;font-size:14px;line-height:1;padding:0 2px}
+.mosaic{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:56px;gap:12px;grid-auto-flow:dense;padding-bottom:8px}
+.tile{position:relative;text-align:left;border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 12px;overflow:hidden;background:linear-gradient(158deg,var(--surf) 0%,var(--ink2) 92%);transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column;gap:5px;grid-column:span var(--cols,3);grid-row:span var(--rows,2);content-visibility:auto;contain-intrinsic-size:auto 140px}
+.tile::after{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--c),transparent);opacity:.85}
+.tile:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);box-shadow:0 10px 28px -18px var(--c)}
+.tile:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.tile__top{display:flex;align-items:center;gap:8px}
+.tile__idx{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:1px}
+.tile__lay{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--c);opacity:.9}
+.tile__seen{margin-left:auto;color:var(--mint);opacity:0;transition:.3s;display:flex}
+.tile.seen .tile__seen{opacity:1}
+.tile__name{font-family:'Oswald',sans-serif;font-weight:600;font-size:clamp(15px,2.1vw + 0.4vh,24px);line-height:1.12;letter-spacing:.4px;text-transform:uppercase;overflow-wrap:anywhere}
+.tile__org{font-size:11.5px;color:var(--muted);line-height:1.35}
+.tile__role{font-size:12px;color:var(--dim);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mosaic.compact .tile__role{display:none}
+.mosaic.compact{grid-auto-rows:48px;gap:9px}
+.mosaic.compact .tile{padding:10px 11px 9px}
+.mosaic.compact .tile__name{font-size:15px}
+.tile__foot{margin-top:auto;padding-top:8px;display:flex;align-items:center;gap:9px}
+.rei{flex:1;display:flex;align-items:center;gap:7px}
+.rei__l{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);letter-spacing:.6px}
+.rei__b{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.rei__b i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--mint),var(--gold) 55%,var(--danger))}
+.rei__v{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted)}
+.dots{display:flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;display:block}
+.dots i[data-c="1"]{background:var(--warn)}.dots i[data-c="2"]{background:var(--cyan)}.dots i[data-c="3"]{background:var(--violet)}
+.hid{position:absolute;top:0;right:0;font-size:9px;letter-spacing:.9px;text-transform:uppercase;padding:3px 8px;border-radius:0 var(--r) 0 9px;background:linear-gradient(120deg,rgba(255,77,94,.9),rgba(255,93,143,.85));color:#12060A;font-weight:700}
+ .empty{grid-column:1/-1;text-align:center;padding:56px 20px;border:1px dashed var(--line2);border-radius:var(--r);color:var(--muted)}
+.empty h3{font-size:20px;text-transform:uppercase;margin-bottom:8px;color:var(--text)}
+.foot{margin:34px 0 40px;padding-top:18px;border-top:1px solid var(--line);display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:var(--dim);font-size:11.5px}
+.foot b{color:var(--muted);font-weight:500}
+.ov{position:fixed;inset:0;z-index:100;display:none}
+.ov.on{display:block}
+.ov__scrim{position:absolute;inset:0;background:rgba(3,5,10,.82)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.ov__stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:20px;pointer-events:none}
+.card,.glos{pointer-events:auto;display:flex;flex-direction:column;max-height:min(90vh,880px);border:1px solid var(--line2);border-radius:18px;overflow:hidden;background:linear-gradient(165deg,#131C2A 0%,#0A0F18 90%);box-shadow:0 40px 90px -30px #000,0 0 0 1px rgba(255,255,255,.03)}
+.card{width:min(730px,100%)}
+.card__hd{position:relative;padding:17px 20px 14px;border-bottom:1px solid var(--line);background:linear-gradient(120deg,color-mix(in srgb,var(--c) 14%,transparent),transparent 70%)}
+.card__hd::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--c),transparent)}
+.card__meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+.tag{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-radius:99px;padding:2px 8px}
+.card__meta .mono{font-size:10.5px;color:var(--dim);letter-spacing:1px}
+.vd{margin-left:auto;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:99px;font-weight:600}
+.vd[data-t="win"]{background:rgba(74,222,128,.16);color:var(--ok);border:1px solid rgba(74,222,128,.4)}
+.vd[data-t="dead"]{background:rgba(255,77,94,.16);color:var(--danger);border:1px solid rgba(255,77,94,.4)}
+.vd[data-t="saved"]{background:rgba(255,176,32,.15);color:var(--warn);border:1px solid rgba(255,176,32,.4)}
+.vd[data-t="shift"]{background:rgba(96,165,250,.15);color:var(--info);border:1px solid rgba(96,165,250,.4)}
+.vd[data-t="hurt"]{background:rgba(255,138,91,.15);color:var(--coral);border:1px solid rgba(255,138,91,.4)}
+.card__name{font-size:27px;line-height:1.05;text-transform:uppercase;padding-right:38px}
+.card__sub{font-size:12.5px;color:var(--muted);margin-top:5px}
+.card__sub em{color:var(--dim);font-style:normal}
+.xbtn{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);transition:.2s;background:rgba(0,0,0,.25)}
+.xbtn:hover{color:var(--danger);border-color:var(--danger);transform:rotate(90deg)}
+.card__body{overflow-y:auto;padding:16px 20px 18px;display:flex;flex-direction:column;gap:14px;cursor:help}
+.role{font-size:14.5px;line-height:1.45;margin:0}
+.metrics{display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:10px}
+.met{border:1px solid var(--line);border-radius:11px;padding:8px 11px;background:rgba(255,255,255,.025)}
+.met__k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1.3px;color:var(--dim);text-transform:uppercase}
+.met__v{font-family:'Oswald',sans-serif;font-size:17px;margin-top:2px;letter-spacing:.5px}
+.met__v.txt{font-family:'Inter',sans-serif;font-size:11.8px;line-height:1.3;color:var(--muted);margin-top:4px}
+.met__b{height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.met__b i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--gold) 55%,var(--danger))}
+.met.hot{border-color:rgba(255,77,94,.35);background:rgba(255,77,94,.07)}
+.risks{border:1px solid rgba(255,77,94,.28);border-radius:13px;background:linear-gradient(150deg,rgba(255,77,94,.09),rgba(255,93,143,.04));padding:12px 14px 10px}
+.risks__hd{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
+.risks__hd h4{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:#FFD9DE}
+.risks__hd .n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--danger);border:1px solid rgba(255,77,94,.45);border-radius:6px;padding:1px 6px}
+.risks__hd .hint{margin-left:auto;font-size:10.5px;color:var(--dim)}
+.rlist{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.risk{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(255,255,255,.06)}
+.risk:first-child{border-top:none}
+.pill{flex:none;width:24px;height:20px;border-radius:6px;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;margin-top:1px}
+.pill.c1{background:rgba(255,176,32,.18);color:var(--warn);border:1px solid rgba(255,176,32,.45)}
+.pill.c2{background:rgba(53,208,255,.16);color:var(--cyan);border:1px solid rgba(53,208,255,.45)}
+.pill.c3{background:rgba(192,132,252,.16);color:var(--violet);border:1px solid rgba(192,132,252,.45)}
+.risk__t{flex:1;min-width:0}
+.risk__t b{display:block;font-size:13.2px;font-weight:600}
+.risk__t span{display:block;font-size:12.2px;color:var(--muted);line-height:1.35;margin-top:1px}
+.sev{flex:none;display:flex;gap:3px;margin-top:6px}
+.sev i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.16)}
+.sev[data-s="1"] i:nth-child(-n+1){background:var(--info);box-shadow:0 0 6px var(--info)}
+.sev[data-s="2"] i:nth-child(-n+2){background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.sev[data-s="3"] i:nth-child(-n+3){background:var(--danger);box-shadow:0 0 6px var(--danger)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blk{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:rgba(255,255,255,.022)}
+.blk h4{font-size:10.5px;letter-spacing:1.7px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.blk ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.blk li{font-size:12.4px;color:var(--muted);line-height:1.38;display:flex;gap:8px}
+.blk li::before{content:"";width:5px;height:5px;border-radius:2px;background:var(--c);flex:none;margin-top:6px;transform:rotate(45deg)}
+.blk p{margin:0;font-size:12.6px;color:var(--muted);line-height:1.45}
+.ins{border-left:2px solid var(--gold);margin:0;padding:2px 0 2px 12px;font-family:'Oswald',sans-serif;font-size:15.5px;letter-spacing:.4px;color:#FFE7B8;line-height:1.3}
+
+
+.fhint b{color:var(--gold);font-weight:500}
+
+
+
+
+
+
+
+
+.glos{width:min(430px,100%);display:none}
+.ov.glos-on .glos{display:flex}
+.glos__hd{padding:14px 16px 12px;border-bottom:1px solid var(--line);background:linear-gradient(120deg,rgba(255,194,75,.12),transparent 70%);position:relative}
+.glos__hd h3{font-size:16px;text-transform:uppercase;letter-spacing:1.2px;padding-right:70px}
+.glos__hd p{margin:4px 0 0;font-size:11.5px;color:var(--dim)}
+.glos__tools{display:flex;gap:7px;margin-top:10px}
+.glos__tools .search{min-width:0;flex:1;max-width:none;padding:5px 10px}
+.glos__tools .chip{padding:5px 10px}
+.gback{display:none;position:absolute;top:12px;right:52px;font-size:11.5px;color:var(--gold);border:1px solid rgba(255,194,75,.4);border-radius:8px;padding:4px 9px}
+.cloud{display:flex;flex-wrap:wrap;gap:5px;padding:10px 16px;border-bottom:1px solid var(--line);max-height:104px;overflow-y:auto}
+.cloud button{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:3px 8px;border-radius:7px;border:1px solid var(--line);color:var(--muted);transition:.18s}
+.cloud button:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,194,75,.1)}
+.glos__list{overflow-y:auto;padding:6px 16px 16px;display:flex;flex-direction:column;gap:2px}
+.ge{padding:11px 12px;border-radius:11px;border:1px solid transparent;transition:.25s}
+.ge:hover{background:rgba(255,255,255,.03);border-color:var(--line)}
+.ge.flash{animation:flash 1.5s ease}
+@keyframes flash{0%{background:rgba(255,194,75,.25);border-color:var(--gold)}100%{background:transparent;border-color:transparent}}
+.ge__t{font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:.6px;color:var(--gold);text-transform:uppercase}
+.ge__f{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:2px}
+.ge__d{font-size:12.8px;color:var(--muted);line-height:1.45;margin-top:6px}
+.gempty{padding:26px 10px;text-align:center;color:var(--dim);font-size:12.5px}
+.term{font:inherit;color:inherit;border-bottom:1px dashed rgba(255,194,75,.75);border-radius:3px;padding:0 1px;transition:.18s;background:rgba(255,194,75,.06)}
+.term:hover{background:rgba(255,194,75,.22);color:#FFE7B8;border-bottom-color:var(--gold)}
+.fhint{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:7px}
+.fhint b{color:var(--gold);font-weight:500}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,26px);z-index:200;padding:10px 18px;border-radius:11px;background:rgba(16,24,37,.97);border:1px solid var(--gold);color:var(--text);font-size:12.5px;opacity:0;pointer-events:none;transition:.32s var(--ease);box-shadow:0 20px 40px -20px #000}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:1080px){.hero{grid-template-columns:1fr;align-items:start}.howto{display:none}}
+@media (max-width:980px){.ov__stage{padding:12px}.ov.glos-on .card{display:none}.glos{width:min(730px,100%)}.gback{display:block}.metrics{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}}
+@media (max-width:760px){
+:root{--topH:84px}
+.wrap{padding:0 14px}.top__row{padding:9px 14px;gap:10px}.brand__s{display:none}.prog__bar{width:52px}
+.tbtn span{display:none}.tbtn{padding:8px 10px}.hero{padding:20px 0 16px}.bar{position:static}
+.mosaic{grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:52px;gap:9px}
+.tile{--cols:3 !important;--rows:2 !important}
+.tile__name{font-size:15px}.tile__role{display:none}
+.card__name{font-size:22px}.metrics{grid-template-columns:1fr}.card__body{padding:14px}.foot{flex-direction:column;gap:8px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="top__row">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="1.2" y="1.2" width="29.6" height="29.6" rx="8" stroke="#FFC24B" stroke-opacity=".55"/>
+        <rect x="7" y="9" width="3.4" height="8" rx="1.2" fill="#5FE3A1"/>
+        <rect x="14.3" y="12" width="3.4" height="9" rx="1.2" fill="#FFC24B"/>
+        <rect x="21.6" y="16" width="3.4" height="9" rx="1.2" fill="#FF4D5E"/>
+        <path d="M6 24.5 12 19l4.5 3.2L26 12" stroke="#FF5D8F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+      </svg>
+      <div>
+        <div class="brand__t">Игра на понижение</div>
+        <div class="brand__s">Карта акторов · управление рисками</div>
+      </div>
+    </div>
+    <div class="top__sp"></div>
+    <div class="prog" title="Просмотренные акторы">
+      <span class="prog__n mono" id="progN">0 / 29</span>
+      <span class="prog__bar"><i id="progBar"></i></span>
+      <button class="icobtn" id="resetSeen" aria-label="Сбросить прогресс просмотра" title="Сбросить прогресс просмотра">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.6v3h-3"/></svg>
+      </button>
+    </div>
+    <button class="tbtn" id="glosBtn" title="Открыть полный глоссарий (G)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 3.2h4.2A1.8 1.8 0 0 1 8.5 5v8a1.4 1.4 0 0 0-1.4-1.4H2.5z"/><path d="M13.5 3.2H9.3A1.8 1.8 0 0 0 7.5 5v8a1.4 1.4 0 0 1 1.4-1.4h4.6z"/></svg>
+      <span>Глоссарий</span>
+    </button>
+    <button class="tbtn tbtn--go" id="rand" title="Случайный актор">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="2.6"/><circle cx="6" cy="6" r=".9" fill="currentColor"/><circle cx="10" cy="10" r=".9" fill="currentColor"/><circle cx="10" cy="6" r=".9" fill="currentColor"/><circle cx="6" cy="10" r=".9" fill="currentColor"/></svg>
+      <span>Случайный</span>
+    </button>
+  </div>
+  <div class="ticker"><div class="tick__track" id="tick"></div></div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Разбор фильма · HBR «Управление рисками» · 29 акторов</div>
+      <h1>Кто нёс риск,<br>когда рухнул конвейер</h1>
+      <p>Мозаика участников кризиса 2008 года: от заёмщика NINJA до правительства Китая. Клик по плитке — карточка. Клик по термину или по карточке — расшифровка. Размер плитки пропорционален активам (или роли) на старте фильма.</p>
+      <div class="legend" id="legend">
+        <button class="lg" data-cat="1"><i></i>I · Предотвратимые — правила</button>
+        <button class="lg" data-cat="2"><i></i>II · Стратегические — диалог</button>
+        <button class="lg" data-cat="3"><i></i>III · Внешние — сценарии</button>
+      </div>
+    </div>
+    <aside class="howto">
+      <h4>Как читать</h4>
+      <ol>
+        <li><b>1</b><span>Плитка — актор. Полоса REI показывает ущерб от его отказа, точки — категории рисков.</span></li>
+        <li><b>2</b><span>Карточка — роль, риски, фактические способы управления и долгосрочный итог.</span></li>
+        <li><b>3</b><span>Клик по термину или карточке — глоссарий. Размер плитки ≈ активы / роль на старте фильма (~2005–06).</span></li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="pipe" id="pipe">
+    <div class="pipe__hd">
+      <h3>Конвейер ипотечного риска</h3>
+      <span>Клик по этапу фильтрует мозаику</span>
+      <button class="sw" id="rev"><i></i><span id="revTxt">Прямой поток риска</span></button>
+    </div>
+    <div class="flow" id="flow"></div>
+    <div class="offc" id="offchain"></div>
+  </section>
+
+  <section class="bar" id="bar">
+    <label class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.6"/><path d="m10.6 10.6 3 3"/></svg>
+      <input id="q" type="search" placeholder="Поиск актора  /" aria-label="Поиск актора">
+    </label>
+    <div class="chips" id="layers"></div>
+    <span id="activeStage"></span>
+    <div class="bar__end">
+      <button class="tgl" id="fHidden"><i></i>Скрытые узлы</button>
+      <button class="tgl" id="fCompact"><i></i>Компакт</button>
+      <select class="sel" id="sort" aria-label="Сортировка">
+        <option value="rei">Сортировка: REI ↓</option>
+        <option value="risk">По числу рисков</option>
+        <option value="layer">По слою</option>
+        <option value="name">По алфавиту</option>
+      </select>
+      <button class="tbtn" id="reset">Сброс</button>
+      <span class="cnt" id="count">29 / 29</span>
+    </div>
+  </section>
+
+  <section class="mosaic" id="mosaic" aria-label="Мозаика акторов"></section>
+
+  <footer class="foot">
+    <div><b>Категории:</b> Каплан, Майкс. «Управление рисками: новая система», HBR, 2012 · <b>TTR/REI:</b> Симчи-Леви, Шмидт, Вэй, HBR, 2014</div>
+    <div>REI — экспертная нормировка влияния. Размер плитки — логарифм активов / роли (~2005–06), не точный баланс. Цифры округлены.</div>
+  </footer>
+</main>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-label="Карточка актора">
+  <div class="ov__scrim" id="ovScrim"></div>
+  <div class="ov__stage">
+    <article class="card" id="card"></article>
+    <aside class="glos" id="glos">
+      <div class="glos__hd">
+        <h3 id="glosTitle">Термины карточки</h3>
+        <p id="glosSub"></p>
+        <button class="gback" id="glosBack">← Карточка</button>
+        <button class="xbtn" id="glosClose" aria-label="Закрыть расшифровки"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
+        <div class="glos__tools">
+          <label class="search"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.6"/><path d="m10.6 10.6 3 3"/></svg><input id="gq" type="search" placeholder="Поиск по терминам" aria-label="Поиск по терминам"></label>
+          <button class="chip" id="gAll">Все термины</button>
+        </div>
+      </div>
+      <div class="cloud" id="cloud"></div>
+      <div class="glos__list" id="glosList"></div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="application/json" id="payload">{"cats":{"1":{"roman":"I","name":"Предотвратимый","full":"Категория I · предотвратимые: правила и границы"},"2":{"roman":"II","name":"Стратегический","full":"Категория II · стратегические: диалог и дебаты"},"3":{"roman":"III","name":"Внешний","full":"Категория III · внешние: сценарии и смягчение"}},"layers":{"short":{"name":"Ставка против","c":"#5FE3A1"},"chain":{"name":"Конвейер","c":"#FFC24B"},"cover":{"name":"Инфраструктура рынка","c":"#FF5D8F"},"people":{"name":"Те, кто не выбирал","c":"#FF8A5B"},"state":{"name":"Государства","c":"#8AB4FF"}},"stages":[{"id":"borrower","n":"01","t":"Заёмщик","s":"спрос на кредит"},{"id":"broker","n":"02","t":"Брокер и оценка","s":"входной контроль"},{"id":"originator","n":"03","t":"Оригинатор","s":"выдал и продал"},{"id":"packager","n":"04","t":"Упаковка","s":"MBS → CDO → CDO²"},{"id":"rating","n":"05","t":"Рейтинг","s":"легитимация AAA"},{"id":"insurance","n":"06","t":"Страховка","s":"CDS и монолайнеры"},{"id":"investor","n":"07","t":"Инвестор","s":"конечный держатель"}],"glossary":{"cds":{"t":"CDS","full":"Credit Default Swap · кредитный дефолтный своп","d":"Страховка на чужой долг: покупатель платит премию, продавец возмещает убыток при дефолте. Владеть долгом не обязательно."},"cdo":{"t":"CDO","full":"Collateralized Debt Obligation","d":"Корзина долгов, разрезанная на слои по очерёдности денег и убытков.","m":["CDO","CDO-бумаг","CDO-бумаги","CDO-книги"]},"cdo2":{"t":"CDO²","full":"CDO в квадрате","d":"CDO из траншей других CDO: риск тот же, прозрачность ниже."},"mbs":{"t":"MBS","full":"Mortgage-Backed Security","d":"Бумага под пул ипотек. Инвестор получает платежи заёмщиков, минуя банк."},"tranche":{"t":"Транш","full":"слой структурированной бумаги","d":"Слой со своей очередью на деньги и на убытки: старший платят первым, младший теряет первым.","m":["транш","транша","траншей","транши"]},"senior":{"t":"Супер-старший транш","full":"слой выше AAA","d":"Считался неубиваемым и страховался за копейки — потому его падение стоило дороже всего.","m":["супер-старший транш","супер-старших","супер-старшего","супер-старшие"]},"subprime":{"t":"Субпрайм","full":"subprime mortgage","d":"Ипотека заёмщикам с плохой историей: ставка выше, проверка слабее, возврат заложен на рефинансирование.","m":["субпрайм","субпрайма","субпрайму","субпрайм-кредиторы","субпрайм-MBS"]},"ninja":{"t":"NINJA","full":"No Income, No Job, no Assets","d":"Кредит без дохода, работы и активов. Возврат предполагался за счёт роста цены дома."},"nodoc":{"t":"No-doc","full":"выдача без документов","d":"Доход записан со слов заёмщика или брокера: проверка есть только на бумаге.","m":["no-doc"]},"ltv":{"t":"LTV","full":"Loan-to-Value · долг к стоимости залога","d":"При LTV около 100% падение цены дома на 5% сразу уводит заёмщика под воду."},"arm":{"t":"ARM","full":"Adjustable-Rate Mortgage","d":"Плавающая ставка: первые годы платёж низкий, затем рынок плюс маржа."},"optionarm":{"t":"Option ARM","full":"ипотека с выбором платежа","d":"Минимальный платёж не покрывает проценты, остаток добавляется к долгу. Долг растёт сам."},"teaser":{"t":"Стартовая ставка","full":"teaser rate","d":"Заниженный платёж на 1–3 года. Заёмщика квалифицировали по нему, а не по реальному платежу.","m":["стартовая ставка","стартовой ставке"]},"refi":{"t":"Рефинансирование","full":"новый кредит вместо старого","d":"Работает, пока залог дорожает и рынок открыт. Обе опоры исчезли одновременно.","m":["рефинансирование","рефинансировать"]},"underwater":{"t":"Отрицательный капитал","full":"negative equity, «под водой»","d":"Долг больше стоимости дома: продать и расплатиться нельзя, рефинансировать нечем.","m":["отрицательный капитал","под водой"]},"strategicdef":{"t":"Стратегический дефолт","full":"сознательный отказ платить","d":"Отказ обслуживать бессмысленный кредит. В безрегрессных штатах — рациональное исполнение опциона.","m":["стратегический дефолт"]},"nonrecourse":{"t":"Non-recourse","full":"безрегрессная ипотека","d":"Банк забирает только дом. По сути бесплатный пут в руках заёмщика."},"foreclosure":{"t":"Foreclosure","full":"обращение взыскания на залог","d":"Изъятие и продажа дома за долги. Для сервисера дешевле и быстрее модификации.","m":["foreclosure","взыскания","взысканий"]},"securitization":{"t":"Секьюритизация","full":"упаковка кредитов в бумаги","d":"Кредит становится бумагой и уходит инвестору: создатель риска перестаёт его нести.","m":["секьюритизация","секьюритизации"]},"otd":{"t":"Originate-to-distribute","full":"«выдал и продал»","d":"Доход кредитора — комиссия за факт выдачи. Качество кредита его больше не касается."},"warehouse":{"t":"Warehouse line","full":"складская кредитная линия","d":"Короткие деньги, на которых оригинатор держит кредиты до продажи. Обрывается первой.","m":["warehouse","Warehouse-фондирование"]},"ysp":{"t":"YSP","full":"Yield Spread Premium","d":"Доплата брокеру за то, что он продал заёмщику ставку выше положенной."},"misselling":{"t":"Мисселинг","full":"продажа неподходящего продукта","d":"Продукт продан тому, кто его не понимает и не вытянет, с искажением условий.","m":["мисселинг"]},"underwriting":{"t":"Андеррайтинг","full":"проверка заёмщика и залога","d":"Оценка способности платить и стоимости обеспечения до выдачи.","m":["андеррайтинг","андеррайтинга"]},"servicer":{"t":"Сервисер","full":"обслуживающая компания","d":"Собирает платежи и ведёт взыскание. Мощности на массовую модификацию не было.","m":["сервисер","сервисеров","сервисеры"]},"modification":{"t":"Модификация","full":"изменение условий кредита","d":"Снижение ставки или долга ради спасения заёмщика. Дороже и медленнее выселения.","m":["модификация","модификации"]},"hamp":{"t":"HAMP","full":"Home Affordable Modification Program, 2009","d":"Госпрограмма модификации ипотеки. Добровольная для сервисеров, охватила меньшинство."},"ptfa":{"t":"PTFA","full":"Protecting Tenants at Foreclosure Act, 2009","d":"Право арендатора на 90 дней или срок договора после взыскания. Истёк в конце 2014, постоянно восстановлен в 2018."},"isda":{"t":"ISDA","full":"мастер-соглашение по деривативам","d":"Стандартный договор, без которого нельзя торговать свопами. Мелким фондам доступ приходилось арендовать."},"collateral":{"t":"Collateral call","full":"требование довнести залог","d":"При падении цены контракта или рейтинга нужны живые деньги немедленно. Убивает раньше дефолта.","m":["collateral call"]},"counterparty":{"t":"Контрагентский риск","full":"риск неисполнения второй стороной","d":"Хедж не отменяет риск, а меняет адрес: теперь важно, платёжеспособен ли продавец защиты.","m":["контрагентский риск","контрагентов"]},"repo":{"t":"Репо","full":"займ под залог бумаг, обычно на ночь","d":"Самые дешёвые деньги банка и самый быстрый набег: кредитор просто не продлевает сделку.","m":["репо","репо-кредиторов"]},"abcp":{"t":"ABCP","full":"Asset-Backed Commercial Paper","d":"Короткие бумаги кондуита с длинными активами. Разрыв срочности зашит в конструкцию."},"siv":{"t":"SIV","full":"Structured Investment Vehicle","d":"Внебалансовая структура, где плечо не попадало в отчётность банка-спонсора."},"mmf":{"t":"Фонд денежного рынка","full":"money market fund","d":"«Почти депозит» без страховки вкладов, державший коммерческие бумаги банков.","m":["фонды денежного рынка","фондов денежного рынка","фонд денежного рынка"]},"buck":{"t":"Breaking the buck","full":"цена пая ниже $1","d":"Reserve Primary Fund, 16.09.2008: $0,97 за пай. После этого побежали из всех фондов сразу."},"shadow":{"t":"Теневой банкинг","full":"кредитование вне банковского периметра","d":"Та же функция кредита, но без нормативов капитала и без доступа к спасению ЦБ.","m":["теневой банкинг","теневого банкинга"]},"leverage":{"t":"Плечо","full":"заёмные деньги к собственным","d":"30:1 означает, что падение активов на 3,3% стирает капитал целиком.","m":["плечо","плеча","плечом"]},"var":{"t":"VaR","full":"Value at Risk","d":"Оценка убытка в обычные дни. Редкий хвост в неё не помещается по построению."},"basel":{"t":"Basel II","full":"международные нормы капитала","d":"Пониженный коэффициент риска на высокорейтинговые бумаги — стимул набирать их вместо капитала."},"rating":{"t":"Рейтинг AAA / BBB−","full":"оценка кредитного качества","d":"AAA — «надёжно как государство», BBB− — последний шаг перед мусором. Между ними помещался весь CDO.","m":["AAA","BBB−","рейтинг","рейтинга","рейтингов"]},"ratingconflict":{"t":"«Платит эмитент»","full":"модель оплаты рейтинга","d":"Рейтинг оплачивает тот, кого оценивают. Конфликт встроен в бизнес-модель.","m":["платит эмитент"]},"conflictint":{"t":"Конфликт интересов","full":"свой интерес против долга перед клиентом","d":"Фирма выигрывает от решения, которое вредит клиенту. Лечится разделением полномочий, а не бонусом.","m":["конфликт интересов","конфликт с клиентами"]},"ratingshopping":{"t":"Рейтинг-шопинг","full":"подбор агентства под результат","d":"Банк подбирал агентство и структуру, дающие нужную долю AAA.","m":["рейтинг-шопинг"]},"abx":{"t":"ABX.HE","full":"индекс на субпрайм-бумаги","d":"Крошечный рынок, переоценивший все балансы сразу: появилась наблюдаемая цена риска."},"mtm":{"t":"Mark-to-market","full":"переоценка по рынку","d":"Когда рынка нет, превращается в mark-to-model — в фантазию оценщика.","m":["mark-to-market","mark-to-model"]},"hedge":{"t":"Хедж","full":"компенсирующая позиция","d":"Зарабатывает, когда основная позиция теряет. Ломается, если «защита» падает вместе с активом — это уже базисный риск.","m":["хедж","хеджа","хеджирование"]},"short":{"t":"Шорт","full":"короткая позиция, ставка на падение","d":"Через покупку CDS выигрыш многократно выше премии — асимметрия в пользу покупателя защиты.","m":["шорт","шорта","шортил","шортисты"]},"carry":{"t":"Керри","full":"стоимость удержания позиции","d":"У шортиста отрицательное: премию платишь каждый квартал, пока ждёшь обвала.","m":["керри"]},"basis":{"t":"Базисный риск","full":"хедж не на тот инструмент","d":"Шорт BBB против лонга AAA выглядит защитой, пока оба не падают по-разному.","m":["базисный риск"]},"sidepocket":{"t":"Side pocket","full":"обособление неликвидной позиции","d":"Позицию выводят в карман с запретом выкупа: спасает стратегию, злит инвесторов.","m":["side pocket"]},"lp":{"t":"LP / GP","full":"инвесторы фонда и управляющий","d":"Разный горизонт: управляющий ждёт события, инвестор хочет деньги сегодня.","m":["LP"]},"hedgefund":{"t":"Хедж-фонд","full":"пул капитала с гибкой стратегией","d":"Может ставить против рынка, но зависит от права инвесторов выйти.","m":["хедж-фонд","хедж-фонда","хедж-фонды"]},"monoline":{"t":"Монолайнер","full":"страховщик одного класса обязательств","d":"MBIA и AMBAC страховали бонды. Их поручительство считалось заменой капитала.","m":["монолайнер","монолайнеры"]},"gse":{"t":"GSE","full":"Fannie Mae и Freddie Mac","d":"Квазигосударственные компании: их AAA был неявной госгарантией, которой в законе не было."},"conservatorship":{"t":"Conservatorship","full":"внешнее управление FHFA","d":"Сентябрь 2008: государство берёт управление, акционеры обнулены, обязательства прикрыты казной."},"tarp":{"t":"TARP","full":"Troubled Asset Relief Program","d":"Программа Минфина на $700 млрд: выкуп активов и капитал в банки. Банковская часть вернула деньги с прибылью."},"qe":{"t":"QE","full":"количественное смягчение","d":"Выкуп активов центробанком, когда ставка уже около нуля."},"doddfrank":{"t":"Dodd-Frank","full":"закон США о финансовой реформе, 2010","d":"FSOC, механизм ликвидации, правило Волкера, CFPB. Крупнейшая реформа с 1930-х."},"volcker":{"t":"Правило Волкера","full":"запрет спекуляций своими деньгами","d":"Ограничивает собственную торговлю банков. Сложное и дорогое в соблюдении.","m":["правило Волкера"]},"retention":{"t":"Risk retention","full":"удержание 5% риска","d":"Упаковщик обязан оставить себе часть выпуска: «шкура в игре» по принуждению.","m":["risk retention"]},"cfpb":{"t":"CFPB","full":"Consumer Financial Protection Bureau","d":"Бюро защиты потребителей финансовых услуг, создано в 2010 году."},"atr":{"t":"Ability-to-repay","full":"правило способности платить","d":"Кредитор обязан проверить платёж по реальной ставке, а не по стартовой.","m":["ability-to-repay"]},"stresstest":{"t":"Стресс-тест","full":"прогон баланса через заданный шок","d":"Проверяет последствия, а не вероятность: без частот это REI с равными шансами сценариев.","m":["стресс-тест","стресс-тесты"]},"scap":{"t":"SCAP","full":"Supervisory Capital Assessment Program, 2009","d":"Публичный стресс-тест банков США. Вернул доверие быстрее, чем сами деньги."},"ttr":{"t":"TTR","full":"Time to Recovery · время восстановления","d":"Сколько звено недоступно. В финансах это восстановление доверия, а не оборудования."},"rei":{"t":"REI","full":"Risk Exposure Index","d":"Ущерб за период TTR, нормированный на худшее звено = 1,0. Влияние, а не сумма закупки."},"hiddennode":{"t":"Скрытый узел","full":"малые затраты, сильное влияние","d":"Дешёвое звено, которое роняет систему. Выпадает из вида при ранжировании по объёму затрат.","m":["скрытый узел","скрытые узлы"]},"cat1":{"t":"Категория I","full":"предотвратимые риски","d":"Нарушения, ошибки, мошенничество. Выгоды не несут, лечатся правилами и границами.","m":["категория I","категории I"]},"cat2":{"t":"Категория II","full":"стратегические риски","d":"Добровольная ставка ради прибыли. Управляется диалогом, а не чек-листом.","m":["категория II","категории II"]},"cat3":{"t":"Категория III","full":"внешние риски","d":"Экзогенные шоки: вероятность не в нашей власти, последствия — в нашей.","m":["категория III","категории III"]},"silo":{"t":"Силос","full":"функциональная ловушка","d":"Кредитный, рыночный и операционный риск ведут разные отделы: сцепления не видит никто.","m":["силос","силоса","силосе"]},"normalization":{"t":"Нормализация отклонений","full":"привыкание к мелким сбоям","d":"Растущие просрочки считаются шумом, пока не складываются в катастрофу.","m":["нормализация отклонений"]},"cleartest":{"t":"Тест чистого горизонта","full":"зрелость риск-функции","d":"Готовность вкладываться в управление рисками при максимальном успехе, а не после удара.","m":["тест чистого горизонта"]},"moralhazard":{"t":"Моральный риск","full":"убыток заплатит другой","d":"Риск берут охотнее, если выигрыш приватный, а провал оплачивает государство.","m":["моральный риск"]},"systemic":{"t":"Системный риск","full":"общий фактор для всех звеньев","d":"Все падают одновременно из-за одного условия. Диверсификация против него бессильна.","m":["системный риск","системный коллапс"]},"correlation":{"t":"Корреляция","full":"общий фактор риска","d":"То, что превращает ипотеку в разных штатах в одну ставку на национальные цены жилья.","m":["корреляция","коррелированный"]},"funding":{"t":"Ликвидность фондирования","full":"способность перезанять","d":"Можно быть платёжеспособным по активам и умереть, потому что не дали ночных денег.","m":["ликвидность фондирования","фондирование","фондирования"]},"devaluation":{"t":"Девальвация","full":"обесценение валюты","d":"Переносит убыток с банков и государства на население через цены и валютные долги.","m":["девальвация","девальвации"]},"reserves":{"t":"Резервный фонд","full":"буфер под сырьевой шок","d":"Копится в тучные годы, тратится один раз. Вопрос — на какое звено.","m":["резервный фонд","резервы"]},"externaldebt":{"t":"Внешнее фондирование","full":"долги перед нерезидентами в валюте","d":"Пока Запад открыт — дешёвый ресурс. Закрылся — рефинансировать нечем.","m":["внешнее фондирование","внешнего фондирования"]},"sovereign":{"t":"Суверенный риск","full":"государство как последний страховщик","d":"Налоговая база страховщика падает в том же шоке, в котором он должен платить.","m":["суверенный риск"]},"default":{"t":"Дефолт","full":"неисполнение долгового обязательства","d":"Пропуск платежа, ведущий к взысканию или реструктуризации.","m":["дефолт","дефолта","дефолты"]},"compliance":{"t":"Комплаенс","full":"соответствие нормативам","d":"Язык категории I. Им нельзя описать ставку: кофейная крышечка не держит глубину.","m":["комплаенс"]},"whistleblower":{"t":"Whistleblowing","full":"канал сообщений о нарушениях","d":"Внутренний сигнал о нарушении. Работает, если он не стоит сотруднику карьеры."},"k401":{"t":"401(k)","full":"накопительный пенсионный счёт США","d":"Рыночный риск лежит на работнике: падение индекса уменьшает пенсию напрямую."},"homestead":{"t":"Homestead exemption","full":"защита имущества при банкротстве","d":"В ряде штатов часть имущества, включая жильё, не забирают за долги."},"epd":{"t":"Ранний дефолт","full":"early payment default","d":"Заёмщик перестаёт платить в первые месяцы — основание вернуть кредит продавцу.","m":["ранний дефолт","ранних дефолтов","ранние дефолты"]},"repwarranty":{"t":"Reps & warranties","full":"заверения о качестве кредитов","d":"При нарушении заверений покупатель требует выкупить дефектный кредит обратно.","m":["reps & warranties","заверений","заверениям"]},"repo105":{"t":"Repo 105","full":"репо, оформленное как продажа","d":"Активы временно уходили из отчётности, чтобы плечо выглядело приличным."},"cfma":{"t":"CFMA","full":"Commodity Futures Modernization Act, 2000","d":"Вывел внебиржевые деривативы из-под регулирования: рынок CDS вырос в темноте."},"fsoc":{"t":"FSOC","full":"Financial Stability Oversight Council","d":"Совет по надзору за финансовой стабильностью: выявляет системно значимые организации и координирует регуляторов.","m":["FSOC"]},"mufg":{"t":"MUFG","full":"Mitsubishi UFJ Financial Group","d":"Японский банк, вложивший $9 млрд в Morgan Stanley в октябре 2008."},"hustle":{"t":"Hustle / VIP","full":"программа ускоренной выдачи Countrywide","d":"Конвейер заведомо дефектных кредитов, проданных Fannie и Freddie. Дошёл до суда.","m":["Hustle"]},"tier3":{"t":"Tier-3","full":"звено цепочки n-го уровня","d":"Участник, которого не видит конечный носитель риска: арендатор не видит банк лендлорда."},"stimulus":{"t":"Стимул ¥4 трлн","full":"пакет Китая 2008 года, около $586 млрд","d":"Инфраструктура и кредит госбанков: закрыл провал спроса и создал долг регионов.","m":["стимул"]},"carrytrade":{"t":"Кэрри-трейд","full":"дешёвое валютное фондирование","d":"Занять в твёрдой валюте под низкий процент и вложить дома. Пока рынки открыты и курс стабилен — прибыль; закрытие внешнего фондирования и девальвация убивают схему.","m":["кэрри-трейд","carry trade","валютное фондирование"]},"ola":{"t":"OLA","full":"Orderly Liquidation Authority","d":"Механизм упорядоченной ликвидации системной организации без классического банкротства.","m":["OLA"]},"fxrisk":{"t":"Курсовой риск","full":"долг в валюте, доход в местной","d":"Девальвация увеличивает платёж заёмщика, не увеличивая его зарплату.","m":["курсовой риск","валютный риск"]}},"actors":[{"id":"burry","name":"Майкл Бьюрри","org":"Scion Capital","proto":"реальное имя, играет Кристиан Бэйл","layer":"short","stage":null,"hidden":false,"rei":0.55,"ttr":"18–24 мес. отрицательного керри","verdict":"Выиграл","tone":"win","role":"Первым прочитал пулы поимённо и купил защиту на субпрайм за два года до обвала.","risks":[{"c":2,"s":3,"t":"Отрицательный керри","d":"Премии по CDS съедают фонд раньше, чем рынок согласится."},{"c":2,"s":3,"t":"Выкупы инвесторов","d":"LP требуют деньги обратно и ломают горизонт сделки."},{"c":1,"s":2,"t":"Юридическое давление","d":"Иски инвесторов и спор о праве заморозить выкупы."},{"c":2,"s":2,"t":"Базисный риск","d":"Своп куплен не на тот пул, который реально рухнет."}],"tools":["Разбор проспектов на уровне отдельных кредитов","Side pocket и заморозка выкупов","Несколько дилеров вместо одного контрагента"],"out":"Около 489% чистыми с ноября 2000 по июнь 2008. Scion закрыт в 2008, дальше — личный портфель.","insight":"Прав по сути — не значит платёжеспособен по форме.","terms":["cds","carry","sidepocket","lp","basis","subprime","hedgefund"],"assets":0.6},{"id":"baum","name":"Марк Баум","org":"FrontPoint Partners","proto":"прототип — Стив Айзман","layer":"short","stage":null,"hidden":false,"rei":0.6,"ttr":"до фиксации прибыли в 2007–2008","verdict":"Выиграл","tone":"win","role":"Проверял не бумаги, а людей: поехал во Флориду и посмотрел на конвейер вживую.","risks":[{"c":2,"s":3,"t":"Контрагентский риск","d":"Продавец защиты рухнет раньше, чем наступит дефолт."},{"c":2,"s":2,"t":"Керри и давление","d":"Материнский Morgan Stanley давит на убыточную позицию."},{"c":3,"s":3,"t":"Системный шок","d":"При коллапсе платят не все и не сразу."},{"c":1,"s":1,"t":"Этический риск","d":"Прибыль на чужом разорении бьёт по репутации."}],"tools":["Полевая проверка брокеров, оценщиков и заёмщиков","Позиции через нескольких дилеров","Ранняя фиксация прибыли, не ожидание дна"],"out":"Фонд заработал на обвале; Айзман ушёл в 2011, затем Emrys Partners и Neuberger Berman.","insight":"Проверяй контрагента, а не только бумагу.","terms":["counterparty","carry","systemic","cds","default","short"],"assets":1.2},{"id":"vennett","name":"Джаред Веннетт","org":"Deutsche Bank","proto":"прототип — Грег Липпманн","layer":"short","stage":null,"hidden":false,"rei":0.45,"ttr":"бонус выплачен в 2008","verdict":"Заработал на потоке","tone":"win","role":"Продавал защиту клиентам и одновременно разворачивал книгу самого банка.","risks":[{"c":1,"s":3,"t":"Конфликт интересов","d":"Банк шортит то, что продаёт клиентам как продукт."},{"c":2,"s":2,"t":"Позиционный риск книги","d":"Остаточная позиция банка по ипотечным бумагам."},{"c":3,"s":2,"t":"Отказ контрагентов","d":"Покупатель защиты не заплатит премию после краха."},{"c":1,"s":2,"t":"Репутационный риск","d":"Роль посредника краха закрепляется публично."}],"tools":["Агрегация CDS и перепродажа клиентам","Презентация ставки как готового продукта","Хедж собственной книги банка"],"out":"Бонус около $47 млн (цифра из фильма). В 2010 ушёл из Deutsche Bank и основал LibreMax Capital.","insight":"Категория I спокойно живёт внутри категории II.","terms":["cds","hedge","conflictint","cat1","cat2","counterparty"],"assets":25},{"id":"cornwall","name":"Геллер и Шипли","org":"Brownfield Fund","proto":"прототипы — Ледли и Май, Cornwall Capital","layer":"short","stage":null,"hidden":false,"rei":0.5,"ttr":"сделка жила около года","verdict":"Выиграли","tone":"win","role":"Два человека без банковской инфраструктуры нашли дешёвую ставку на крах AAA.","risks":[{"c":1,"s":3,"t":"Нет доступа к рынку","d":"Без ISDA мелкий фонд физически не купит своп."},{"c":2,"s":3,"t":"Ставка на CDO²","d":"Второй уровень: прозрачность нулевая, цена ошибки полная."},{"c":3,"s":2,"t":"Контрагентский риск","d":"Выигрыш равен платёжеспособности продавца."},{"c":1,"s":2,"t":"Операционный риск","d":"Нет бэк-офиса, юристов и учёта позиций."}],"tools":["Асимметрия: малая премия против крупного выигрыша","Аренда доступа через Бена Рикерта","Выбор дешёвых, но обречённых траншей"],"out":"Фонд вырос со $110 тыс. до десятков миллионов; ставка на субпрайм принесла около $80 млн.","insight":"Дешёвый опцион на невозможное — лучшая форма ставки.","terms":["isda","cdo2","cds","tranche","counterparty","rating","subprime"],"assets":0.03},{"id":"rickert","name":"Бен Рикерт","org":"консультант Brownfield","proto":"прототип — Бен Хокетт","layer":"short","stage":null,"hidden":false,"rei":0.3,"ttr":"вышел из индустрии после сделки","verdict":"Ушёл из системы","tone":"shift","role":"Отставной трейдер: дал мелкому фонду доступ к дилерам и дисциплину выхода.","risks":[{"c":1,"s":2,"t":"Правовой риск доступа","d":"Использование чужой инфраструктуры для сделок фонда."},{"c":3,"s":3,"t":"Системный риск","d":"Ждал коллапса инфраструктуры, а не только цен."},{"c":2,"s":2,"t":"Риск партнёров","d":"Молодые управляющие могли не закрыть позицию вовремя."}],"tools":["Доступ к дилерам через личные связи","Требование фиксировать прибыль","Личная подготовка хозяйства к сбоям"],"out":"После сделки ушёл из финансов, занялся локальной экономикой и фермерством.","insight":"Кооперация как доступ, а не как взаимный бэкап.","terms":["systemic","cds","short"],"assets":0.01},{"id":"countrywide","name":"Countrywide","org":"крупнейший оригинатор США","proto":"Анджело Мозило","layer":"chain","stage":"originator","hidden":false,"rei":0.9,"ttr":"поглощён за 6 месяцев","verdict":"Поглощён","tone":"saved","role":"Конвейер выдач: качество кредита не влияло на доход того, кто его выдавал.","risks":[{"c":1,"s":3,"t":"Мисселинг и подлог","d":"Доход рисовался, программа Hustle гнала дефектные кредиты."},{"c":2,"s":3,"t":"Концентрация продукта","d":"Ставка на один класс заёмщика и на Option ARM."},{"c":2,"s":2,"t":"Обратный выкуп","d":"Покупатели возвращают кредиты при нарушении заверений."},{"c":3,"s":3,"t":"Падение цен на жильё","d":"Рефинансирование перестаёт работать у всех сразу."}],"tools":["Originate-to-distribute: комиссия вперёд, риск наружу","YSP как двигатель продаж брокерам","Быстрая секьюритизация через свой банк"],"out":"Продан Bank of America в 2008. Дальше — глобальный settlement покупателя на $16,65 млрд в 2014 (Countrywide и Merrill).","insight":"Миссия без запретов — не граница, а акселератор.","terms":["misselling","hustle","optionarm","ysp","otd","securitization","repwarranty","refi"],"assets":199},{"id":"brokers","name":"Брокеры и оценщики","org":"розничное звено конвейера","proto":"сцена во Флориде: брокеры и оценщик","layer":"chain","stage":"broker","hidden":true,"rei":0.95,"ttr":"отрасль перезапущена сверху","verdict":"Перестроен сверху","tone":"shift","role":"Входной контроль качества, оплаченный так, чтобы контроль не срабатывал.","risks":[{"c":1,"s":3,"t":"Прямое мошенничество","d":"Оценка под нужную цифру, доход со слов, no-doc как норма."},{"c":2,"s":3,"t":"Риск дохода","d":"Комиссия только при закрытой сделке: отказ равен нулю."},{"c":1,"s":2,"t":"Правовой риск","d":"Персональная ответственность за подлог документов."}],"tools":["YSP завышенной ставкой","Рефинансирование как универсальный ответ","Формальный андеррайтинг без проверки"],"out":"После SAFE Act 2008 — лицензирование и реестр NMLS; правило ability-to-repay убрало no-doc.","insight":"Дешёвое звено ломает дорогую систему.","terms":["ysp","nodoc","underwriting","refi","atr","misselling","hiddennode"],"assets":1},{"id":"newcentury","name":"New Century и второй эшелон","org":"Ameriquest, Option One, IndyMac","proto":"субпрайм-кредиторы вне банков","layer":"chain","stage":"originator","hidden":false,"rei":0.85,"ttr":"банкротство за недели","verdict":"Первые банкроты","tone":"dead","role":"Жили на складской линии банка: пока кредиты покупают, бизнес жив.","risks":[{"c":2,"s":3,"t":"Warehouse-фондирование","d":"Банки закрывают линию — выдавать не на что."},{"c":1,"s":3,"t":"Ранние дефолты","d":"Кредиты возвращают обратно по заверениям о качестве."},{"c":3,"s":3,"t":"Закрытие рынка бумаг","d":"Покупатель секьюритизации исчезает за квартал."}],"tools":["Максимально быстрая перепродажа кредитов","Спор с банками о выкупе дефектных пулов","Сокращение выдач, когда уже поздно"],"out":"New Century — банкротство в апреле 2007, первая кость домино. IndyMac забрал FDIC в 2008.","insight":"Кто живёт на чужой ликвидности, умирает первым.","terms":["warehouse","epd","repwarranty","securitization","funding","subprime"],"assets":42},{"id":"lehman","name":"Lehman Brothers","org":"инвестиционный банк","proto":"Ричард Фулд","layer":"chain","stage":"packager","hidden":false,"rei":1.0,"ttr":"не восстановился","verdict":"Банкротство","tone":"dead","role":"Держал недвижимость на плече 30:1 и фондировал её ночными деньгами.","risks":[{"c":2,"s":3,"t":"Плечо и концентрация","d":"Один фактор — цены на жильё — против всего капитала."},{"c":3,"s":3,"t":"Набег репо-кредиторов","d":"Ночное фондирование не продлевают: смерть за дни."},{"c":1,"s":3,"t":"Косметика отчётности","d":"Repo 105 убирал активы из баланса перед публикацией."},{"c":1,"s":2,"t":"Комплаенс вместо риска","d":"Риск-функция сведена к соответствию нормативам."}],"tools":["Отказ снижать экспозицию в 2007","Repo 105 вместо реального делевериджа","Поиск покупателя до последней недели"],"out":"15 сентября 2008 — банкротство с $639 млрд активов. Уголовных дел против топ-менеджмента нет.","insight":"Тест чистого горизонта провален в 2006, счёт выставлен в 2008.","terms":["leverage","repo","repo105","compliance","funding","cleartest","correlation"],"assets":503},{"id":"bear","name":"Bear Stearns","org":"инвестиционный банк","proto":"Джимми Кейн","layer":"chain","stage":"packager","hidden":false,"rei":0.95,"ttr":"продан за выходные","verdict":"Продан за $10","tone":"dead","role":"Первый крупный банк, у которого набег случился задолго до Lehman.","risks":[{"c":3,"s":3,"t":"Набег кредиторов","d":"Репо-кредиторы уходят за считанные дни."},{"c":2,"s":3,"t":"Два фонда с CDO","d":"Собственные хедж-фонды держали токсичные транши с плечом."},{"c":2,"s":2,"t":"Плечо","d":"Капитал слишком мал для размера баланса."}],"tools":["Вливание $3,2 млрд в свои фонды — не помогло","Поиск спасителя при посредничестве ФРС","Продажа JPMorgan с гарантией по активам"],"out":"Март 2008: акция с $170 до $2, затем до $10. Акционеров спасли лишь частично.","insight":"Ликвидность уходит быстрее, чем стоимость активов.","terms":["repo","cdo","hedgefund","leverage","tranche","funding"],"assets":350},{"id":"merrill","name":"Merrill Lynch","org":"инвестиционный банк","proto":"Стэн О'Нил","layer":"chain","stage":"packager","hidden":false,"rei":0.9,"ttr":"поглощён за одни выходные","verdict":"Поглощён","tone":"dead","role":"Крупнейший упаковщик CDO, оставшийся с непроданным складом на балансе.","risks":[{"c":2,"s":3,"t":"Склад CDO на балансе","d":"Конвейер встал, бумаги остались у упаковщика."},{"c":1,"s":3,"t":"Оценка по модели","d":"Mark-to-model вместо рыночной цены скрывал дыру."},{"c":3,"s":3,"t":"Заморозка рынка","d":"Продать можно только с дисконтом в разы."}],"tools":["Продажа пула Lone Star по 22 цента за доллар","Финансирование покупателя самим продавцом","Срочный поиск покупателя банка"],"out":"Сентябрь 2008 — поглощение Bank of America. Риск вернулся через кредит покупателю пула.","insight":"Продажа риска в кредит — это не продажа риска.","terms":["cdo","mtm","counterparty","tranche"],"assets":841},{"id":"goldman","name":"Goldman Sachs","org":"инвестиционный банк","proto":"Ллойд Бланкфейн","layer":"chain","stage":"packager","hidden":false,"rei":0.6,"ttr":"перешёл в холдинг за неделю","verdict":"Выжил","tone":"win","role":"Развернул ипотечную книгу в декабре 2006 и купил защиту у AIG.","risks":[{"c":2,"s":3,"t":"Базисный риск хеджа","d":"Защита может не совпасть с тем, что реально падает."},{"c":1,"s":3,"t":"Конфликт с клиентами","d":"Abacus 2007-AC1: структура, собранная против покупателя."},{"c":3,"s":3,"t":"Ликвидность фондирования","d":"Даже верный хедж не спасает от набега."}],"tools":["Сокращение ипотечной экспозиции в конце 2006","Покупка CDS на супер-старшие транши у AIG","Конвертация в банковский холдинг ради доступа к ФРС"],"out":"Выжил и заработал. Штраф SEC $550 млн в 2010 по делу Abacus; репутационный след остался.","insight":"Хедж работает, пока жив контрагент, продавший его.","terms":["hedge","basis","cds","senior","funding","counterparty","conflictint"],"assets":838},{"id":"jpmorgan","name":"JPMorgan Chase","org":"универсальный банк","proto":"Джейми Даймон и Барри Зуброу","layer":"chain","stage":"packager","hidden":false,"rei":0.4,"ttr":"не потребовался","verdict":"Выжил и купил","tone":"win","role":"Вышел из субпрайма до того, как это стало очевидно всем остальным.","risks":[{"c":2,"s":3,"t":"Концентрация в субпрайме","d":"Позиции в CDO могли стереть квартальную прибыль."},{"c":3,"s":2,"t":"Оптовое фондирование","d":"Диверсифицированный банк меньше зависит от репо."},{"c":2,"s":2,"t":"Риск поглощений","d":"Bear Stearns и Washington Mutual куплены в панике."}],"tools":["С 2006 сокращал экспозицию к субпрайму","Сильная риск-функция и диалог на уровне CEO","Ежедневная переоценка позиций без силоса"],"out":"Выжил, купил Bear и WaMu. Даймон фактически исполнял роль главного риск-менеджера.","insight":"Зрелость измеряется инвестицией в риск-функцию при ясном небе.","terms":["subprime","cdo","repo","silo","cleartest","funding"],"assets":1351},{"id":"morganstanley","name":"Morgan Stanley","org":"инвестиционный банк","proto":"Джон Мак, сделка Хауи Хаблера","layer":"chain","stage":"packager","hidden":false,"rei":0.7,"ttr":"спасён за месяц","verdict":"Спасён капиталом","tone":"saved","role":"Хеджировал мусор мусором: продал защиту на AAA, чтобы оплатить шорт BBB.","risks":[{"c":2,"s":3,"t":"Базисный риск","d":"Шорт BBB и лонг AAA повели себя одинаково плохо."},{"c":3,"s":3,"t":"Набег репо","d":"После Lehman ночные деньги уходят и отсюда."},{"c":1,"s":2,"t":"Силос между десками","d":"Один стол страховал другой, сумму не видел никто."}],"tools":["Продажа защиты на супер-старший транш","Привлечение $9 млрд от MUFG","Конвертация в банковский холдинг"],"out":"Убыток по одной сделке около $9 млрд. Выжил ценой продажи 21% японскому банку.","insight":"Хедж, который падает вместе с активом, — это второе плечо.","terms":["basis","rating","senior","repo","silo","mufg","hedge"],"assets":1120},{"id":"gse","name":"Fannie Mae и Freddie Mac","org":"GSE, квазигосударственные компании","proto":"внешнее управление FHFA, сентябрь 2008","layer":"chain","stage":"packager","hidden":false,"rei":0.85,"ttr":"под внешним управлением с 2008","verdict":"Национализированы","tone":"saved","role":"Гарантировали ипотеку и покупали чужие AAA-бумаги ради доли рынка.","risks":[{"c":2,"s":3,"t":"Кредитный риск гарантий","d":"Обещание заплатить за заёмщика при тонком капитале."},{"c":1,"s":2,"t":"Политическое давление","d":"Задача доступности жилья спорит с андеррайтингом."},{"c":3,"s":3,"t":"Цены на жильё","d":"Общий фактор против всего гарантированного портфеля."}],"tools":["Покупка субпрайм-MBS ради доходности","Опора на неявную гарантию государства","Смягчение стандартов вслед за рынком"],"out":"7 сентября 2008 — conservatorship. Казначейство влило около $190 млрд, акционеры обнулены.","insight":"Неявная гарантия — это капитал, которого нет на балансе.","terms":["gse","rating","subprime","mbs","underwriting","conservatorship","correlation"],"assets":1600},{"id":"ratings","name":"Рейтинговые агентства","org":"S&P, Moody's, Fitch","proto":"сцена разговора Баума с сотрудницей S&P","layer":"cover","stage":"rating","hidden":true,"rei":1.0,"ttr":"модель бизнеса не изменилась","verdict":"Оштрафованы","tone":"shift","role":"Превращали BBB-пулы в AAA-бумаги: без этого звена конвейер не работает.","risks":[{"c":1,"s":3,"t":"Платит эмитент","d":"Клиент — тот, кого оценивают. Конфликт встроен в выручку."},{"c":2,"s":3,"t":"Модельный риск","d":"Корреляция штатов занижена: общего спада в истории не было."},{"c":1,"s":3,"t":"Репутационный риск","d":"Массовые понижения обнажают качество прошлых оценок."},{"c":3,"s":2,"t":"Регуляторный риск","d":"Рейтинг зашит в нормативы, реформа угрожает модели."}],"tools":["Модели на данных без общенационального спада","Консультации по структуре до присвоения рейтинга","Понижения задним числом, пакетно"],"out":"S&P заплатил $1,37 млрд в 2015. Модель «платит эмитент» и олигополия трёх сохранились.","insight":"Легитимация дешевле капитала, поэтому её и покупали.","terms":["rating","ratingconflict","ratingshopping","correlation","basel","tranche","hiddennode"],"assets":3},{"id":"aig","name":"AIG Financial Products","org":"подразделение страховщика AIG","proto":"Джозеф Кассано, офис в Лондоне","layer":"cover","stage":"insurance","hidden":true,"rei":1.0,"ttr":"спасён за одну ночь","verdict":"Спасён государством","tone":"saved","role":"377 человек продали защиту на супер-старшие транши, не отложив резервов.","risks":[{"c":2,"s":3,"t":"Collateral call","d":"Падение цены и рейтинга требует живых денег немедленно."},{"c":2,"s":3,"t":"Концентрация риска","d":"Один фактор — национальная ипотека — против всего портфеля."},{"c":3,"s":3,"t":"Ликвидность группы","d":"Убыток бумажный, а залог нужен наличными сегодня."},{"c":1,"s":3,"t":"Модельная слепота","d":"Убеждение, что супер-старший транш не даёт убытка."}],"tools":["Продажа CDS без резервирования","Спор с Goldman о цене переоценки","Отказ признавать убыток до последнего"],"out":"16 сентября 2008 — пакет от $85 млрд, выросший до $182 млрд. Контрагентам выплачено почти по номиналу.","insight":"Продал страховку от того, во что не верил, и не зарезервировал.","terms":["cds","senior","tranche","collateral","mtm","rating","correlation","hiddennode"],"assets":979},{"id":"monolines","name":"MBIA и AMBAC","org":"монолайнеры, страховщики облигаций","proto":"поручительство вместо капитала","layer":"cover","stage":"insurance","hidden":true,"rei":0.8,"ttr":"бизнес-модель не восстановлена","verdict":"Маргинализированы","tone":"dead","role":"Их поручительство превращало сложный продукт в подобие надёжного.","risks":[{"c":2,"s":3,"t":"Тот же эпицентр","d":"Резервный страховщик зависит от того же фактора."},{"c":3,"s":3,"t":"Каскад понижений","d":"Падение рейтинга обесценивает всё, что он гарантировал."},{"c":2,"s":2,"t":"Недостаток капитала","d":"Объём гарантий несопоставим с капиталом под них."}],"tools":["Страхование муниципальных и структурированных бондов","Вынос проблемных активов в отдельные структуры","Судебные споры с банками о выплатах"],"out":"Рейтинги слетели, рынок страховки муниципальных выпусков почти исчез.","insight":"Резерв в том же регионе падает вместе с основным.","terms":["monoline","rating","correlation","counterparty","hiddennode"],"assets":30},{"id":"repo","name":"Репо и ABCP-кондуиты","org":"оптовое фондирование, SIV","proto":"теневой банкинг вне периметра","layer":"cover","stage":null,"hidden":true,"rei":1.0,"ttr":"доверие восстанавливалось годами","verdict":"Сектор сжался","tone":"shift","role":"Самые дешёвые деньги системы: одна ночь против тридцатилетней ипотеки.","risks":[{"c":3,"s":3,"t":"Набег кредиторов","d":"Дефолт никто не объявляет — просто не продлевают сделку."},{"c":2,"s":3,"t":"Разрыв срочности","d":"Длинный неликвидный актив финансируется на день."},{"c":2,"s":2,"t":"Залоговый риск","d":"Падение цены залога требует доплаты или сокращения."}],"tools":["Вынос плеча в SIV за пределы баланса","Ежедневное перекредитование под залог бумаг","Расчёт на вечную открытость рынка"],"out":"Набег 2007–2008. ФРС создала экстренные линии для дилеров; сектор после кризиса заметно меньше.","insight":"Дешёвое фондирование — скрытый узел с REI, равным единице.","terms":["repo","abcp","siv","shadow","leverage","funding","hiddennode","rei"],"assets":800},{"id":"mmf","name":"Фонды денежного рынка","org":"Reserve Primary Fund и сектор MMF","proto":"breaking the buck 16.09.2008","layer":"cover","stage":null,"hidden":true,"rei":0.9,"ttr":"гарантии введены за 3 дня","verdict":"Спасены гарантией","tone":"saved","role":"Хранилище наличных корпоративной Америки, продававшееся как безрисковое.","risks":[{"c":3,"s":3,"t":"Набег пайщиков","d":"Первый убыток вызывает мгновенный массовый выход."},{"c":2,"s":3,"t":"Скрытый кредитный риск","d":"В безрисковом портфеле лежали бумаги Lehman."},{"c":1,"s":2,"t":"Маркетинг как депозит","d":"Клиент считал продукт застрахованным, но это было не так."}],"tools":["Удержание цены пая $1 учётными методами","Ограничение выкупов и ликвидация фонда","Запрос на государственную гарантию сектора"],"out":"Пай упал до $0,97. Минфин дал гарантию, ФРС — линию выкупа. Реформы SEC ввели плавающую цену пая.","insight":"Безрисковый продукт — это риск, который просто не назвали.","terms":["mmf","buck","default","funding","hiddennode"],"assets":400},{"id":"investors","name":"Покупатели AAA","org":"IKB, Nord LB, пенсионные фонды","proto":"немецкие банки и муниципальные инвесторы","layer":"cover","stage":"investor","hidden":false,"rei":0.85,"ttr":"убытки признаны в 2007–2009","verdict":"Убытки и иски","tone":"hurt","role":"Конечный держатель риска, делегировавший анализ рейтинговому агентству.","risks":[{"c":3,"s":3,"t":"Внешний шок","d":"Куплен чужой риск без собственной модели."},{"c":1,"s":3,"t":"Делегирование анализа","d":"Рейтинг заменил проверку содержимого пула."},{"c":2,"s":2,"t":"Концентрация фактора","d":"Разные бумаги оказались одной ставкой на жильё США."}],"tools":["Покупка высокорейтинговых траншей без разбора","Опора на низкие коэффициенты Basel II","Иски к организаторам после краха"],"out":"IKB спасён государственным KfW уже в 2007. Земли и муниципалитеты потеряли миллиарды, часть вернули через суды.","insight":"Аутсорсинг суждения не передаёт риск тому, кто судит.","terms":["rating","tranche","basel","correlation","subprime"],"assets":80},{"id":"ninja","name":"Заёмщики NINJA","org":"субпрайм-заёмщики и инвесторы поневоле","proto":"сцена: владелица пяти домов под ипотеку","layer":"people","stage":"borrower","hidden":false,"rei":0.7,"ttr":"кредитная история — около 7 лет","verdict":"Потеряли жильё","tone":"hurt","role":"Им продали не дом, а ставку на бесконечный рост цены дома.","risks":[{"c":2,"s":3,"t":"Ставка на рефинансирование","d":"Платёж рассчитан на рост залога, а не на доход."},{"c":3,"s":3,"t":"Сброс ставки ARM","d":"Через два года платёж вырастает в полтора-два раза."},{"c":3,"s":3,"t":"Потеря работы","d":"Рецессия убирает доход одновременно у миллионов."},{"c":1,"s":2,"t":"Введение в заблуждение","d":"Брокер объяснил условия так, что риск остался невидим."}],"tools":["Рефинансирование, пока рынок был открыт","Стратегический дефолт в безрегрессных штатах","Банкротство с защитой части имущества"],"out":"Около 6,3 млн завершённых взысканий в 2007–2013 (CoreLogic). Разрыв в благосостоянии домохозяйств вырос и закрепился.","insight":"В безрегрессном штате у заёмщика был бесплатный пут — и он его исполнил.","terms":["ninja","arm","teaser","refi","underwater","strategicdef","nonrecourse","foreclosure","homestead","misselling"],"assets":1},{"id":"tenants","name":"Арендаторы","org":"жители ипотечных домов","proto":"семья, выселенная из арендованного дома","layer":"people","stage":null,"hidden":true,"rei":0.65,"ttr":"переезд за 30–90 дней","verdict":"Защищены задним числом","tone":"hurt","role":"Звено, которое не подписывало ни одного договора из этой цепочки.","risks":[{"c":3,"s":3,"t":"Выселение после взыскания","d":"Дом уходит с торгов, жильцы узнают от нового владельца."},{"c":3,"s":2,"t":"Потеря депозита и школы","d":"Переезд обнуляет залог и рвёт учебный год детям."},{"c":1,"s":3,"t":"Нулевая видимость","d":"Арендатор не видит ни банка, ни секьюритизации за лендлордом."}],"tools":["Своих инструментов не было: переезд и семейные сети","Обращение в суд уже после выселения","Съём у более крупного арендодателя"],"out":"PTFA 2009 дал 90 дней или срок договора. Норма истекла в конце 2014 и постоянно восстановлена в 2018.","insight":"Арендатор — это Tier-3 без права на информацию.","terms":["foreclosure","ptfa","tier3","securitization","hiddennode"],"assets":1},{"id":"citizens","name":"Граждане без ипотеки","org":"домохозяйства вне ипотечного рынка","proto":"пенсионные счета и рынок труда","layer":"people","stage":null,"hidden":false,"rei":0.6,"ttr":"занятость — около 6 лет","verdict":"Заплатили за спасение","tone":"hurt","role":"Не участвовали в сделках, но приняли удар через работу, пенсию и налоги.","risks":[{"c":3,"s":3,"t":"Потеря работы","d":"Сжатие спроса и кредита убирает места во всех отраслях."},{"c":3,"s":3,"t":"Обесценение 401(k)","d":"Пенсионный счёт повторяет падение индекса."},{"c":3,"s":2,"t":"Соседский эффект","d":"Пустые дома снижают цену своего жилья и доходы города."},{"c":2,"s":2,"t":"Отсутствие хеджа","d":"Ни один доступный инструмент не защищает от потери работы."}],"tools":["Подушка сбережений, если она была","Переезд и смена отрасли","Сокращение потребления вместо страхования"],"out":"Минус 8,7 млн рабочих мест, безработица 10% в октябре 2009. Медианное благосостояние упало примерно на 40% к 2010.","insight":"Отсутствие позиции в сделке не означает отсутствия экспозиции.","terms":["k401","systemic","hedge","moralhazard"],"assets":1},{"id":"regulators","name":"Регуляторы США","org":"SEC, ФРС, OTS, OCC","proto":"система надзора до 2008","layer":"state","stage":null,"hidden":false,"rei":0.9,"ttr":"перестроены законом 2010 года","verdict":"Перестроены","tone":"shift","role":"Управляли искусственным риском как естественным: правила создавали стимулы.","risks":[{"c":1,"s":3,"t":"Регуляторный захват","d":"Вращающаяся дверь между надзором и индустрией."},{"c":2,"s":3,"t":"Ставка на саморегулирование","d":"Программа CSE позволила инвестбанкам растить плечо."},{"c":3,"s":3,"t":"Слепая зона периметра","d":"CDS и теневой банкинг выведены из-под надзора законом."}],"tools":["Basel II и рейтинги вместо собственного анализа","CFMA 2000: деривативы вне регулирования","Надзор за формой отчётности, а не за стимулами"],"out":"Dodd-Frank 2010: FSOC, механизм ликвидации, CFPB, правило Волкера. OTS упразднён.","insight":"Вероятность здесь производилась правилами — значит, была управляемой.","terms":["basel","rating","cfma","shadow","cds","doddfrank","fsoc","cfpb","volcker","leverage","ola"],"assets":2},{"id":"usgov","name":"Правительство США","org":"Минфин, ФРС, Конгресс","proto":"Полсон, Бернанке, Гейтнер","layer":"state","stage":null,"hidden":false,"rei":1.0,"ttr":"политический капитал потрачен на годы","verdict":"Спасло систему","tone":"saved","role":"Последний страховщик, чья налоговая база падает в том же самом шоке.","risks":[{"c":3,"s":3,"t":"Системный коллапс","d":"Остановка платежей останавливает реальную экономику."},{"c":2,"s":3,"t":"Моральный риск","d":"Спасение сегодня закрепляет ожидание спасения завтра."},{"c":1,"s":3,"t":"Политический риск","d":"Отказ Конгресса 29.09.2008 обвалил индекс на 777 пунктов."},{"c":3,"s":2,"t":"Корреляция с базой","d":"Доходы бюджета падают, когда платить надо больше."}],"tools":["TARP на $700 млрд и капитал в банки","QE и экстренные линии ликвидности","Публичные стресс-тесты SCAP ради доверия"],"out":"Банковская часть TARP вернула деньги с прибылью. Помощь домовладельцам через HAMP осталась слабее помощи банкам.","insight":"Спасли тех, кто создавал риск, а не тех, кто его нёс.","terms":["tarp","qe","scap","stresstest","moralhazard","systemic","sovereign","hamp","doddfrank"],"assets":100},{"id":"russia","name":"Россия","org":"государство и корпоративный сектор","proto":"сырьевая экономика с внешним долгом","layer":"state","stage":null,"hidden":false,"rei":0.85,"ttr":"ВВП восстановился к 2011–2012","verdict":"Буфер потрачен","tone":"shift","role":"Скрытый узел — цена нефти: одна цифра определяла бюджет, курс и рынок акций.","risks":[{"c":3,"s":3,"t":"Нефтяной шок","d":"Падение со $147 до $39 обрушает доходы бюджета."},{"c":3,"s":3,"t":"Внешний корпоративный долг","d":"Валютные займы надо рефинансировать в закрытом мире."},{"c":2,"s":3,"t":"Курсовой риск","d":"Удержание курса сжигает резервы впустую."},{"c":3,"s":2,"t":"Отток капитала","d":"Инвесторы уходят в доллар одновременно."}],"tools":["Резервный фонд как буфер под TTR шока","Плавная девальвация вместо защиты уровня","Беззалоговые аукционы ЦБ, поддержка банков"],"out":"ВВП −7,9% в 2009, индекс РТС −72% за 2008. Резервы ушли на банки и компании, а не домохозяйства.","insight":"Буфер потратили не на то звено, которое несло удар.","terms":["reserves","externaldebt","devaluation","ttr","hiddennode","carrytrade","funding","fxrisk"],"assets":30},{"id":"kazakhstan","name":"Казахстан","org":"банковский сектор и государство","proto":"BTA, Alliance Bank, фонд стрессовых активов","layer":"state","stage":null,"hidden":false,"rei":0.85,"ttr":"реструктуризация банков 2009–2012","verdict":"Долги переложены","tone":"shift","role":"Банки заняли дёшево на Западе и вложили в местную стройку и валютные кредиты.","risks":[{"c":3,"s":3,"t":"Внешнее фондирование","d":"Западные рынки закрылись, рефинансировать нечем."},{"c":2,"s":3,"t":"Курсовой риск заёмщиков","d":"Доход в тенге, долг в долларе: платёж удваивается."},{"c":3,"s":2,"t":"Сырьевой шок","d":"Нефть и металлы тянут бюджет и спрос вниз."},{"c":2,"s":2,"t":"Концентрация в стройке","d":"Залог банков — недвижимость одного цикла."}],"tools":["Господдержка через фонды и выкуп долей","Девальвация тенге в 2009 году","Реструктуризация внешних долгов BTA и Alliance"],"out":"Крупнейшие банки прошли через дефолты по внешним долгам. Курсовой риск лёг на заёмщиков.","insight":"Запасной поставщик из той же юрисдикции падает вместе с основным.","terms":["externaldebt","carrytrade","devaluation","default","correlation","funding","fxrisk"],"assets":5},{"id":"china","name":"Китай","org":"правительство и госбанки","proto":"экспортная модель и пакет 2008 года","layer":"state","stage":null,"hidden":false,"rei":0.7,"ttr":"спрос восстановился за 2–3 года","verdict":"Выиграл время","tone":"shift","role":"Сборочный цех планеты: скрытый узел — американский потребитель.","risks":[{"c":3,"s":3,"t":"Обвал экспортного спроса","d":"Заказчик перестаёт покупать, фабрики встают."},{"c":3,"s":3,"t":"Занятость мигрантов","d":"Около 20 млн рабочих теряют работу и уезжают домой."},{"c":2,"s":2,"t":"Один покупатель","d":"Концентрация выручки на двух конечных рынках."}],"tools":["Стимул ¥4 трлн: инфраструктура и жильё","Кредитная экспансия через госбанки","Поддержка занятости и внутренних инвестиций"],"out":"Рост около 9% в 2009. Создан новый коррелированный узел: долг регионов и пузырь недвижимости.","insight":"Риск не исчез — он переехал в следующее десятилетие.","terms":["stimulus","correlation","systemic","hiddennode"],"assets":50}]}</script>
+<script>
+(function(){
+'use strict';
+var DATA=JSON.parse(document.getElementById('payload').textContent);
+var ACTORS=DATA.actors,GL=DATA.glossary,CATS=DATA.cats,LAYERS=DATA.layers,STAGES=DATA.stages;
+var byId={};ACTORS.forEach(function(a,i){a._i=i;byId[a.id]=a;});
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function pad(n){return (n<10?'0':'')+n;}
+var seen;
+try{seen=new Set(JSON.parse(localStorage.getItem('bigshort.seen')||'[]'));}catch(e){seen=new Set();}
+function saveSeen(){try{localStorage.setItem('bigshort.seen',JSON.stringify(Array.from(seen)));}catch(e){}}
+var S={q:'',layer:'all',cat:'all',stage:null,hidden:false,sort:'rei',compact:false,open:null,glos:false,gAll:false,gq:'',rev:false};
+function rxEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function makeRe(forms){
+  var body=forms.slice().sort(function(a,b){return b.length-a.length;}).map(rxEsc).join('|');
+  try{return new RegExp('(?<![\\p{L}\\p{N}_])('+body+')(?![\\p{L}\\p{N}_])','giu');}
+  catch(e){return new RegExp('(^|[^0-9A-Za-zА-Яа-яЁё_])('+body+')(?![0-9A-Za-zА-Яа-яЁё_])','gi');}
+}
+var LOOK={};
+Object.keys(GL).forEach(function(k){(GL[k].m||[GL[k].t]).forEach(function(f){LOOK[f.toLowerCase()]=k;});});
+function eachMatch(text,re,cb){
+  re.lastIndex=0;var m;
+  while((m=re.exec(text))!==null){
+    var raw=m[0],off=0;
+    if(m.length>2){raw=m[2];off=m[1].length;}
+    var k=LOOK[String(raw).toLowerCase()];
+    if(k)cb(m.index+off,raw,k);
+    if(re.lastIndex===m.index)re.lastIndex++;
+  }
+}
+function termsOf(a){
+  var order=[],set={};
+  (a.terms||[]).forEach(function(k){if(GL[k]&&!set[k]){set[k]=1;order.push(k);}});
+  a.risks.forEach(function(r){var k='cat'+r.c;if(GL[k]&&!set[k]){set[k]=1;order.push(k);}});
+  if(a.hidden&&!set.hiddennode){set.hiddennode=1;order.push('hiddennode');}
+  return order;
+}
+ACTORS.forEach(function(a){a._terms=termsOf(a);});
+function markStr(text,keys){
+  if(!keys||!keys.length)return esc(text);
+  var forms=[],local={};
+  keys.forEach(function(k){(GL[k].m||[GL[k].t]).forEach(function(f){forms.push(f);local[f.toLowerCase()]=k;});});
+  if(!forms.length)return esc(text);
+  var re=makeRe(forms),out='',last=0,s=String(text);
+  eachMatch(s,re,function(i,raw,k){
+    if(!local[raw.toLowerCase()])return;
+    out+=esc(s.slice(last,i));
+    out+='<button type="button" class="term" data-term="'+k+'" title="Расшифровать: '+esc(GL[k].t)+'">'+esc(raw)+'</button>';
+    last=i+raw.length;
+  });
+  return out+esc(s.slice(last));
+}
+var ASSET_MAX=0;
+ACTORS.forEach(function(a){if(a.assets>ASSET_MAX)ASSET_MAX=a.assets;});
+function tileSize(a){
+  // log area → cols/rows on 12-col grid
+  var t=Math.log10((a.assets||0.01)+1)/Math.log10(ASSET_MAX+1); // 0..1
+  var cells=2+Math.round(t*10); // 2..12
+  if(S.compact){cells=Math.max(2,Math.round(cells*0.7));}
+  var cols,rows;
+  if(cells>=10){cols=6;rows=3;}
+  else if(cells>=7){cols=4;rows=3;}
+  else if(cells>=5){cols=4;rows=2;}
+  else if(cells>=3){cols=3;rows=2;}
+  else{cols=2;rows=2;}
+  return {cols:cols,rows:rows};
+}
+function fmtAssets(v){
+  if(v>=100)return Math.round(v)+' млрд $';
+  if(v>=10)return v.toFixed(0)+' млрд $';
+  if(v>=1)return v.toFixed(1)+' млрд $';
+  if(v>=0.1)return Math.round(v*1000)+' млн $';
+  return Math.round(v*1000)+' млн $';
+}
+function filtered(){
+  var q=S.q.trim().toLowerCase();
+  var out=ACTORS.filter(function(a){
+    if(S.layer!=='all'&&a.layer!==S.layer)return false;
+    if(S.stage&&a.stage!==S.stage)return false;
+    if(S.hidden&&!a.hidden)return false;
+    if(S.cat!=='all'&&!a.risks.some(function(r){return String(r.c)===S.cat;}))return false;
+    if(q&&(a.name+' '+a.org+' '+a.proto+' '+a.role+' '+a.verdict).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  var ord={short:0,chain:1,cover:2,people:3,state:4};
+  out.sort(function(a,b){
+    if(S.sort==='rei')return b.rei-a.rei||a._i-b._i;
+    if(S.sort==='name')return a.name.localeCompare(b.name,'ru');
+    if(S.sort==='risk')return b.risks.length-a.risks.length||b.rei-a.rei;
+    if(S.sort==='assets')return (b.assets||0)-(a.assets||0)||a._i-b._i;
+    return ord[a.layer]-ord[b.layer]||b.rei-a.rei;
+  });
+  return out;
+}
+function tileHTML(a){
+  var L=LAYERS[a.layer],cats={},sz=tileSize(a);
+  a.risks.forEach(function(r){cats[r.c]=1;});
+  var dots=Object.keys(cats).sort().map(function(c){return '<i data-c="'+c+'" title="'+esc(CATS[c].full)+'"></i>';}).join('');
+  return '<button class="tile'+(seen.has(a.id)?' seen':'')+'" data-id="'+a.id+'" style="--c:'+L.c+';--cols:'+sz.cols+';--rows:'+sz.rows+'" aria-label="Открыть карточку: '+esc(a.name)+'">'
+   +(a.hidden?'<span class="hid no-mark">скрытый узел</span>':'')
+   +'<span class="tile__top no-mark"><span class="tile__idx">'+pad(a._i+1)+'</span><span class="tile__lay">'+esc(L.name)+'</span>'
+   +'<span class="tile__seen" title="Просмотрено"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5 6.5 12 13 4.5"/></svg></span></span>'
+   +'<span class="tile__name">'+esc(a.name)+'</span>'
+   +'<span class="tile__org">'+esc(a.org)+' · '+fmtAssets(a.assets)+'</span>'
+   +'<span class="tile__role">'+esc(a.role)+'</span>'
+   +'<span class="tile__foot no-mark"><span class="rei"><span class="rei__l">REI</span><span class="rei__b"><i style="width:'+(a.rei*100)+'%"></i></span><span class="rei__v">'+a.rei.toFixed(2)+'</span></span><span class="dots">'+dots+'</span></span>'
+   +'</button>';
+}
+var mosaicSig='';
+function renderMosaic(){
+  var list=filtered(),m=$('#mosaic');
+  var sig=S.compact+'|'+S.layer+'|'+S.cat+'|'+S.stage+'|'+S.hidden+'|'+S.sort+'|'+S.q+'|'+list.map(function(a){return a.id;}).join(',')+'|'+seen.size;
+  m.className='mosaic'+(S.compact?' compact':'');
+  if(sig!==mosaicSig){
+    mosaicSig=sig;
+    m.innerHTML=list.length?list.map(tileHTML).join('')
+     :'<div class="empty"><h3>Ничего не найдено</h3><p>Под текущий фильтр не подходит ни один актор.</p><p style="margin-top:14px"><button class="tbtn" id="emptyReset">Сбросить фильтры</button></p></div>';
+    var er=$('#emptyReset');if(er)er.onclick=resetFilters;
+  }
+  $('#count').textContent=list.length+' / '+ACTORS.length;
+  $$('.chip[data-layer]').forEach(function(c){c.classList.toggle('on',c.dataset.layer===S.layer);});
+  $$('.lg[data-cat]').forEach(function(c){c.classList.toggle('on',c.dataset.cat===S.cat);});
+  $$('.st').forEach(function(s){s.classList.toggle('on',s.dataset.stage===S.stage);});
+  $('#fHidden').classList.toggle('on',S.hidden);
+  $('#fCompact').classList.toggle('on',S.compact);
+  var af=$('#activeStage');
+  if(S.stage){
+    var st=STAGES.filter(function(s){return s.id===S.stage;})[0];
+    af.innerHTML='<span class="active-f">Этап: '+esc(st?st.t:S.stage)+' <button type="button" aria-label="Снять фильтр этапа">×</button></span>';
+    af.querySelector('button').onclick=function(){S.stage=null;renderMosaic();};
+  }else af.innerHTML='';
+  updateProg();
+}
+function updateProg(){
+  $('#progN').textContent=seen.size+' / '+ACTORS.length;
+  $('#progBar').style.width=(seen.size/ACTORS.length*100)+'%';
+}
+function resetFilters(){S.q='';S.layer='all';S.cat='all';S.stage=null;S.hidden=false;$('#q').value='';renderMosaic();}
+function cardHTML(a){
+  var L=LAYERS[a.layer];
+  var st=a.stage?(STAGES.filter(function(s){return s.id===a.stage;})[0]||{}):null;
+  var keys=a._terms;
+  var risks=a.risks.map(function(r){
+    return '<li class="risk"><span class="pill c'+r.c+' no-mark" title="'+esc(CATS[r.c].full)+'">'+CATS[r.c].roman+'</span>'
+     +'<span class="risk__t"><b>'+markStr(r.t,keys)+'</b><span>'+markStr(r.d,keys)+'</span></span>'
+     +'<span class="sev no-mark" data-s="'+r.s+'" title="Критичность '+r.s+' из 3"><i></i><i></i><i></i></span></li>';
+  }).join('');
+  var tools=a.tools.map(function(t){return '<li>'+markStr(t,keys)+'</li>';}).join('');
+  return '<div class="card__hd" style="--c:'+L.c+'">'
+   +'<div class="card__meta no-mark"><span class="mono">'+pad(a._i+1)+'</span><span class="tag">'+esc(L.name)+'</span>'
+   +(st?'<span class="mono">этап '+esc(st.n)+'</span>':'')
+   +'<span class="vd" data-t="'+a.tone+'">'+esc(a.verdict)+'</span></div>'
+   +'<h2 class="card__name">'+esc(a.name)+'</h2>'
+   +'<div class="card__sub">'+esc(a.org)+' · <em>'+esc(a.proto)+'</em> · ~'+fmtAssets(a.assets)+'</div>'
+   +'<button class="xbtn no-mark" id="cardClose" aria-label="Закрыть карточку"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>'
+  +'</div>'
+  +'<div class="card__body" id="cardBody">'
+   +'<p class="role">'+markStr(a.role,keys)+'</p>'
+   +'<div class="metrics">'
+     +'<div class="met"><div class="met__k no-mark">REI · влияние</div><div class="met__v no-mark">'+a.rei.toFixed(2)+'</div><div class="met__b no-mark"><i style="width:'+(a.rei*100)+'%"></i></div></div>'
+     +'<div class="met"><div class="met__k no-mark">TTR · восстановление</div><div class="met__v txt">'+esc(a.ttr)+'</div></div>'
+     +'<div class="met'+(a.hidden?' hot':'')+'"><div class="met__k no-mark">Профиль узла</div><div class="met__v txt">'+(a.hidden?'Скрытый узел: дёшев, но роняет систему':'Видимый узел: масштаб известен рынку')+'</div></div>'
+   +'</div>'
+   +'<section class="risks"><div class="risks__hd"><h4>Риски актора</h4><span class="n no-mark">'+a.risks.length+'</span>'
+     +'<span class="hint no-mark">I · предотвратимый · II · стратегический · III · внешний</span></div><ul class="rlist">'+risks+'</ul></section>'
+   +'<div class="cols" style="--c:'+L.c+'">'
+     +'<div class="blk"><h4>Чем управляли фактически</h4><ul>'+tools+'</ul></div>'
+     +'<div class="blk"><h4>Долгосрочный итог</h4><p>'+markStr(a.out,keys)+'</p></div>'
+   +'</div>'
+   +'<blockquote class="ins">'+markStr(a.insight,keys)+'</blockquote>'
+   +'<p class="fhint no-mark" style="margin:4px 0 0;justify-content:center"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.1"/></svg>Клик по термину или карточке — расшифровка</p>'
+  +'</div>';
+}
+var currentTerms=[];
+function openCard(id,push){
+  var a=byId[id];if(!a)return;
+  S.open=id;
+  var card=$('#card');
+  currentTerms=a._terms;
+  card.innerHTML=cardHTML(a);
+  card.style.setProperty('--c',LAYERS[a.layer].c);
+  $('#ov').classList.add('on');
+  document.body.style.overflow='hidden';
+  seen.add(id);saveSeen();
+  var t=$('.tile[data-id="'+id+'"]');if(t)t.classList.add('seen');
+  updateProg();
+  $('#cardClose').onclick=closeAll;
+  $('#cardBody').scrollTop=0;
+  if(S.glos)renderGlos();
+  if(push!==false){try{history.replaceState(null,'','#/actor/'+id);}catch(e){}}
+}
+function closeAll(){
+  S.open=null;S.glos=false;S.gAll=false;S.gq='';
+  $('#ov').classList.remove('on','glos-on');
+  document.body.style.overflow='';$('#gq').value='';
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+}
+function toggleGlos(all){
+  if(S.glos&&!all&&!S.gAll){closeGlos();return;}
+  S.glos=true;S.gAll=!!all;S.gq='';$('#gq').value='';
+  $('#ov').classList.add('on','glos-on');
+  document.body.style.overflow='hidden';
+  renderGlos();
+}
+function closeGlos(){
+  S.glos=false;S.gAll=false;S.gq='';$('#gq').value='';
+  if(S.open)$('#ov').classList.remove('glos-on');
+  else{$('#ov').classList.remove('on','glos-on');document.body.style.overflow='';}
+}
+function glosKeys(){
+  if(S.gAll||!S.open)return Object.keys(GL).sort(function(a,b){return GL[a].t.localeCompare(GL[b].t,'ru');});
+  return currentTerms.slice();
+}
+function renderGlos(){
+  var keys=glosKeys(),q=S.gq.trim().toLowerCase(),whole=(S.gAll||!S.open);
+  var view=keys.filter(function(k){if(!q)return true;var g=GL[k];return (g.t+' '+g.full+' '+g.d).toLowerCase().indexOf(q)>=0;});
+  $('#glosTitle').textContent=whole?'Глоссарий целиком':'Термины карточки';
+  $('#glosSub').textContent=whole?Object.keys(GL).length+' терминов и сокращений разбора · показано '+view.length
+    :(byId[S.open]?byId[S.open].name:'')+' · '+keys.length+' терминов использовано в карточке';
+  $('#gAll').classList.toggle('on',whole);
+  $('#gAll').textContent=whole?'Только карточка':'Все термины';
+  $('#gAll').style.display=S.open?'':'none';
+  $('#glosBack').style.display=S.open?'':'none';
+  $('#cloud').innerHTML=keys.map(function(k){return '<button type="button" data-jump="'+k+'">'+esc(GL[k].t)+'</button>';}).join('');
+  $('#glosList').innerHTML=view.length?view.map(function(k){
+    var g=GL[k];
+    return '<article class="ge" id="ge-'+k+'"><div class="ge__t">'+esc(g.t)+'</div><div class="ge__f">'+esc(g.full)+'</div><div class="ge__d">'+esc(g.d)+'</div></article>';
+  }).join(''):'<div class="gempty">По запросу «'+esc(S.gq)+'» ничего нет.</div>';
+}
+function jumpTo(k){
+  var el=document.getElementById('ge-'+k);
+  if(!el){S.gq='';$('#gq').value='';renderGlos();el=document.getElementById('ge-'+k);}
+  if(!el)return;
+  el.scrollIntoView({block:'center',behavior:'smooth'});
+  el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');
+}
+var toastT;
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},2200);}
+function buildTicker(){
+  var items=[['ABX.HE BBB− 06-2','98 → 12','dn'],['Brent','147 → 39 $','dn'],['S&P 500','−56,8%','dn'],
+    ['Безработица США','4,6 → 10,0%','dn'],['Lehman Brothers','15.09.2008','fl'],['AIG','пакет $182 млрд','fl'],
+    ['Взыскания 2007–2013','6,3 млн','dn'],['Индекс РТС 2008','−72%','dn'],['Тенге 2009','−25%','dn'],
+    ['Стимул КНР','¥4 трлн','up'],['TARP','$700 млрд','fl'],['Плечо инвестбанков','30:1','dn'],
+    ['Goldman / JPM','выжили','up'],['Рейтинг AAA','массовые понижения','dn']];
+  var one=items.map(function(i){return '<span class="tick__i"><b>'+esc(i[0])+'</b><span class="'+i[2]+'">'+esc(i[1])+'</span></span>';}).join('');
+  $('#tick').innerHTML=one+one;
+}
+function buildPipeline(){
+  var counts={};ACTORS.forEach(function(a){if(a.stage)counts[a.stage]=(counts[a.stage]||0)+1;});
+  $('#flow').innerHTML=STAGES.map(function(s,i){
+    return (i?'<span class="lnk"></span>':'')
+     +'<button class="st" data-stage="'+s.id+'"><span class="st__c no-mark">'+(counts[s.id]||0)+'</span>'
+     +'<span class="st__n">'+s.n+'</span><span class="st__t">'+esc(s.t)+'</span><span class="st__s">'+esc(s.s)+'</span></button>';
+  }).join('');
+  $('#offchain').innerHTML='<span>Вне конвейера:</span>'
+   +'<button class="chip" data-offfunding="1" style="--cc:var(--rose)">Репо и фонды денежного рынка</button>'
+   +'<button class="chip" data-offlayer="short" style="--cc:'+LAYERS.short.c+'">Ставка против</button>'
+   +'<button class="chip" data-offlayer="people" style="--cc:'+LAYERS.people.c+'">Те, кто не выбирал</button>'
+   +'<button class="chip" data-offlayer="state" style="--cc:'+LAYERS.state.c+'">Государства</button>';
+}
+function buildLayerChips(){
+  var html='<button class="chip on" data-layer="all">Все слои</button>';
+  Object.keys(LAYERS).forEach(function(k){
+    var n=ACTORS.filter(function(a){return a.layer===k;}).length;
+    html+='<button class="chip" data-layer="'+k+'">'+esc(LAYERS[k].name)+' <span class="mono" style="opacity:.6">'+n+'</span></button>';
+  });
+  $('#layers').innerHTML=html;
+}
+function debounce(fn,ms){var t;return function(){var a=arguments,c=this;clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);},ms);};}
+function bind(){
+  $('#mosaic').addEventListener('click',function(e){var t=e.target.closest('.tile');if(t)openCard(t.dataset.id);});
+  $('#layers').addEventListener('click',function(e){var c=e.target.closest('.chip[data-layer]');if(!c)return;S.layer=c.dataset.layer;S.stage=null;renderMosaic();});
+  $('#legend').addEventListener('click',function(e){var c=e.target.closest('.lg[data-cat]');if(!c)return;S.cat=(S.cat===c.dataset.cat)?'all':c.dataset.cat;renderMosaic();});
+  $('#flow').addEventListener('click',function(e){
+    var s=e.target.closest('.st');if(!s)return;
+    S.stage=(S.stage===s.dataset.stage)?null:s.dataset.stage;S.layer='all';renderMosaic();
+    if(S.stage)$('#bar').scrollIntoView({block:'start',behavior:'smooth'});
+  });
+  $('#offchain').addEventListener('click',function(e){
+    var f=e.target.closest('[data-offfunding]'),l=e.target.closest('[data-offlayer]');
+    if(f){S.layer='cover';S.stage=null;S.q='фонд';$('#q').value='фонд';}
+    else if(l){S.layer=l.dataset.offlayer;S.stage=null;S.q='';$('#q').value='';}
+    else return;
+    renderMosaic();$('#bar').scrollIntoView({block:'start',behavior:'smooth'});
+  });
+  $('#q').addEventListener('input',debounce(function(e){S.q=e.target.value;renderMosaic();},140));
+  $('#sort').addEventListener('change',function(e){S.sort=e.target.value;renderMosaic();});
+  $('#fHidden').addEventListener('click',function(){S.hidden=!S.hidden;renderMosaic();});
+  $('#fCompact').addEventListener('click',function(){S.compact=!S.compact;mosaicSig='';renderMosaic();});
+  $('#reset').addEventListener('click',function(){resetFilters();toast('Фильтры сброшены');});
+  $('#resetSeen').addEventListener('click',function(){seen.clear();saveSeen();mosaicSig='';renderMosaic();toast('Прогресс просмотра сброшен');});
+  $('#rand').addEventListener('click',function(){var l=filtered();if(!l.length)l=ACTORS;openCard(l[Math.floor(Math.random()*l.length)].id);});
+  $('#glosBtn').addEventListener('click',function(){S.open=null;toggleGlos(true);});
+  $('#rev').addEventListener('click',function(){
+    S.rev=!S.rev;$('#rev').classList.toggle('on',S.rev);$('#pipe').classList.toggle('rev',S.rev);
+    $('#revTxt').textContent=S.rev?'Обратный удар: паника идёт назад':'Прямой поток риска';
+  });
+  $('#ovScrim').addEventListener('click',closeAll);
+  $('#card').addEventListener('click',function(e){
+    var tb=e.target.closest('.term');
+    if(tb){e.stopPropagation();if(!S.glos)toggleGlos(false);jumpTo(tb.dataset.term);return;}
+    if(e.target.closest('button,a,input'))return;
+    var sel=window.getSelection?window.getSelection().toString():'';
+    if(sel&&sel.length>2)return;
+    toggleGlos(false);
+  });
+  $('#glosClose').addEventListener('click',function(){if(S.open)closeGlos();else closeAll();});
+  $('#glosBack').addEventListener('click',closeGlos);
+  $('#gAll').addEventListener('click',function(){if(!S.open)return;S.gAll=!S.gAll;S.gq='';$('#gq').value='';renderGlos();});
+  $('#gq').addEventListener('input',debounce(function(e){S.gq=e.target.value;renderGlos();},120));
+  $('#cloud').addEventListener('click',function(e){var b=e.target.closest('[data-jump]');if(b)jumpTo(b.dataset.jump);});
+  document.addEventListener('keydown',function(e){
+    var ae=document.activeElement,typing=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+    if(e.key==='Escape'){if(S.glos&&S.open)closeGlos();else if($('#ov').classList.contains('on'))closeAll();return;}
+    if(typing)return;
+    if(e.key==='/'){e.preventDefault();$('#q').focus();return;}
+    if(e.key==='g'||e.key==='п'){S.open=null;toggleGlos(true);return;}
+  });
+  window.addEventListener('hashchange',applyHash);
+}
+function applyHash(){
+  var m=location.hash.match(/#\/actor\/([a-z0-9-]+)/i);
+  if(m&&byId[m[1]]&&S.open!==m[1])openCard(m[1],false);
+}
+// sort option: assets
+var sortEl=$('#sort');
+if(sortEl&&!$$('#sort option[value=assets]').length){
+  var opt=document.createElement('option');opt.value='assets';opt.textContent='По активам ↓';
+  sortEl.appendChild(opt);
+}
+buildTicker();buildPipeline();buildLayerChips();bind();renderMosaic();applyHash();
+})();
+</script>
+</body>
