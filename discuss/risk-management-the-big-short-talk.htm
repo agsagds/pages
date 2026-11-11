@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Игра на понижение · Доклад 15′</title>
+<meta name="description" content="15-минутный доклад: конкретные плитки акторов кризиса 2008.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5/index.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+--ink:#06090F;--surf:#101825;--line:rgba(236,230,219,.12);--line2:rgba(236,230,219,.22);
+--text:#ECE6DB;--muted:#93A2B8;--dim:#65758E;
+--gold:#FFC24B;--mint:#5FE3A1;--rose:#FF5D8F;--coral:#FF8A5B;--warn:#FFB020;--cyan:#35D0FF;--violet:#C084FC;
+--ease:cubic-bezier(.2,.8,.2,1);--topH:64px}
+html{height:100%}
+body{margin:0;min-height:100%;background:linear-gradient(#06090F,#0A0F18);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+h1{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.4px;margin:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+.top{position:sticky;top:0;z-index:20;height:var(--topH);display:flex;align-items:center;gap:14px;padding:0 22px;background:rgba(6,9,15,.94);border-bottom:1px solid var(--line)}
+.brand{font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap}
+.brand span{color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.6px;margin-left:10px;text-transform:none}
+.top__sp{flex:1}
+.prog{display:flex;align-items:center;gap:10px}
+.prog__bar{width:120px;height:5px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.prog__bar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--mint),var(--gold));transition:width .25s var(--ease)}
+.prog__n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap}
+.mins{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);border:1px solid rgba(255,194,75,.35);border-radius:8px;padding:5px 9px;white-space:nowrap}
+.tbtn{display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--line2);border-radius:10px;font-size:12.5px;color:var(--muted);transition:.2s}
+.tbtn:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,194,75,.08)}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 110px;min-height:calc(100vh - var(--topH))}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.slide h1{font-size:clamp(26px,4.2vw,40px);line-height:1.05;text-transform:uppercase}
+.mosaic{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:22px}
+.tile{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);border-radius:14px;padding:15px 15px 13px;background:linear-gradient(158deg,var(--surf),#0A0F18);min-height:118px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.tile::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--c,var(--gold))}
+.tile:hover{border-color:color-mix(in srgb,var(--c,var(--gold)) 55%,transparent);transform:translateY(-2px)}
+.tile__top{display:flex;align-items:center;gap:8px}
+.tile__tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--c,var(--gold))}
+.tile__rei{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.tile__name{font-family:'Oswald',sans-serif;font-size:20px;line-height:1.1;text-transform:uppercase;letter-spacing:.3px}
+.tile__org{font-size:12.5px;color:var(--muted);line-height:1.3}
+.tile.wide{grid-column:span 2}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 18px 18px;background:linear-gradient(180deg,transparent,rgba(6,9,15,.95) 35%)}
+.nav button{width:48px;height:48px;border:1px solid var(--line2);border-radius:12px;display:grid;place-items:center;color:var(--muted);background:rgba(16,24,37,.9);transition:.2s}
+.nav button:hover:not(:disabled){color:var(--gold);border-color:var(--gold)}
+.nav button:disabled{opacity:.35;cursor:default}
+.hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin:0 8px}
+@media (max-width:720px){
+.tile.wide{grid-column:span 1}
+.brand span,.hint{display:none}
+.prog__bar{width:64px}
+.wrap{padding:18px 14px 120px}
+.top{padding:0 12px;gap:8px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Игра на понижение<span>доклад 15′</span></div>
+  <div class="top__sp"></div>
+  <div class="prog">
+    <span class="prog__n" id="progN">1 / 8</span>
+    <span class="prog__bar"><i id="progBar"></i></span>
+  </div>
+  <span class="mins" id="mins">0–1 мин</span>
+  <a class="tbtn" href="risk-management-the-big-short.htm">Карта акторов</a>
+</header>
+
+<main class="wrap">
+  <article class="slide" id="slide" aria-live="polite"></article>
+</main>
+
+<nav class="nav" aria-label="Навигация по докладу">
+  <button type="button" id="prev" aria-label="Предыдущий шаг">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 3.5 5.5 8 10 12.5"/></svg>
+  </button>
+  <p class="hint">← → · Space · клик → карточка</p>
+  <button type="button" id="next" aria-label="Следующий шаг">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3.5 10.5 8 6 12.5"/></svg>
+  </button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+var C={
+  short:'#5FE3A1', chain:'#FFC24B', cover:'#FF5D8F', people:'#FF8A5B', state:'#8AB4FF',
+  c1:'#FFB020', c2:'#35D0FF', c3:'#C084FC'
+};
+var A={
+  brokers:{id:'brokers',name:'Брокеры и оценщики',org:'розничное звено',layer:'chain',rei:0.95,tag:'кат. I'},
+  ratings:{id:'ratings',name:'Рейтинговые агентства',org:"S&P · Moody's · Fitch",layer:'cover',rei:1.0,tag:'скрытый узел'},
+  ninja:{id:'ninja',name:'Заёмщики NINJA',org:'субпрайм',layer:'people',rei:0.7,tag:'заёмщик'},
+  countrywide:{id:'countrywide',name:'Countrywide',org:'оригинатор',layer:'chain',rei:0.9,tag:'originate-to-distribute'},
+  newcentury:{id:'newcentury',name:'New Century',org:'субпрайм-кредиторы',layer:'chain',rei:0.85,tag:'warehouse'},
+  lehman:{id:'lehman',name:'Lehman Brothers',org:'упаковка · банкротство',layer:'chain',rei:1.0,tag:'плечо 30:1'},
+  aig:{id:'aig',name:'AIG FP',org:'CDS на супер-старшие',layer:'cover',rei:1.0,tag:'кредитная защита'},
+  investors:{id:'investors',name:'Покупатели AAA',org:'IKB · Nord LB · пенсии',layer:'cover',rei:0.85,tag:'конечный держатель'},
+  burry:{id:'burry',name:'Майкл Бьюрри',org:'Scion Capital',layer:'short',rei:0.55,tag:'кат. II'},
+  baum:{id:'baum',name:'Марк Баум',org:'FrontPoint',layer:'short',rei:0.6,tag:'кат. II'},
+  repo:{id:'repo',name:'Репо и ABCP',org:'оптовое фондирование',layer:'cover',rei:1.0,tag:'кат. III'},
+  tenants:{id:'tenants',name:'Арендаторы',org:'вне договора ипотеки',layer:'people',rei:0.65,tag:'tier-3'},
+  citizens:{id:'citizens',name:'Граждане без ипотеки',org:'занятость · 401(k)',layer:'people',rei:0.6,tag:'макроканал'},
+  russia:{id:'russia',name:'Россия',org:'нефть · резервы · внешний долг',layer:'state',rei:0.85,tag:'2008–09'},
+  kazakhstan:{id:'kazakhstan',name:'Казахстан',org:'BTA · Alliance · FX-кредиты',layer:'state',rei:0.85,tag:'2008–09'},
+  usgov:{id:'usgov',name:'Правительство США',org:'TARP · ФРС',layer:'state',rei:1.0,tag:'стабилизация'},
+  gse:{id:'gse',name:'Fannie · Freddie',org:'GSE',layer:'chain',rei:0.85,tag:'гарантии'},
+  mmf:{id:'mmf',name:'Фонды денежного рынка',org:'Reserve Primary',layer:'cover',rei:0.9,tag:'breaking the buck'}
+};
+
+var STEPS=[
+  {mins:'0–1 мин',kicker:'Шаг 1 · постановка',title:'Узлы с асимметрией стимулов',tiles:['brokers','ratings','ninja']},
+  {mins:'1–3 мин',kicker:'Шаг 2 · цепочка',title:'Передача кредитного риска',tiles:['ninja','brokers','countrywide','newcentury','lehman','ratings','aig','investors']},
+  {mins:'3–5 мин',kicker:'Шаг 3 · Каплан–Майкс',title:'Три категории',tiles:['brokers','burry','baum','repo']},
+  {mins:'5–8 мин',kicker:'Шаг 4 · REI',title:'Баланс ≠ системный ущерб',tiles:['brokers','ratings','lehman','aig']},
+  {mins:'8–10 мин',kicker:'Шаг 5 · аллокация убытка',title:'Носители шока',tiles:['ninja','tenants','citizens']},
+  {mins:'10–12 мин',kicker:'Шаг 6 · перенос',title:'РФ · Казахстан',tiles:['russia','kazakhstan']},
+  {mins:'12–14 мин',kicker:'Шаг 7 · синтез',title:'Создатели экспозиции и носители убытка',tiles:['lehman','aig','usgov','citizens']},
+  {mins:'14–15 мин',kicker:'Шаг 8 · Q&A',title:'Карта контрагентов',tiles:['brokers','ratings','repo','gse','mmf','usgov','russia','kazakhstan']}
+];
+
+var i=0;
+var $=function(s){return document.querySelector(s);};
+
+function tileHTML(key){
+  var t=A[key];if(!t)return '';
+  var c=C[t.layer]||C.chain;
+  if(t.tag==='кат. I')c=C.c1;
+  if(t.tag==='кат. II')c=C.c2;
+  if(t.tag==='кат. III')c=C.c3;
+  var wide=t.layer==='state'&&(key==='russia'||key==='kazakhstan')?' wide':'';
+  return '<a class="tile'+wide+'" href="risk-management-the-big-short.htm#/actor/'+t.id+'" style="--c:'+c+'">'
+    +'<span class="tile__top"><span class="tile__tag">'+t.tag+'</span><span class="tile__rei">REI '+t.rei.toFixed(2)+'</span></span>'
+    +'<span class="tile__name">'+t.name+'</span>'
+    +'<span class="tile__org">'+t.org+'</span>'
+    +'</a>';
+}
+
+function render(){
+  var s=STEPS[i];
+  $('#mins').textContent=s.mins;
+  $('#progN').textContent=(i+1)+' / '+STEPS.length;
+  $('#progBar').style.width=((i+1)/STEPS.length*100)+'%';
+  $('#prev').disabled=i===0;
+  $('#next').disabled=i===STEPS.length-1;
+  $('#slide').innerHTML=
+    '<div class="kicker">'+s.kicker+'</div>'
+    +'<h1>'+s.title+'</h1>'
+    +'<div class="mosaic">'+s.tiles.map(tileHTML).join('')+'</div>';
+  try{history.replaceState(null,'','#/'+(i+1));}catch(e){}
+}
+
+function go(n){
+  i=Math.max(0,Math.min(STEPS.length-1,n));
+  render();
+}
+
+$('#prev').onclick=function(){go(i-1);};
+$('#next').onclick=function(){go(i+1);};
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(i+1);return;}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
+});
+
+var m=location.hash.match(/#\/?(\d+)/);
+if(m){var n=parseInt(m[1],10);if(n>=1&&n<=STEPS.length)i=n-1;}
+render();
+})();
+</script>
+</body>
+</html>
